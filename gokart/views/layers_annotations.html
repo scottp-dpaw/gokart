@@ -1,0 +1,78 @@
+{% extends 'layers.html' %}
+
+{% block tab_panels %}
+{{ super() }}
+<div class="tabs-panel" id="menu-tab-annotations">
+    <h3>Annotations</h3>
+    <div class="tool-slice row collapse">
+        <div class="small-2"><label class="text-right">Tool:</label></div>
+        <div class="small-10"><div class="expanded button-group" id="tool-group-mode">
+            <a id="tool-mode-pan" class="button button-tool selected" title="Pan"><i class="fa fa-hand-paper-o" aria-hidden="true"></i></a>
+            <a id="tool-mode-select" class="button button-tool" title="Select"><i class="fa fa-mouse-pointer" aria-hidden="true"></i></a>
+            <a id="tool-mode-point" class="button button-tool" title="Draw a point">
+                <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-point"></use></svg>
+            </a>
+            <a id="tool-mode-line" class="button button-tool" title="Draw a line">
+                <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-line"></use></svg>
+            </a>
+            <a id="tool-mode-polygon" class="button button-tool" title="Draw an area/polygon">
+                <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-area"></use></svg>
+            </a>
+        </div></div>
+    </div>
+    <div class="tool-slice row collapse">
+        <div class="small-2"><label class="text-right">Size:</label></div>
+        <div class="small-10"><div class="expanded button-group" id="tool-group-size">
+            <a id="tool-size-small" class="button selected" style="">Small</a>
+            <a id="tool-size-medium" class="button" style="">Medium</a>
+            <a id="tool-size-large" class="button" style="">Large</a>
+        </div></div>
+    </div>
+    <div class="tool-slice row collapse">
+        <div class="small-2"><label class="text-right">Colour:</label></div>
+        <div class="small-10"><div class="expanded button-group" id="tool-group-colour">
+            <a id="tool-colour-r" class="button selected" style="background-color: #cc0000;"></a>
+            <a id="tool-colour-o" class="button" style="background-color: #f57900;"></a>
+            <a id="tool-colour-y" class="button" style="background-color: #edd400;"></a>
+            <a id="tool-colour-g" class="button" style="background-color: #73d216;"></a>
+            <a id="tool-colour-b" class="button" style="background-color: #3465a4;"></a>
+            <a id="tool-colour-v" class="button" style="background-color: #75507b;"></a>
+            <a id="tool-colour-br" class="button" style="background-color: #8f5902;"></a>
+            <a id="tool-colour-gr" class="button" style="background-color: #555753;"></a>
+            <a id="tool-colour-bl" class="button" style="background-color: #000000;"></a>
+        </div></div>
+    </div>
+    <div class="tool-slice row collapse">
+        <div class="small-2"><label class="text-right">Ops:</label></div>
+        <div class="small-10">
+            <div class="small-12"><div class="expanded button-group">
+                <a id="tool-cut" class="button"><i class="fa fa-cut" aria-hidden="true"></i> Cut</a>
+                <a id="tool-copy" class="button"><i class="fa fa-copy" aria-hidden="true"></i> Copy</a>
+                <a id="tool-paste" class="button"><i class="fa fa-paste" aria-hidden="true"></i> Paste</a>
+            </div></div>
+            <div class="small-12"><div class="expanded button-group">
+                <a id="tool-undo" class="button"><i class="fa fa-undo" aria-hidden="true"></i> Undo</a>
+                <a id="tool-redo" class="button"><i class="fa fa-repeat" aria-hidden="true"></i> Redo</a>
+            </div></div>
+            <div class="small-12"><div class="expanded button-group">
+                <a id="tool-import" class="button"><i class="fa fa-upload" aria-hidden="true"></i> Import</a>
+            </div></div>
+        </div>
+    </div>
+    <div class="tool-slice row collapse">
+        <div class="small-2"><label class="text-right">Export:</label></div>
+        <div class="small-10"><div class="expanded button-group">
+            <a class="button"><i class="fa fa-download" aria-hidden="true"></i> GeoJSON</a>
+            <a class="button"><i class="fa fa-print" aria-hidden="true"></i> PDF</a>
+        </div></div>
+    </div>
+    <h3>Selected Feature</h3>    
+</div>
+{% endblock %}
+
+{% block tabs %}
+{{ super() }}
+<li class="tabs-title side-button"><a href="#menu-tab-annotations" title="Annotations">
+    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-data"></use></svg>
+</a></li>
+{% endblock %}

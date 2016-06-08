@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block offcanvas %}
+<div class="tabs-content vertical" data-tabs-content="menu-tabs">
+    {% block tab_panels %}
+    <div class="tabs-panel" id="menu-tab-layers">
+        <ul class="tabs" data-tabs id="layers-tabs">
+            <li class="tabs-title is-active"><a href="#layers-list" aria-selected="true">All Layers</a></li>
+            <li class="tabs-title"><a href="#layers-active" aria-selected="true">Active Layers</a></li>
+        </ul>
+        <div class="tabs-content vertical" data-tabs-content="layers-tabs">
+            <div class="tabs-panel is-active" id="layers-list">
+                <div class="small-12">
+                    <input type="text" id="layers-tabs-search" placeholder="Full text search"/>
+                </div>
+                <table>
+                <tr>
+                <td>
+                    <div class="small-12" style="color: black;">
+                        DPaW Communication Repeater Stations 
+                        <div class="switch float-right">
+                            <input class="switch-input" type="checkbox" id="layer_idxxx"/>
+                            <label class="switch-paddle" for="layer_idxxx"></label>
+                        </div>
+                    </div>
+                </td>
+                </tr>
+                </table>
+            </div>
+            <div class="tabs-panel" id="layers-active">
+            List of active layers
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}
+
+{% block content %}
+<ul class="tabs vertical map-widget" id="menu-tabs" data-tabs>
+    {% block tabs %}
+    <li class="tabs-title side-button"><a href="#menu-tab-layers" title="Map Layers">
+        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-layers"></use></svg>
+    </a></li>
+    {% endblock %}
+</ul>
+{{ super() }}
+{% endblock %}

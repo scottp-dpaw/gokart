@@ -1,132 +1,32 @@
-{% extends 'base.html' %}
+{% extends 'layers_annotations.html' %}
 
 {% block title %}P&W Spatial Support System{% endblock %}
 
-{% block custom_css %}
-<link rel="stylesheet" href="/static/css/sss.css" type="text/css"/>
-{% endblock %}
-
-{% block custom_off_canvas %}
-<div class="tabs-content vertical" data-tabs-content="menu-tabs">
-  
-    <div class="tabs-panel" id="menu-tab-layers">
-        <ul class="tabs" data-tabs id="layers-tabs">
-            <li class="tabs-title is-active"><a href="#layers-list" aria-selected="true">All Layers</a></li>
-            <li class="tabs-title"><a href="#layers-active" aria-selected="true">Active Layers</a></li>
-        </ul>
-        <div class="tabs-content vertical" data-tabs-content="layers-tabs">
-            <div class="tabs-panel is-active" id="layers-list">
-                <div class="small-12">
-                    <input type="text" id="layers-tabs-search" placeholder="Full text search"/>
-                </div>
-                <table>
-                <tr>
-                <td>
-                    <div class="small-12" style="color: black;">
-                        DPaW Communication Repeater Stations 
-                        <div class="switch float-right">
-                            <input class="switch-input" type="checkbox" id="layer_idxxx"/>
-                            <label class="switch-paddle" for="layer_idxxx"></label>
-                        </div>
-                    </div>
-                </td>
-                </tr>
-                </table>
-            </div>
-            <div class="tabs-panel" id="layers-active">
-            List of active layers
-            </div>
-        </div>
-    </div>
-
-    <div class="tabs-panel" id="menu-tab-tracking">
+{% block tab_panels %}
+{{ super() }}
+<div class="tabs-panel" id="menu-tab-tracking">
     Tracking goes here.
-    </div>
-
-    <div class="tabs-panel" id="menu-tab-annotations">
-        <h3>Annotations</h3>
-        <div class="tool-slice row collapse">
-            <div class="small-2"><label class="text-right">Tool:</label></div>
-            <div class="small-10"><div class="expanded button-group" id="tool-group-mode">
-                <a id="tool-mode-pan" class="button button-tool selected" title="Pan"><i class="fa fa-hand-paper-o" aria-hidden="true"></i></a>
-                <a id="tool-mode-select" class="button button-tool" title="Select"><i class="fa fa-mouse-pointer" aria-hidden="true"></i></a>
-                <a id="tool-mode-point" class="button button-tool" title="Draw a point">
-                    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-point"></use></svg>
-                </a>
-                <a id="tool-mode-line" class="button button-tool" title="Draw a line">
-                    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-line"></use></svg>
-                </a>
-                <a id="tool-mode-polygon" class="button button-tool" title="Draw an area/polygon">
-                    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-area"></use></svg>
-                </a>
-            </div></div>
-        </div>
-        <div class="tool-slice row collapse">
-            <div class="small-2"><label class="text-right">Size:</label></div>
-            <div class="small-10"><div class="expanded button-group" id="tool-group-size">
-                <a id="tool-size-small" class="button selected" style="">Small</a>
-                <a id="tool-size-medium" class="button" style="">Medium</a>
-                <a id="tool-size-large" class="button" style="">Large</a>
-            </div></div>
-        </div>
-        <div class="tool-slice row collapse">
-            <div class="small-2"><label class="text-right">Colour:</label></div>
-            <div class="small-10"><div class="expanded button-group" id="tool-group-colour">
-                <a id="tool-colour-r" class="button selected" style="background-color: #cc0000;"></a>
-                <a id="tool-colour-o" class="button" style="background-color: #f57900;"></a>
-                <a id="tool-colour-y" class="button" style="background-color: #edd400;"></a>
-                <a id="tool-colour-g" class="button" style="background-color: #73d216;"></a>
-                <a id="tool-colour-b" class="button" style="background-color: #3465a4;"></a>
-                <a id="tool-colour-v" class="button" style="background-color: #75507b;"></a>
-                <a id="tool-colour-br" class="button" style="background-color: #8f5902;"></a>
-                <a id="tool-colour-gr" class="button" style="background-color: #555753;"></a>
-                <a id="tool-colour-bl" class="button" style="background-color: #000000;"></a>
-            </div></div>
-        </div>
-        <div class="tool-slice row collapse">
-            <div class="small-2"><label class="text-right">Ops:</label></div>
-            <div class="small-10">
-                <div class="small-12"><div class="expanded button-group">
-                    <a id="tool-cut" class="button"><i class="fa fa-cut" aria-hidden="true"></i> Cut</a>
-                    <a id="tool-copy" class="button"><i class="fa fa-copy" aria-hidden="true"></i> Copy</a>
-                    <a id="tool-paste" class="button"><i class="fa fa-paste" aria-hidden="true"></i> Paste</a>
-                </div></div>
-                <div class="small-12"><div class="expanded button-group">
-                    <a id="tool-undo" class="button"><i class="fa fa-undo" aria-hidden="true"></i> Undo</a>
-                    <a id="tool-redo" class="button"><i class="fa fa-repeat" aria-hidden="true"></i> Redo</a>
-                </div></div>
-                <div class="small-12"><div class="expanded button-group">
-                    <a id="tool-import" class="button"><i class="fa fa-upload" aria-hidden="true"></i> Import</a>
-                </div></div>
-            </div>
-        </div>
-        <div class="tool-slice row collapse">
-            <div class="small-2"><label class="text-right">Export:</label></div>
-            <div class="small-10"><div class="expanded button-group">
-                <a class="button"><i class="fa fa-download" aria-hidden="true"></i> GeoJSON</a>
-                <a class="button"><i class="fa fa-print" aria-hidden="true"></i> PDF</a>
-            </div></div>
-        </div>
-        <h3>Selected Feature</h3>    
-    </div>
 </div>
 {% endblock %}
 
-{% block custom_content %}
-<ul class="tabs vertical map-widget" id="menu-tabs" data-tabs>
-    <li class="tabs-title side-button"><a href="#menu-tab-layers" title="Map Layers">
-        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-layers"></use></svg>
-    </a></li>
-    <li class="tabs-title side-button"><a href="#menu-tab-tracking" title="Vehicle Tracking">
-        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-geolocate"></use></svg>
-    </a></li>
-    <li class="tabs-title side-button"><a href="#menu-tab-annotations" title="Annotations">
-        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-data"></use></svg>
-    </a></li>
-</ul>
+{% block tabs %}
+{{ super() }}
+<li class="tabs-title side-button"><a href="#menu-tab-tracking" title="Vehicle Tracking">
+    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-geolocate"></use></svg>
+</a></li>
 {% endblock %}
 
-
-{% block custom_script %}
-<script type="text/javascript" src="/static/js/sss.js"></script>
+{% block loader_script %}
+<script>
+// load map
+gokart.init([
+    gokart.createTileLayer({
+        'name': 'dpaw:mapbox_outdoors'
+    }),
+    gokart.createTileLayer({
+        'name': 'dpaw:telstra_gcm_4g_3g',
+        'format': 'image/png'
+    }),
+]);
+</script>
 {% endblock %}
