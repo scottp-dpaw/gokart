@@ -58,6 +58,39 @@ window.gokart = (function(self) {
         self.colour = this.id;
     });
 
+    ui.renderActiveLayers = function(ev) {
+        ui.layersActive.html(ui.activeLayersTmpl({
+            layers: self.map.getLayers().getArray()
+        })).append(ui.layersActive.children().get().reverse());
+    }
+    
+    ui.updateOrder = function(el) {
+        console.log(ui.layersActive.children());
+    }
+
+    // wire up scale
+    $self.on("init_map", function() {
+        ui.menuScale = $("#menu-scale").appendTo($(gokart.map.getTargetElement()).find(".ol-overlaycontainer-stopevent"));
+        $.each(self.fixed_scales, function(index, val) {
+            ui.menuScale.append("<option>1:" + (val / 1000).toLocaleString() + "K</option>");
+        })
+        ui.menuScale.on("change", function() {
+            self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "") * 1000);
+        })
+        self.map.on("postrender", function() {
+            ui.menuScale.val("1:" + (self.get_fixed_scale() / 1000).toLocaleString() + "K")
+        })
+        if ($("#layers-active").length == 1) {
+            ui.activeLayersTmpl = Handlebars.compile($("#layers-active-template").html());
+            ui.layersActive = $("#layers-active").on("click", "div[data-layer-id]", function() {
+                console.log($(this).attr("data-layer-id"));
+            })
+            self.map.getLayerGroup().on("change", ui.renderActiveLayers);
+            dragula([ui.layersActive.get(0)]).on("dragend", ui.updateOrder);
+            ui.renderActiveLayers();
+        }
+    });
+
     return self;
 })(window.gokart || {});
 

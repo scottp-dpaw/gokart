@@ -5,30 +5,22 @@
     {% block tab_panels %}
     <div class="tabs-panel" id="menu-tab-layers">
         <ul class="tabs" data-tabs id="layers-tabs">
-            <li class="tabs-title is-active"><a href="#layers-list" aria-selected="true">All Layers</a></li>
-            <li class="tabs-title"><a href="#layers-active" aria-selected="true">Active Layers</a></li>
+            <li class="tabs-title is-active"><a href="#layers-active" aria-selected="true">Active Layers</a></li>
+            <li class="tabs-title"><a href="#layers-list" aria-selected="true">All Layers</a></li>
         </ul>
         <div class="tabs-content vertical" data-tabs-content="layers-tabs">
-            <div class="tabs-panel is-active" id="layers-list">
-                <div class="small-12">
-                    <input type="text" id="layers-tabs-search" placeholder="Full text search"/>
-                </div>
-                <table>
-                <tr>
-                <td>
-                    <div class="small-12" style="color: black;">
-                        DPaW Communication Repeater Stations 
-                        <div class="switch float-right">
-                            <input class="switch-input" type="checkbox" id="layer_idxxx"/>
-                            <label class="switch-paddle" for="layer_idxxx"></label>
-                        </div>
+            <script id="layers-active-template" type="text/x-handlebars-template">
+                {% raw %}
+                {{#each layers}}
+                    <div class="row" data-layer-id="{{ this.values_.id }}">
+                        <h4>{{ this.values_.name }}</h4>
                     </div>
-                </td>
-                </tr>
-                </table>
-            </div>
-            <div class="tabs-panel" id="layers-active">
-            List of active layers
+                {{/each}}
+                {% endraw %}
+            </script>
+            <div class="tabs-panel is-active" id="layers-active"></div>
+            <div class="tabs-panel" id="layers-list">
+                populate from catalog
             </div>
         </div>
     </div>

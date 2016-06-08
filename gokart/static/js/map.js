@@ -1,6 +1,7 @@
 "use strict";
 window.gokart = (function(self) {
     var $self = $(self)
+
     // default matrix from KMI
     var _matrixSets = {
         "EPSG:4326": {
@@ -26,7 +27,8 @@ window.gokart = (function(self) {
 
     self.defaultLayer = {
         opacity: 100,
-        name: "dpaw:mapbox_outdoors",
+        name: "MapBox Outdoors",
+        id: "dpaw:mapbox_outdoors",
         format: "image/jpeg",
         tileSize: 1024,
         projection: "EPSG:4326",
@@ -44,7 +46,7 @@ window.gokart = (function(self) {
             source: new ol.source.WMTS({
                 url: layer.wmts_url,
                 crossOrigin: 'https://' + window.location.hostname,
-                layer: layer.name,
+                layer: layer.id,
                 matrixSet: matrixSet.name,
                 format: layer.format,
                 projection: layer.projection,
@@ -57,38 +59,21 @@ window.gokart = (function(self) {
                 })
             })
         });
+        // set properties for use in layer selector
+        tileLayer.set("name", layer.name);
+        tileLayer.set("id", layer.id);
         return tileLayer;
     };
 
-    // graticule for printing etc
-    var lonFormatter = function(lon) {
-        var formattedLon = Math.abs(Math.round(lon * 100) / 100);
-        formattedLon += (lon < 0) ? 'W' : ((lon > 0) ? 'E' : '');
-        return formattedLon;
-    };
+    self.layerById = function(id) {
+        return $.grep(self.map.getLayers().getArray(), function(layer) {
+            return layer.get("id") == id;
+        })[0];
+    }
 
-    var latFormatter = function(lat) {
-        var formattedLat = Math.abs(Math.round(lat * 100) / 100);
-        formattedLat += (lat < 0) ? 'S' : ((lat > 0) ? 'N' : '');
-        return formattedLat;
-    };
-
-    // Create the graticule component
-    self.graticule = new ol.Graticule({
-        showLabels: true,
-        lonLabelFormatter: lonFormatter,
-        lonLabelPosition: 0.02,
-        latLabelFormatter: latFormatter,
-        latLabelPosition: 0.98
-    });
-
-    $self.on("init_map",function() {
-        self.graticule.setMap(self.map);
-    });
-    
     //supported fixed scales
-    self.fixed_scales = [1000,2000,2500,5000,10000,20000,25000,50000,80000,100000,125000,250000,500000,1000000,2000000,3000000,5000000,10000000,25000000];
-    
+    self.fixed_scales = [1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000, 80000, 100000, 125000, 250000, 500000, 1000000, 2000000, 3000000, 5000000, 10000000, 25000000];
+
     //set scale, in meters
     self.set_scale = function(scale) {
         var size = self.map.getSize();
@@ -97,10 +82,10 @@ window.gokart = (function(self) {
         } else {
             var bigsize = size[1]
         }
-        var width = self.toMillimeter(bigsize);
+        var width = bigsize / self.px_per_mm;
         var distance = scale * width / 1000 / 2 / 1000; //in kilometers
         var center = self.map.getView().getCenter();
-        var extent = turf.extent(turf.buffer(turf.point(center),distance,'kilometers'));
+        var extent = turf.extent(turf.buffer(turf.point(center), distance, 'kilometers'));
         self.map.setSize([bigsize, bigsize])
         self.map.getView().setResolution(self.map.getView().getResolutionForExtent(extent, self.map.getSize()));
         self.map.setSize(size)
@@ -110,9 +95,9 @@ window.gokart = (function(self) {
     self.get_scale = function() {
         var center = self.map.getView().getCenter();
         var size = self.map.getSize();
-        var width = self.toMillimeter(size[0]);
+        var width = size[0] / self.px_per_mm;
         var extent = self.map.getView().calculateExtent(size);
-        var distance = turf.distance(turf.point([extent[0],center[1]]),turf.point(center),'kilometers') * 2;
+        var distance = turf.distance(turf.point([extent[0], center[1]]), turf.point(center), 'kilometers') * 2;
         return distance * 1000 * 1000 / width;
     }
 
@@ -130,7 +115,7 @@ window.gokart = (function(self) {
         });
         return clampedScale;
     };
-    
+
     //return scale string
     self.get_scale_text = function(scale) {
         var scale = Math.round(scale);
@@ -141,7 +126,7 @@ window.gokart = (function(self) {
             return "1:" + numeral(scale).format('0,0') + "km";
         }
     }
-    
+
     // initialise map
     self.init = function(layers) {
         self.map = new ol.Map({
@@ -154,7 +139,7 @@ window.gokart = (function(self) {
                 center: [123.75, -24.966],
                 zoom: 5,
                 maxZoom: 21,
-                minZoom: 3
+                minZoom: 5
             }),
             controls: [
                 new ol.control.Zoom(),
@@ -168,6 +153,27 @@ window.gokart = (function(self) {
                 }),
             ]
         });
+        // calculate screen res
+        $("body").append('<div id="px_per_mm" style="width:1mm;display:none"></div>');
+        self.px_per_mm = parseFloat($('#px_per_mm').width());
+        $("#px_per_mm").remove();
+        // Create the graticule component
+        self.graticule = new ol.Graticule({
+            showLabels: true,
+            lonLabelFormatter: function(lon) {
+                var formattedLon = Math.abs(Math.round(lon * 100) / 100);
+                formattedLon += (lon < 0) ? 'W' : ((lon > 0) ? 'E' : '');
+                return formattedLon;
+            },
+            lonLabelPosition: 0.02,
+            latLabelFormatter: function(lat) {
+                var formattedLat = Math.abs(Math.round(lat * 100) / 100);
+                formattedLat += (lat < 0) ? 'S' : ((lat > 0) ? 'N' : '');
+                return formattedLat;
+            },
+            latLabelPosition: 0.98
+        });
+        self.graticule.setMap(self.map);
         $self.trigger("init_map");
     };
     return self;
