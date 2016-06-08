@@ -66,9 +66,9 @@ window.gokart = (function(self) {
     };
 
     self.layerById = function(id) {
-        return $.grep(self.map.getLayers().getArray(), function(layer) {
+        return self.map.getLayers().getArray().find(function(layer) {
             return layer.get("id") == id;
-        })[0];
+        });
     }
 
     //supported fixed scales

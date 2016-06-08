@@ -59,13 +59,20 @@ window.gokart = (function(self) {
     });
 
     ui.renderActiveLayers = function(ev) {
+        if (ui.updatingOrder) { return }
         ui.layersActive.html(ui.activeLayersTmpl({
             layers: self.map.getLayers().getArray()
         })).append(ui.layersActive.children().get().reverse());
     }
     
     ui.updateOrder = function(el) {
-        console.log(ui.layersActive.children());
+        ui.updatingOrder = true;
+        $(ui.layersActive.children().get().reverse()).each(function() {
+            var layer = self.layerById($(this).attr("data-layer-id"));
+            self.map.removeLayer(layer);
+            self.map.addLayer(layer);
+        })
+        ui.updatingOrder = false;
     }
 
     // wire up scale
