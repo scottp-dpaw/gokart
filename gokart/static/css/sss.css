@@ -1,0 +1,65 @@
+/* fix tool labels */
+.text-right { 
+    margin-right: 1em;
+    color: #ffffff;
+}
+
+.tool-slice {
+    margin-bottom: 4px;
+}
+.tool-slice .button.selected {
+    border: 2px dotted #ffffff;
+};
+
+/* make tool button text bigger */
+.button-group.expanded .button-tool { 
+    padding: 0.5em; 
+    font-size: 18px; 
+}
+
+
+#menu-tabs {
+    background-color: transparent;
+    border: 0;
+}
+
+#menu-scale {
+    width: auto;
+    right: 1em;
+    bottom: 2em;
+}
+
+/* remove extra padding for tab boxes inside other tab boxes */
+#layers-list {
+    padding: 1rem 0 0 0;
+}
+
+/* custom F6 tab style overrides for the side buttons  */
+.side-button > a {
+    background-color: rgba(37,45,51,.5);
+    border-left: 3px solid transparent;
+    padding: 1em;
+    font-size: 24px;
+    color: white;
+}
+
+.side-button .icon {
+    width: 24px;
+    height: 24px;
+}
+
+.side-button > a:hover {
+    background-color: rgba(37,45,51,.9);
+}
+.side-button > a:focus {
+    background-color: rgba(37,45,51,.5);
+}
+.side-button > a[aria-selected="true"] {
+    background-color: rgba(66,79,90,.9);
+    border-left: 3px solid rgb(237, 177, 0);
+}
+
+/* fix absurdly large margins on button groups */
+.button-group {
+    margin-bottom: 1px;
+}

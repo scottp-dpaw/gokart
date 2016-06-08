@@ -1,0 +1,108 @@
+/* full-height page for slippy map, thanks */
+html, body { 
+    width: 100%; 
+    height: 100%; 
+    margin: 0; 
+    padding: 0; 
+    overflow: hidden; 
+}
+
+/* full-height the foundation off-canvas stuff also */
+.off-canvas-wrapper { 
+    height: 100%; 
+}
+.off-canvas-wrapper-inner { 
+    height: 100%; 
+    background-color: #424f5a;
+    color: #fbfbfb;
+}
+.icon {
+    width: 20px;
+    height: 20px;
+}
+
+.off-canvas-content { 
+    height: 100%; 
+}
+
+.off-canvas { 
+    height: 100%; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: stretch;
+}
+.off-canvas .tabs-content { 
+    height: 100%; flex: 1; 
+}
+
+/* slippy map widget */
+.map { 
+    width: 100%; 
+    height: 100%; 
+    min-height: 0; 
+    flex: 1; 
+    background: url('bg.png') repeat; 
+    background-position: center;  
+}
+
+/* abs positioning shifts for OpenLayers widgets */
+.ol-scale-line { 
+    top: auto; 
+    left: auto; 
+    right: 1em; 
+    bottom: 1em; 
+}
+.ol-mouse-position { 
+    border-radius: 4px; 
+    background-color: 
+    rgba( 0, 60, 136, 0.3 ); 
+    color: #eeeeee; 
+    top: auto; 
+    right: auto; 
+    left: 1em; 
+    bottom: 1em; 
+}
+.ol-zoom { 
+    top: auto; 
+    left: auto; 
+    right: 1em; 
+    bottom: 6em; 
+}
+.ol-control button {
+    padding; 1em;
+    font-size: 24px;
+}
+
+/* hacks to widen the off-canvas area */
+.off-canvas.position-left {
+    left: -400px;
+    width: 400px;
+}
+
+@media screen and (min-width: 40em) {
+    .position-left.reveal-for-medium {
+        left: 0;
+    }
+    .position-left.reveal-for-medium ~ .off-canvas-content {
+        margin-left: 400px; 
+    }
+}
+
+/* raise our widgets above the slippy map */
+.map-widget { 
+    position: absolute; 
+    z-index: 1; 
+}
+
+/* remove some of the annoying tab box styles */
+#offCanvasLeft { 
+    background-color: transparent; 
+}
+#offCanvasLeft .tabs-content { 
+    background-color: transparent; 
+    border: 0; 
+}
+
+
