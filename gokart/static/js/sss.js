@@ -1,37 +1,19 @@
-var map = new ol.Map({
-    target: 'map',
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.MapQuest({layer: 'sat'})
-        })
-    ],
-    view: new ol.View({
-        center: ol.proj.fromLonLat([37.41, 8.82]),
-        zoom: 4
-    }),
-    controls: [
-        new ol.control.Zoom(),
-        new ol.control.ScaleLine(),
-        new ol.control.MousePosition({
-            projection: "EPSG:4326",
-            coordinateFormat: function(coord) {
-                return ol.coordinate.toStringHDMS(coord);
-            }
-        }),
-    ]
-});
+
+// load map
+gokart.init();
+
 
 // bind menu side-tabs to reveal the side pane
 
 $("#menu-tabs").on("change.zf.tabs", function(ev) {
     $("#offCanvasLeft").addClass("reveal-for-medium");
-    map.updateSize();
+    gokart.map.updateSize();
 });
 
 $("#menu-tabs").on("click", ".tabs-title a[aria-selected=false]", function(ev) {
     $("#offCanvasLeft").addClass("reveal-for-medium");
     $(this).attr("aria-selected", true);
-    map.updateSize();
+    gokart.map.updateSize();
 }); 
 
 $("#menu-tabs").on("click", ".tabs-title a[aria-selected=true]", function(ev) {
