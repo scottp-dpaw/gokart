@@ -3,6 +3,7 @@ window.gokart = (function(self) {
     $(document).foundation();
     svg4everybody();
 
+    var $self = $(self)
     var ui = self.ui = {};
 
     ui.sizes = {

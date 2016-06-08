@@ -70,10 +70,6 @@ html, body {
     right: 1em; 
     bottom: 6em; 
 }
-.ol-control button {
-    padding; 1em;
-    font-size: 24px;
-}
 
 /* hacks to widen the off-canvas area */
 .off-canvas.position-left {
