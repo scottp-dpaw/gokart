@@ -3,7 +3,7 @@
 <head>
     <title>{% block title %}{% endblock %}</title>
     <meta charset="utf-8"/>
-{% include require-css.html %}
+{% include 'require-css.html' %}
 {% block custom_css %}
 {% endblock %}
 </head>
@@ -42,7 +42,7 @@
             </div>
         </div>
     </div>
-{% include require-script.html %}
+{% include 'require-script.html' %}
 {% block custom_script %}
 {% endblock %}
 </body>

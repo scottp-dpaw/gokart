@@ -1,9 +1,9 @@
-{% extends base.html %}
+{% extends 'base.html' %}
 
 {% block title %}P&W Spatial Support System{% endblock %}
 
 {% block custom_css %}
-
+<link rel="stylesheet" href="/static/css/sss.css" type="text/css"/>
 {% endblock %}
 
 {% block custom_off_canvas %}
@@ -51,13 +51,13 @@
                 <a id="tool-mode-pan" class="button button-tool selected" title="Pan"><i class="fa fa-hand-paper-o" aria-hidden="true"></i></a>
                 <a id="tool-mode-select" class="button button-tool" title="Select"><i class="fa fa-mouse-pointer" aria-hidden="true"></i></a>
                 <a id="tool-mode-point" class="button button-tool" title="Draw a point">
-                    <svg class="icon"><use xlink:href="//static.dpaw.wa.gov.au/images/icons/iD-sprite.svg#icon-point"></use></svg>
+                    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-point"></use></svg>
                 </a>
                 <a id="tool-mode-line" class="button button-tool" title="Draw a line">
-                    <svg class="icon"><use xlink:href="//static.dpaw.wa.gov.au/images/icons/iD-sprite.svg#icon-line"></use></svg>
+                    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-line"></use></svg>
                 </a>
                 <a id="tool-mode-polygon" class="button button-tool" title="Draw an area/polygon">
-                    <svg class="icon"><use xlink:href="//static.dpaw.wa.gov.au/images/icons/iD-sprite.svg#icon-area"></use></svg>
+                    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-area"></use></svg>
                 </a>
             </div></div>
         </div>
@@ -107,21 +107,26 @@
                 <a class="button"><i class="fa fa-print" aria-hidden="true"></i> PDF</a>
             </div></div>
         </div>
-    <h3>Selected Feature</h3>            
+        <h3>Selected Feature</h3>    
+    </div>
 </div>
 {% endblock %}
 
 {% block custom_content %}
 <ul class="tabs vertical map-widget" id="menu-tabs" data-tabs>
     <li class="tabs-title side-button"><a href="#menu-tab-layers" title="Map Layers">
-        <svg class="icon"><use xlink:href="//static.dpaw.wa.gov.au/images/icons/iD-sprite.svg#icon-layers"></use></svg>
+        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-layers"></use></svg>
     </a></li>
     <li class="tabs-title side-button"><a href="#menu-tab-tracking" title="Vehicle Tracking">
-        <svg class="icon"><use xlink:href="//static.dpaw.wa.gov.au/images/icons/iD-sprite.svg#icon-geolocate"></use></svg>
+        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-geolocate"></use></svg>
     </a></li>
     <li class="tabs-title side-button"><a href="#menu-tab-annotations" title="Annotations">
-        <svg class="icon"><use xlink:href="//static.dpaw.wa.gov.au/images/icons/iD-sprite.svg#icon-data"></use></svg>
+        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-data"></use></svg>
     </a></li>
 </ul>
 {% endblock %}
 
+
+{% block custom_script %}
+<script type="text/javascript" src="/static/js/sss.js"></script>
+{% endblock %}

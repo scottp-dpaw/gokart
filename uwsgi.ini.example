@@ -6,6 +6,7 @@ module          = gokart
 
 # process-related settings
 processes       = 4
+#master          = false
 max-requests    = 1000
 cache2          = name=default,bitmap=1,items=10000,blocksize=1000,blocks=200000,purge_lru=1
 vacuum          = true
