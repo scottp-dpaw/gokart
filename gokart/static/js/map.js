@@ -127,7 +127,7 @@ window.gokart = (function(self) {
             view: new ol.View({
                 projection: "EPSG:4326",
                 center: [123.75, -24.966],
-                zoom: 5,
+                zoom: 6,
                 maxZoom: 21,
                 minZoom: 5
             }),
