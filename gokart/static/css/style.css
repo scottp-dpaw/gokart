@@ -146,6 +146,11 @@ html, body {
     background-color:rgba(0,60,136,.7);
 }
 
+#download-png {
+    bottom: 1em;
+    right: 9em;
+}
+
 /* remove extra padding for tab boxes inside other tab boxes */
 #layers-list {
     padding: 1rem 0 0 0;

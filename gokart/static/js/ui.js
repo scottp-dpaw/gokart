@@ -84,6 +84,14 @@ window.gokart = (function(self) {
             ui.menuScale.find("#actualScale").text(self.getScaleString());
             ui.menuScale.val(self.getScaleString());
         });
+        // setup PNG download
+        $("#download-png").on("click", function() {
+            self.map.once('postcompose', function(event) {
+                var canvas = event.context.canvas;
+                $("#download-png").get(0).href = canvas.toDataURL('image/png');
+            });
+        });
+        self.map.renderSync();
         // setup layer ordering if layer ui available
         if ($("#layers-active").length == 1) {
             ui.activeLayersTmpl = Handlebars.compile($("#layers-active-template").html());

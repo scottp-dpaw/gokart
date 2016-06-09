@@ -7,10 +7,11 @@
 // load map
 gokart.init([
     gokart.createTileLayer({
-        'name': 'dpaw:mapbox_outdoors'
+        'id': 'dpaw:mapbox_dark'
     }),
     gokart.createTileLayer({
-        'name': 'dpaw:telstra_gcm_4g_3g',
+        'id': 'dpaw:telstra_gcm_4g_3g',
+        'opacity': 60,
         'format': 'image/png'
     }),
 ]);
