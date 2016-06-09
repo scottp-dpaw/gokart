@@ -77,10 +77,13 @@ window.gokart = (function(self) {
 
     $self.on("init_map", function() {
         // setup scale events
-        ui.menuScale = $("#menu-scale").appendTo($(gokart.map.getTargetElement()).find(".ol-overlaycontainer-stopevent"));
+        ui.menuScale = $("#menu-scale").on("change", function() { self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "")) });
         $.each(self.fixed_scales, function(index, val) { ui.menuScale.append("<option>1:" + val.toLocaleString() + "K</option>") });
-        ui.menuScale.on("change", function() { self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "")) });
-        self.map.on("postrender", function() { ui.menuScale.val("1:" + self.get_fixed_scale().toLocaleString() + "K").attr("title", Math.round(self.get_scale() * 100) / 100 + "K") });
+        ui.menuScale.prepend('<option id="actualScale">' + self.getScaleString() + '</option>');
+        self.map.on("postrender", function() {
+            ui.menuScale.find("#actualScale").text(self.getScaleString());
+            ui.menuScale.val(self.getScaleString());
+        });
         // setup layer ordering if layer ui available
         if ($("#layers-active").length == 1) {
             ui.activeLayersTmpl = Handlebars.compile($("#layers-active-template").html());

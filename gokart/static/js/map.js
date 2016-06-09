@@ -92,6 +92,10 @@ window.gokart = (function(self) {
         return distance * 1000 * self.px_per_mm / size[0] ;
     }
 
+    self.getScaleString = function() {
+        return "1:" + (Math.round(self.get_scale() * 100) / 100).toLocaleString() + "K";
+    }
+
 
     //get a fixed scale 000's closest to current scale.
     self.get_fixed_scale = function() {
@@ -102,7 +106,6 @@ window.gokart = (function(self) {
                 closest = this;
             }
         });
-        self.set_scale(closest);
         return closest;
     };
 
@@ -134,7 +137,7 @@ window.gokart = (function(self) {
             controls: [
                 new ol.control.Zoom(),
                 new ol.control.ScaleLine(),
-                new ol.control.FullScreen(),
+                new ol.control.FullScreen({source: $("body").get(0)}),
                 new ol.control.MousePosition({
                     projection: "EPSG:4326",
                     coordinateFormat: function(coord) {
