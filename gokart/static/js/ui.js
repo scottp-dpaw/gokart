@@ -75,18 +75,13 @@ window.gokart = (function(self) {
         ui.updatingOrder = false;
     }
 
-    // wire up scale
     $self.on("init_map", function() {
+        // setup scale events
         ui.menuScale = $("#menu-scale").appendTo($(gokart.map.getTargetElement()).find(".ol-overlaycontainer-stopevent"));
-        $.each(self.fixed_scales, function(index, val) {
-            ui.menuScale.append("<option>1:" + (val / 1000).toLocaleString() + "K</option>");
-        })
-        ui.menuScale.on("change", function() {
-            self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "") * 1000);
-        })
-        self.map.on("postrender", function() {
-            ui.menuScale.val("1:" + (self.get_fixed_scale() / 1000).toLocaleString() + "K")
-        })
+        $.each(self.fixed_scales, function(index, val) { ui.menuScale.append("<option>1:" + val.toLocaleString() + "K</option>") });
+        ui.menuScale.on("change", function() { self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "")) });
+        self.map.on("postrender", function() { ui.menuScale.val("1:" + self.get_fixed_scale().toLocaleString() + "K").attr("title", Math.round(self.get_scale() * 100) / 100 + "K") });
+        // setup layer ordering if layer ui available
         if ($("#layers-active").length == 1) {
             ui.activeLayersTmpl = Handlebars.compile($("#layers-active-template").html());
             ui.layersActive = $("#layers-active").on("click", "div[data-layer-id]", function() {

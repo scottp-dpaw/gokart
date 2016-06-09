@@ -10,13 +10,13 @@
         </ul>
         <div class="tabs-content vertical" data-tabs-content="layers-tabs">
             <script id="layers-active-template" type="text/x-handlebars-template">
-                {% raw %}
+            {% raw %}
                 {{#each layers}}
                     <div class="row" data-layer-id="{{ this.values_.id }}">
                         <h4>{{ this.values_.name }}</h4>
                     </div>
                 {{/each}}
-                {% endraw %}
+            {% endraw %}
             </script>
             <div class="tabs-panel is-active" id="layers-active"></div>
             <div class="tabs-panel" id="layers-list">

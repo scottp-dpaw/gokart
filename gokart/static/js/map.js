@@ -3,11 +3,13 @@ window.gokart = (function(self) {
     var $self = $(self)
 
     // default matrix from KMI
+    self.resolutions = [.17578125, .087890625, .0439453125, .02197265625, .010986328125, .0054931640625, .00274658203125, .001373291015625, .0006866455078125, .0003433227539062, .0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
+
     var _matrixSets = {
         "EPSG:4326": {
             "1024": {
                 "name": "gda94",
-                "resolutions": [.17578125, .087890625, .0439453125, .02197265625, .010986328125, .0054931640625, .00274658203125, .001373291015625, .0006866455078125, .0003433227539062, .0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
+                "resolutions": self.resolutions,
                 "minLevel": 0,
                 "maxLevel": 17,
             }
@@ -72,48 +74,36 @@ window.gokart = (function(self) {
     }
 
     //supported fixed scales
-    self.fixed_scales = [1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000, 80000, 100000, 125000, 250000, 500000, 1000000, 2000000, 3000000, 5000000, 10000000, 25000000];
+    self.fixed_scales = [.25, .5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000];
 
-    //set scale, in meters
+    //set scale 000's, in meters
     self.set_scale = function(scale) {
-        var size = self.map.getSize();
-        if (size[0] > size[1]) {
-            var bigsize = size[0]
-        } else {
-            var bigsize = size[1]
+        while (Math.abs(self.get_scale() - scale) > 0.001) {
+            self.map.getView().setResolution(self.map.getView().getResolution() * scale / self.get_scale());
         }
-        var width = bigsize / self.px_per_mm;
-        var distance = scale * width / 1000 / 2 / 1000; //in kilometers
-        var center = self.map.getView().getCenter();
-        var extent = turf.extent(turf.buffer(turf.point(center), distance, 'kilometers'));
-        self.map.setSize([bigsize, bigsize])
-        self.map.getView().setResolution(self.map.getView().getResolutionForExtent(extent, self.map.getSize()));
-        self.map.setSize(size)
     }
 
-    //return the scale, in meters
+    //return the scale 000's, in meters
     self.get_scale = function() {
-        var center = self.map.getView().getCenter();
         var size = self.map.getSize();
-        var width = size[0] / self.px_per_mm;
+        var center = self.map.getView().getCenter();
         var extent = self.map.getView().calculateExtent(size);
         var distance = turf.distance(turf.point([extent[0], center[1]]), turf.point(center), 'kilometers') * 2;
-        return distance * 1000 * 1000 / width;
+        return distance * 1000 * self.px_per_mm / size[0] ;
     }
 
 
-    //get a fixed scale which is not smaller than the current scale.
-    //but if scale is too small, use the smallest scale
+    //get a fixed scale 000's closest to current scale.
     self.get_fixed_scale = function() {
         var scale = self.get_scale();
-        var clampedScale = 1000;
-        $.each(self.fixed_scales, function(index, value) {
-            if (value > scale) {
-                clampedScale = value;
-                return false;
+        var closest = null;
+        $.each(self.fixed_scales, function() {
+            if (closest == null || Math.abs(this - scale) < Math.abs(closest - scale)) {
+                closest = this;
             }
         });
-        return clampedScale;
+        self.set_scale(closest);
+        return closest;
     };
 
     //return scale string
