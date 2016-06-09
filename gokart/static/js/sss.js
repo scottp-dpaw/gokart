@@ -19,7 +19,7 @@ $("#menu-tabs").on("click", ".tabs-title a[aria-selected=false]", function(ev) {
 $("#menu-tabs").on("click", ".tabs-title a[aria-selected=true]", function(ev) {
     $("#offCanvasLeft").removeClass("reveal-for-medium");
     $(this).attr("aria-selected", false);
-    map.updateSize();
+    gokart.map.updateSize();
 });
 
 var sizes = {
