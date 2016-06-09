@@ -151,21 +151,7 @@ window.gokart = (function(self) {
         self.px_per_mm = parseFloat($('#px_per_mm').width());
         $("#px_per_mm").remove();
         // Create the graticule component
-        self.graticule = new ol.Graticule({
-            showLabels: true,
-            lonLabelFormatter: function(lon) {
-                var formattedLon = Math.abs(Math.round(lon * 100) / 100);
-                formattedLon += (lon < 0) ? 'W' : ((lon > 0) ? 'E' : '');
-                return formattedLon;
-            },
-            lonLabelPosition: 0.02,
-            latLabelFormatter: function(lat) {
-                var formattedLat = Math.abs(Math.round(lat * 100) / 100);
-                formattedLat += (lat < 0) ? 'S' : ((lat > 0) ? 'N' : '');
-                return formattedLat;
-            },
-            latLabelPosition: 0.98
-        });
+        self.graticule = new ol.LabelGraticule();
         self.graticule.setMap(self.map);
         $self.trigger("init_map");
     };
