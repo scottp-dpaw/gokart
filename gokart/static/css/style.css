@@ -146,9 +146,17 @@ html, body {
     background-color:rgba(0,60,136,.7);
 }
 
-#download-jpg {
-    bottom: 1em;
-    right: 9em;
+.download {
+    top: 1em;
+    right: 5em;
+}
+
+.download a {
+	background-color: rgba(0,60,136,.5);
+}
+
+.download a:focus, .download a:hover {
+	background-color: rgba(0,60,136,.7);
 }
 
 /* Set height of internal layers to allow for bottom details */

@@ -115,26 +115,6 @@ window.gokart = (function(self) {
         return closest;
     };
 
-    //return scale string
-    self.get_scale_text = function(scale) {
-        var scale = Math.round(scale);
-        if (scale < 1000) {
-            return "1:" + numeral(scale).format('0,0') + "m";
-        } else {
-            scale = Math.round(scale / 10) / 100;
-            return "1:" + numeral(scale).format('0,0') + "km";
-        }
-    }
-    
-    self.origCalculateSourceResolution = ol.reproj.calculateSourceResolution
-    ol.reproj.calculateSourceResolution = function(sourceProj, targetProj, targetCenter, targetResolution) {
-        console.log(targetResolution);
-        var res = self.origCalculateSourceResolution(sourceProj, targetProj, targetCenter, targetResolution);
-        console.log(res);
-        return res;
-    }
-    ol.reproj.calculateSourceResolution = "";
-
     // initialise map
     self.init = function(layers) {
         self.map = new ol.Map({
