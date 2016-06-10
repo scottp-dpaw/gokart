@@ -43,6 +43,17 @@ window.gokart = (function(self) {
         layer = $.extend({}, self.defaultLayer, layer);
 
         var matrixSet = _matrixSets[layer.projection][layer.tileSize];
+        var tileGrid = new ol.tilegrid.WMTS({
+            origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
+            resolutions: matrixSet.resolutions,
+            matrixIds: matrixSet.matrixIds,
+            tileSize: layer.tileSize
+        });
+        // Make grids pick nicer zoom levels for client zooming
+        tileGrid.origGetZForResolution = tileGrid.getZForResolution;
+        tileGrid.getZForResolution = function(resolution, opt_direction) {
+            return tileGrid.origGetZForResolution(resolution, -1);
+        };
         var tileLayer = new ol.layer.Tile({
             opacity: (layer.opacity || 100) / 100,
             source: new ol.source.WMTS({
@@ -53,12 +64,7 @@ window.gokart = (function(self) {
                 format: layer.format,
                 projection: layer.projection,
                 wrapX: true,
-                tileGrid: new ol.tilegrid.WMTS({
-                    origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
-                    resolutions: matrixSet.resolutions,
-                    matrixIds: matrixSet.matrixIds,
-                    tileSize: layer.tileSize
-                })
+                tileGrid: tileGrid
             })
         });
         // set properties for use in layer selector
@@ -119,6 +125,15 @@ window.gokart = (function(self) {
             return "1:" + numeral(scale).format('0,0') + "km";
         }
     }
+    
+    self.origCalculateSourceResolution = ol.reproj.calculateSourceResolution
+    ol.reproj.calculateSourceResolution = function(sourceProj, targetProj, targetCenter, targetResolution) {
+        console.log(targetResolution);
+        var res = self.origCalculateSourceResolution(sourceProj, targetProj, targetCenter, targetResolution);
+        console.log(res);
+        return res;
+    }
+    ol.reproj.calculateSourceResolution = "";
 
     // initialise map
     self.init = function(layers) {
