@@ -4,24 +4,41 @@
 <div class="tabs-content vertical" data-tabs-content="menu-tabs">
     {% block tab_panels %}
     <div class="tabs-panel" id="menu-tab-layers">
-        <ul class="tabs" data-tabs id="layers-tabs">
-            <li class="tabs-title is-active"><a href="#layers-active" aria-selected="true">Active Layers</a></li>
-            <li class="tabs-title"><a href="#layers-list" aria-selected="true">All Layers</a></li>
-        </ul>
-        <div class="tabs-content vertical" data-tabs-content="layers-tabs">
-            <script id="layers-active-template" type="text/x-handlebars-template">
+        <div class="row collapse">
+            <div class="columns shrink">
+                <ul class="tabs" data-tabs id="layers-tabs">
+                    <li class="tabs-title is-active"><a href="#layers-active" aria-selected="true">Map Layers</a></li>
+                    <li class="tabs-title"><a href="#layers-catalog" aria-selected="true">Layer Catalog</a></li>
+                    <li class="tabs-title"><a href="#layers-categories" aria-selected="true">Categories</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row collapse" id="layers-tab-panels">
+            <div class="columns">
+                <div class="tabs-content vertical" data-tabs-content="layers-tabs">
+                    <script id="layers-active-template" type="text/x-handlebars-template">
+                    {% raw %}
+                        {{#each layers}}
+                            <div class="row" data-layer-id="{{ this.values_.id }}">
+                                <h4>{{ this.values_.name }}</h4>
+                            </div>
+                        {{/each}}
+                    {% endraw %}
+                    </script>
+                    <div class="tabs-panel is-active" id="layers-active"></div>
+                    <div class="tabs-panel" id="layers-catalog">readonly view of catalog</div>
+                    <div class="tabs-panel" id="layers-categories">browseable categories (jqtree?)</div>
+                </div>
+            </div>
+        </div>
+        <div class="row collapse">
+            <script id="layer-details-template" type="text/x-handlebars-template">
             {% raw %}
-                {{#each layers}}
-                    <div class="row" data-layer-id="{{ this.values_.id }}">
-                        <h4>{{ this.values_.name }}</h4>
-                    </div>
-                {{/each}}
+                <h4>{{ ol_layer.values_.name }}</h4>
+                <p>{{ catalog_layer.abstract }}</p>
             {% endraw %}
             </script>
-            <div class="tabs-panel is-active" id="layers-active"></div>
-            <div class="tabs-panel" id="layers-list">
-                populate from catalog
-            </div>
+            <div class="columns" id="layer-details"></div>
         </div>
     </div>
     {% endblock %}

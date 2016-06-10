@@ -84,16 +84,24 @@ window.gokart = (function(self) {
             ui.menuScale.find("#actualScale").text(self.getScaleString());
             ui.menuScale.val(self.getScaleString());
         });
-        self.map.on("postcompose", function(event) {
-            $("#download-jpg").attr("href", event.context.canvas.toDataURL('image/jpeg', 0.9));
+        $("#download-jpg").on("click", function() {
+            self.map.once("postcompose", function(event) {
+                event.context.canvas.toBlob(function(blob) {
+                    saveAs(blob, "map.jpg")
+                }, 'image/jpeg', 0.9)
+            });
+            self.map.renderSync();
         });
-        self.map.renderSync();
         // setup layer ordering if layer ui available
         if ($("#layers-active").length == 1) {
             ui.activeLayersTmpl = Handlebars.compile($("#layers-active-template").html());
+            ui.layerDetailsTmpl = Handlebars.compile($("#layer-details-template").html());
             ui.layersActive = $("#layers-active").on("click", "div[data-layer-id]", function() {
-                console.log($(this).attr("data-layer-id"));
-            })
+                $("#layer-details").html(ui.layerDetailsTmpl({
+                    ol_layer: self.layerById($(this).attr("data-layer-id")),
+                    catalog_layer: {abstract: "placeholder abstract"}
+                }));
+            });
             self.map.getLayerGroup().on("change", ui.renderActiveLayers);
             dragula([ui.layersActive.get(0)]).on("dragend", ui.updateOrder);
             ui.renderActiveLayers();

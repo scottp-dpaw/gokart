@@ -137,13 +137,7 @@ window.gokart = (function(self) {
             controls: [
                 new ol.control.Zoom(),
                 new ol.control.ScaleLine(),
-                new ol.control.FullScreen({source: $("body").get(0)}),
-                new ol.control.MousePosition({
-                    projection: "EPSG:4326",
-                    coordinateFormat: function(coord) {
-                        return ol.coordinate.toStringHDMS(coord);
-                    }
-                }),
+                new ol.control.FullScreen({source: $("body").get(0)})
             ]
         });
         // calculate screen res

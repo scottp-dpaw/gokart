@@ -151,6 +151,12 @@ html, body {
     right: 9em;
 }
 
+/* Set height of internal layers to allow for bottom details */
+#layers-tab-panels {
+    min-height: 60vh;
+    border-bottom: 1px solid #eee;
+}
+
 /* remove extra padding for tab boxes inside other tab boxes */
 #layers-list {
     padding: 1rem 0 0 0;
