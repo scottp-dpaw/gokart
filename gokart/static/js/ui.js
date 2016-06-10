@@ -75,6 +75,48 @@ window.gokart = (function(self) {
         ui.updatingOrder = false;
     }
 
+    ui.downloadJPG = function() {
+        var timer;
+        $("body").css("cursor", "progress");
+        var composing = self.map.on("postcompose", function(event) {
+            timer && clearTimeout(timer);
+            timer = setTimeout(function() {
+                var canvas = event.context.canvas;
+                var img = new Image();
+                var svg = new Blob([ui.legendTmpl({
+                    km: (Math.round(self.get_scale() * 40) / 1000).toLocaleString(),
+                    scale: $("#menu-scale").val(),
+                    title: "map.jpg",
+                    subtitle: "some@user",
+                    date: moment().format('[Printed] MMMM Do YYYY, h:mm:ss a')
+                })], {type: "image/svg+xml;charset=utf-8"});
+                var url = URL.createObjectURL(svg);
+                img.onload = function () {
+                    // legend is 12cm wide
+                    canvas.getContext("2d").drawImage(img, 0, 0, 787, 787 * img.height / img.width);
+                    URL.revokeObjectURL(url);
+                    canvas.toBlob(function(blob) {
+                        saveAs(blob, "map.jpg")
+                        // remove composing watcher
+                        self.map.unByKey(composing);
+                        self.map.setSize(ui.origSize);
+                        self.px_per_mm = ui.origPxPerMM;
+                        self.map.getView().fit(ui.origExtent, self.map.getSize());
+                        self.set_scale(ui.origScale);
+                        $("body").css("cursor", "default");
+                    }, 'image/jpeg', 0.9)
+                }
+                img.src = url;
+            }, 2000);
+        });
+        self.map.renderSync();
+    }
+
+    $.get("/static/images/legend.svg", function(tmpl) {
+        ui.legendTmpl = Handlebars.compile(tmpl)
+    }, "text");
+    
+
     $self.on("init_map", function() {
         // setup scale events
         ui.menuScale = $("#menu-scale").on("change", function() { self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "")) });
@@ -85,12 +127,18 @@ window.gokart = (function(self) {
             ui.menuScale.val(self.getScaleString());
         });
         $("#download-jpg").on("click", function() {
-            self.map.once("postcompose", function(event) {
-                event.context.canvas.toBlob(function(blob) {
-                    saveAs(blob, "map.jpg")
-                }, 'image/jpeg', 0.9)
-            });
-            self.map.renderSync();
+            ui.origSize = self.map.getSize()
+            ui.origExtent = self.map.getView().calculateExtent(ui.origSize);
+            ui.origPxPerMM = self.px_per_mm;
+            ui.origScale = self.get_fixed_scale();
+            // Resize to A3 landscape
+            self.map.setSize([2481, 1754]);
+            self.px_per_mm = 2481 / 420;
+            // Back to normal extent
+            self.map.getView().fit(ui.origExtent, self.map.getSize());
+            // Pick a nice scale
+            self.set_scale(ui.origScale);
+            ui.downloadJPG();
         });
         // setup layer ordering if layer ui available
         if ($("#layers-active").length == 1) {
