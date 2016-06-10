@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}{% endblock %}</title>
+    <!-- Unicode is great -->
     <meta charset="utf-8"/>
+    <!-- Page title -->
+    <title>{% block title %}{% endblock %}</title>
+    <!-- Disable awful IE compatibility mode -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Force fit-to-viewport sizing on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Foundation 6 CSS framework -->
     <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/foundation/6.1.2/foundation-flex.css" type="text/css"/>
     <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/font-awesome/4.6.3/css/font-awesome.css" type="text/css"/>
