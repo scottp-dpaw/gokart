@@ -23,23 +23,9 @@
             },
             latLabelPosition: .98
         }, opt_options);
-        this.map_ = null;
-        this.projection_ = null;
-        this.maxLat_ = Infinity;
-        this.maxLon_ = Infinity;
-        this.minLat_ = -Infinity;
-        this.minLon_ = -Infinity;
-        this.maxLatP_ = Infinity;
-        this.maxLonP_ = Infinity;
-        this.minLatP_ = -Infinity;
-        this.minLonP_ = -Infinity;
-        this.targetSize_ = options.targetSize !== undefined ? options.targetSize : 100;
-        this.maxLines_ = options.maxLines !== undefined ? options.maxLines : 100;
-        this.meridians_ = [];
+        ol.Graticule.call(this, opt_options);
         this.meridiansLabels_ = [];
-        this.parallels_ = [];
         this.parallelsLabels_ = [];
-        this.strokeStyle_ = options.strokeStyle !== undefined ? options.strokeStyle : self.DEFAULT_STROKE_STYLE_;
         this.baseTextStyle_ = {
             font: "10px Helvetica,Roboto,Arial,sans-serif",
             textAlign: "center",
@@ -51,9 +37,6 @@
                 width: 2
             })
         };
-        this.fromLonLatTransform_ = undefined;
-        this.toLonLatTransform_ = undefined;
-        this.projectionCenterLonLat_ = null;
         this.showLabels_ = options.showLabels !== undefined ? options.showLabels : false;
         this.lonLabelFormatter_ = options.lonLabelFormatter !== undefined ? options.lonLabelFormatter : null;
         this.lonLabelPosition_ = options.lonLabelPosition !== undefined ? ol.math.clamp(options.lonLabelPosition, 0, 1) : 1;
@@ -61,17 +44,8 @@
         this.latLabelPosition_ = options.latLabelPosition !== undefined ? ol.math.clamp(options.latLabelPosition, 0, 1) : 1;
         this.setMap(options.map !== undefined ? options.map : null);
     };
-    self.DEFAULT_STROKE_STYLE_ = new ol.style.Stroke({
-        color: "rgba(0,0,0,0.2)"
-    });
+    ol.inherits(self, ol.Graticule);
     self.intervals_ = [5, 2, 1, .5, .2, .1, .05, .01, .005, .002, .001];
-    self.prototype.addMeridian_ = function(lon, minLat, maxLat, squaredTolerance, extent, index) {
-        var lineString = this.getMeridian_(lon, minLat, maxLat, squaredTolerance, index);
-        if (ol.extent.intersects(lineString.getExtent(), extent)) {
-            this.meridians_[index++] = lineString;
-        }
-        return index;
-    };
     self.prototype.addMeridianLabel_ = function(lon, squaredTolerance, extent, index) {
         var textPoint = this.getMeridianPoint_(lon, squaredTolerance, extent, index);
         var style = new ol.style.Text(this.baseTextStyle_);
@@ -91,13 +65,6 @@
         var point = this.meridiansLabels_[index] !== undefined ? this.meridiansLabels_[index].geom : new ol.geom.Point(null);
         point.setCoordinates(coordinate);
         return point;
-    };
-    self.prototype.addParallel_ = function(lat, minLon, maxLon, squaredTolerance, extent, index) {
-        var lineString = this.getParallel_(lat, minLon, maxLon, squaredTolerance, index);
-        if (ol.extent.intersects(lineString.getExtent(), extent)) {
-            this.parallels_[index++] = lineString;
-        }
-        return index;
     };
     self.prototype.addParallelLabel_ = function(lat, squaredTolerance, extent, index) {
         var textPoint = this.getParallelPoint_(lat, squaredTolerance, extent, index);
@@ -189,51 +156,6 @@
         this.parallels_.length = idx;
         this.parallelsLabels_.length = idxLabels;
     };
-    self.prototype.getInterval_ = function(resolution) {
-        var centerLon = this.projectionCenterLonLat_[0];
-        var centerLat = this.projectionCenterLonLat_[1];
-        var interval = -1;
-        var i, ii, delta, dist;
-        var target = Math.pow(this.targetSize_ * resolution, 2);
-        var p1 = [];
-        var p2 = [];
-        for (i = 0, ii = self.intervals_.length; i < ii; ++i) {
-            delta = self.intervals_[i] / 2;
-            p1[0] = centerLon - delta;
-            p1[1] = centerLat - delta;
-            p2[0] = centerLon + delta;
-            p2[1] = centerLat + delta;
-            this.fromLonLatTransform_(p1, p1);
-            this.fromLonLatTransform_(p2, p2);
-            dist = Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2);
-            if (dist <= target) {
-                break;
-            }
-            interval = self.intervals_[i];
-        }
-        return interval;
-    };
-    self.prototype.getMap = function() {
-        return this.map_;
-    };
-    self.prototype.getMeridian_ = function(lon, minLat, maxLat, squaredTolerance, index) {
-        var flatCoordinates = ol.geom.flat.geodesic.meridian(lon, minLat, maxLat, this.projection_, squaredTolerance);
-        var lineString = this.meridians_[index] !== undefined ? this.meridians_[index] : new ol.geom.LineString(null);
-        lineString.setFlatCoordinates(ol.geom.GeometryLayout.XY, flatCoordinates);
-        return lineString;
-    };
-    self.prototype.getMeridians = function() {
-        return this.meridians_;
-    };
-    self.prototype.getParallel_ = function(lat, minLon, maxLon, squaredTolerance, index) {
-        var flatCoordinates = ol.geom.flat.geodesic.parallel(lat, this.minLon_, this.maxLon_, this.projection_, squaredTolerance);
-        var lineString = this.parallels_[index] !== undefined ? this.parallels_[index] : new ol.geom.LineString(null);
-        lineString.setFlatCoordinates(ol.geom.GeometryLayout.XY, flatCoordinates);
-        return lineString;
-    };
-    self.prototype.getParallels = function() {
-        return this.parallels_;
-    };
     self.prototype.handlePostCompose_ = function(e) {
         var vectorContext = e.vectorContext;
         var frameState = e.frameState;
@@ -285,43 +207,6 @@
                 vectorContext.drawPoint(point, null);
             }
         }
-    };
-    self.prototype.updateProjectionInfo_ = function(projection) {
-        var epsg4326Projection = ol.proj.get("EPSG:4326");
-        var extent = projection.getExtent();
-        var worldExtent = projection.getWorldExtent();
-        var worldExtentP = ol.proj.transformExtent(worldExtent, epsg4326Projection, projection);
-        var maxLat = worldExtent[3];
-        var maxLon = worldExtent[2];
-        var minLat = worldExtent[1];
-        var minLon = worldExtent[0];
-        var maxLatP = worldExtentP[3];
-        var maxLonP = worldExtentP[2];
-        var minLatP = worldExtentP[1];
-        var minLonP = worldExtentP[0];
-        this.maxLat_ = maxLat;
-        this.maxLon_ = maxLon;
-        this.minLat_ = minLat;
-        this.minLon_ = minLon;
-        this.maxLatP_ = maxLatP;
-        this.maxLonP_ = maxLonP;
-        this.minLatP_ = minLatP;
-        this.minLonP_ = minLonP;
-        this.fromLonLatTransform_ = ol.proj.getTransform(epsg4326Projection, projection);
-        this.toLonLatTransform_ = ol.proj.getTransform(projection, epsg4326Projection);
-        this.projectionCenterLonLat_ = this.toLonLatTransform_(ol.extent.getCenter(extent));
-        this.projection_ = projection;
-    };
-    self.prototype.setMap = function(map) {
-        if (this.map_) {
-            this.map_.un(ol.render.EventType.POSTCOMPOSE, this.handlePostCompose_, this);
-            this.map_.render();
-        }
-        if (map) {
-            map.on(ol.render.EventType.POSTCOMPOSE, this.handlePostCompose_, this);
-            map.render();
-        }
-        this.map_ = map;
     };
     ol.LabelGraticule = self;
 })(ol);

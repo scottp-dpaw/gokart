@@ -2,6 +2,18 @@
 window.gokart = (function(self) {
     var $self = $(self)
 
+    // calculate screen res
+    self.mmPerInch = 25.4;
+    $("body").append('<div id="dpi" style="width:1in;display:none"></div>');
+    self.dpi = parseFloat($('#dpi').width());
+    self.dpmm = self.dpi / self.mmPerInch;
+    $("#dpi").remove();
+
+    // get user info
+    $.get("/auth", function(data) {
+        self.whoami = JSON.parse(data);
+    });
+
     // default matrix from KMI
     self.resolutions = [.17578125, .087890625, .0439453125, .02197265625, .010986328125, .0054931640625, .00274658203125, .001373291015625, .0006866455078125, .0003433227539062, .0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
 
@@ -95,7 +107,7 @@ window.gokart = (function(self) {
         var center = self.map.getView().getCenter();
         var extent = self.map.getView().calculateExtent(size);
         var distance = turf.distance(turf.point([extent[0], center[1]]), turf.point(center), 'kilometers') * 2;
-        return distance * 1000 * self.px_per_mm / size[0] ;
+        return distance * 1000 * self.dpmm / size[0] ;
     }
 
     self.getScaleString = function() {
@@ -135,10 +147,6 @@ window.gokart = (function(self) {
                 new ol.control.FullScreen({source: $("body").get(0)})
             ]
         });
-        // calculate screen res
-        $("body").append('<div id="px_per_mm" style="width:1mm;display:none"></div>');
-        self.px_per_mm = parseFloat($('#px_per_mm').width());
-        $("#px_per_mm").remove();
         // Create the graticule component
         self.graticule = new ol.LabelGraticule();
         self.graticule.setMap(self.map);

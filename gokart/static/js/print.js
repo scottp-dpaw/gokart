@@ -7,25 +7,34 @@ window.gokart = (function(self) {
         layout.legendTmpl = Handlebars.compile(tmpl)
     }, "text");
 
+    layout.minDPI = 150;
+
+    layout.paperSizes = {
+      A1: [841,594],
+      A3: [420, 297],
+      A4: [297, 210]
+    }
+
     // resize to mm dimensions, save layout
-    layout.setSize = function(width, height) {
+    layout.setSize = function(paperSize) {
         $("body").css("cursor", "progress");
         $(".download").addClass("hide");
-        layout.width = width;
-        layout.height = height;
+        var dims = layout.paperSizes[paperSize];
+        layout.width = dims[0];
+        layout.height = dims[1];
         layout.size = self.map.getSize()
         layout.extent = self.map.getView().calculateExtent(layout.size);
-        layout.px_per_mm = self.px_per_mm;
+        layout.dpmm = self.dpmm;
         layout.scale = self.get_fixed_scale();
-        self.px_per_mm = 150 / 25.4;
-        self.map.setSize([self.px_per_mm * width, self.px_per_mm * height]);
+        self.dpmm = layout.minDPI / self.mmPerInch;
+        self.map.setSize([self.dpmm * layout.width, self.dpmm * layout.height]);
         self.map.getView().fit(layout.extent, self.map.getSize());
         self.set_scale(layout.scale);
     }
 
     layout.resetSize = function() {
         self.map.setSize(layout.size);
-        self.px_per_mm = layout.px_per_mm;
+        self.dpmm = layout.dpmm;
         self.map.getView().fit(layout.extent, self.map.getSize());
         self.set_scale(layout.scale);
         $("body").css("cursor", "default");
@@ -34,10 +43,11 @@ window.gokart = (function(self) {
 
     self.renderLegend = function(title, subtitle) {
         return URL.createObjectURL(new Blob([layout.legendTmpl({
+            // scale ruler is 40mm wide
             km: (Math.round(self.get_scale() * 40) / 1000).toLocaleString(),
             scale: $("#menu-scale").val(),
-            title: title,
-            subtitle: subtitle,
+            title: layout.title,
+            subtitle: self.whoami.email,
             date: moment().format('[Printed] MMMM Do YYYY, h:mm:ss a')
         })], {type: "image/svg+xml;charset=utf-8"}));
     }
@@ -58,9 +68,11 @@ window.gokart = (function(self) {
     }
     
     self.print = function(format) {
-        var timer;
+        layout.title = window.prompt("Title for printout?", "Quick Print")
+        if (!layout.title) { return };
         // Resize to A3 landscape 150dpi
-        layout.setSize(420, 297);
+        layout.setSize("A3");
+        var timer;
         var composing = self.map.on("postcompose", function(event) {
             timer && clearTimeout(timer);
             timer = setTimeout(function() {
@@ -68,18 +80,19 @@ window.gokart = (function(self) {
                 self.map.unByKey(composing);
                 var canvas = event.context.canvas;
                 var img = new Image();
-                var url = self.renderLegend("Quick Print", "some@user");
+                var url = self.renderLegend();
                 img.onload = function () {
                     // legend is 12cm wide
                     layout.canvasPxPerMM = canvas.width / layout.width
                     canvas.getContext("2d").drawImage(img, 0, 0, 120 * layout.canvasPxPerMM, 120 * layout.canvasPxPerMM * img.height / img.width);
                     URL.revokeObjectURL(url);
+                    var filename = layout.title.replace(" ", "_");
                     canvas.toBlob(function(blob) {
                         if (format == "jpg") {
-                            saveAs(blob, "map.jpg");
+                            saveAs(blob, filename + ".jpg");
                             layout.resetSize();
                         } else if (format == "pdf") {
-                            self.blobToPDF(blob, "map");
+                            self.blobToPDF(blob, filename);
                         }
                     }, 'image/jpeg', 0.9)
                 }
