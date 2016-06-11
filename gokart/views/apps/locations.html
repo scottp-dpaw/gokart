@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Networked Locations{% endblock %}
+
+{% block loader_script %}
+<script>
+// load map
+gokart.init([
+    gokart.createTileLayer({
+        'id': 'cddp:dpaw_offices',
+        'format': 'image/png'
+    }),
+    gokart.createTileLayer({
+        'id': 'dpaw:telstra_gcm_4g_3g',
+        'opacity': 60,
+        'format': 'image/png'
+    }),
+    gokart.createTileLayer({
+        'id': 'dpaw:mapbox_outdoors'
+    }),
+]);
+</script>
+{% endblock %}

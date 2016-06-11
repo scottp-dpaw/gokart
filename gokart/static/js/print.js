@@ -216,10 +216,11 @@ window.gokart = (function(self) {
         layout.legendTmpl = Handlebars.compile(tmpl)
     }, "text");
 
-    layout.minDPI = 150;
+    layout.minDPI = 100;
 
     layout.paperSizes = {
-      A1: [841,594],
+      A0: [1189, 841],
+      A1: [841, 594],
       A3: [420, 297],
       A4: [297, 210]
     }

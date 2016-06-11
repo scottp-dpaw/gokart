@@ -1,0 +1,29 @@
+{% extends 'layers_annotations.html' %}
+
+{% block title %}P&W Spatial Support System{% endblock %}
+
+{% block tab_panels %}
+{{ super() }}
+<div class="tabs-panel" id="menu-tab-tracking">
+    Tracking goes here.
+</div>
+{% endblock %}
+
+{% block tabs %}
+{{ super() }}
+<li class="tabs-title side-button"><a href="#menu-tab-tracking" title="Vehicle Tracking">
+    <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-geolocate"></use></svg>
+</a></li>
+{% endblock %}
+
+{% block loader_script %}
+<script>
+// load map
+gokart.init([
+    gokart.createTileLayer({
+        'name': "MapBox Outdoors",
+        'id': 'dpaw:mapbox_outdoors'
+    }),
+]);
+</script>
+{% endblock %}
