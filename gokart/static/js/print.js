@@ -228,6 +228,7 @@ window.gokart = (function(self) {
     layout.setSize = function(paperSize) {
         $("body").css("cursor", "progress");
         $(".download").addClass("hide");
+        layout.paperSize = paperSize;
         var dims = layout.paperSizes[paperSize];
         layout.width = dims[0];
         layout.height = dims[1];
@@ -254,7 +255,7 @@ window.gokart = (function(self) {
         return URL.createObjectURL(new Blob([layout.legendTmpl({
             // scale ruler is 40mm wide
             km: (Math.round(self.get_scale() * 40) / 1000).toLocaleString(),
-            scale: $("#menu-scale").val(),
+            scale: layout.paperSize + " " + $("#menu-scale").val(),
             title: layout.title,
             subtitle: self.whoami.email,
             date: moment().format('[Printed] MMMM Do YYYY, h:mm:ss a')

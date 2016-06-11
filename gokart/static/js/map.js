@@ -133,7 +133,7 @@ window.gokart = (function(self) {
             logo: false,
             renderer: "canvas",
             target: "map",
-            layers: layers,
+            layers: layers.reverse(),
             view: new ol.View({
                 projection: "EPSG:4326",
                 center: [123.75, -24.966],
