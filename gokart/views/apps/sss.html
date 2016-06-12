@@ -20,10 +20,29 @@
 <script>
 // load map
 gokart.init([
-    gokart.createTileLayer({
+    gokart.createWFSLayer({
         'name': "Resource Tracking",
-        'id': 'cddp:live_resource_tracking',
-        'format': 'image/png'
+        'id': 'dpaw:resource_tracking',
+        'style': function(f) {
+            var color = "rgba(255,0,0,0.7)";
+            if (f.get("age") < 3) { color = "rgba(255,255,0,0.7)" };
+            if (f.get("age") < 1) { color = "rgba(0,255,0,0.7)" };
+            var icon = new ol.style.Icon({
+                src: "//static.dpaw.wa.gov.au/static/firesource/static/build/symbols/device/"+f.get("symbolid")+"_64.png",
+                scale: .3
+            });
+            f.style = [
+                new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: 10,
+                        fill: new ol.style.Fill({ color: color }),
+                        stroke: new ol.style.Stroke({ color: "rgba(0,0,0,0.7)", width: 2 }),
+                    })
+                }),
+                new ol.style.Style({image: icon})
+            ]
+        return f.style;
+        }
     }),
     gokart.createTileLayer({
         'name': "Virtual Mosaic",

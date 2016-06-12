@@ -39,20 +39,42 @@ window.gokart = (function(self) {
         });
     });
 
-    self.defaultLayer = {
-        opacity: 100,
-        name: "MapBox Outdoors",
-        id: "dpaw:mapbox_outdoors",
-        format: "image/jpeg",
-        tileSize: 1024,
-        projection: "EPSG:4326",
-        wmts_url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
-    };
+    self.createWFSLayer = function(options) {
+        var url = "https://kmi.dpaw.wa.gov.au/geoserver/wfs"
+        options.params = $.extend({
+            version: "1.1.0",
+            service: "WFS",
+            request: "GetFeature",
+            outputFormat: "application/json",
+            srsname: "EPSG:4326",
+            typename: options.id,
+        }, options.params || {})
+        var vectorSource = new ol.source.Vector({
+            format: new ol.format.GeoJSON(),
+            url: function(extent) { return url + "?" + $.param(options.params) + "&bbox=" + extent.join(",") + "," + options.params.srsname },
+            strategy: ol.loadingstrategy.bbox
+        });
+        var vector = new ol.layer.Vector({
+            source: vectorSource,
+            style: options.style
+        });
+        vector.set("name", options.name);
+        vector.set("id", options.id);
+        return vector;
+    }
 
     // Convenience loader to create a WMTS layer from a kmi datasource
     self.createTileLayer = function(layer) {
         layer = layer || {};
-        layer = $.extend({}, self.defaultLayer, layer);
+        layer = $.extend({
+            opacity: 100,
+            name: "MapBox Outdoors",
+            id: "dpaw:mapbox_outdoors",
+            format: "image/jpeg",
+            tileSize: 1024,
+            projection: "EPSG:4326",
+            wmts_url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
+        }, layer);
 
         var matrixSet = _matrixSets[layer.projection][layer.tileSize];
         var tileGrid = new ol.tilegrid.WMTS({
@@ -66,10 +88,14 @@ window.gokart = (function(self) {
         tileGrid.getZForResolution = function(resolution, opt_direction) {
             return tileGrid.origGetZForResolution(resolution, -1);
         };
+        // allow for reconstructing unique layers to bust caching for live tiles
+        if (layer.time) {
+            var url = layer.wmts_url + "?time="+ layer.time;
+        } else { var url = layer.wmts_url };
         var tileLayer = new ol.layer.Tile({
             opacity: (layer.opacity || 100) / 100,
             source: new ol.source.WMTS({
-                url: layer.wmts_url,
+                url: url,
                 crossOrigin: 'https://' + window.location.hostname,
                 layer: layer.id,
                 matrixSet: matrixSet.name,
