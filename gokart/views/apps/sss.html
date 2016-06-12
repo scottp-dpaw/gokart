@@ -1,6 +1,6 @@
 {% extends 'layers_annotations.html' %}
 
-{% block title %}P&W Spatial Support System{% endblock %}
+{% block title %}Spatial Support System{% endblock %}
 
 {% block tab_panels %}
 {{ super() }}
@@ -21,8 +21,13 @@
 // load map
 gokart.init([
     gokart.createTileLayer({
-        'name': "MapBox Outdoors",
-        'id': 'dpaw:mapbox_outdoors'
+        'name': "Resource Tracking",
+        'id': 'cddp:live_resource_tracking',
+        'format': 'image/png'
+    }),
+    gokart.createTileLayer({
+        'name': "Virtual Mosaic",
+        'id': 'landgate:LGATE-V001'
     }),
 ]);
 </script>
