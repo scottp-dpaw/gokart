@@ -49,26 +49,17 @@ html, body {
 
 /* abs positioning shifts for OpenLayers widgets */
 .ol-scale-line { 
-    top: auto; 
+    top: 4.5em; 
     left: auto; 
-    right: 1em; 
-    bottom: 1em; 
+    right: 3em; 
+    bottom: auto; 
 }
-.ol-mouse-position { 
-    border-radius: 4px; 
-    background-color: 
-    rgba( 0, 60, 136, 0.3 ); 
-    color: #eeeeee; 
-    top: auto; 
-    right: auto; 
-    left: 1em; 
-    bottom: 1em; 
-}
+
 .ol-zoom { 
-    top: auto; 
+    top: 2.5em; 
     left: auto; 
-    right: 1em; 
-    bottom: 6em; 
+    right: .5em; 
+    bottom: auto; 
 }
 
 /* hacks to widen the off-canvas area */
@@ -135,37 +126,42 @@ html, body {
     border: 0;
 }
 
+#menu-pagesize {
+    font-weight: bold;
+}
+
 #menu-scale {
-	width: auto;
-	right: 2em;
-	bottom: 5em;
+    width: 7.15em;
+}
+
+.select-button {
+    width: auto;
     background-image: none;
-	background-color: rgba(0,60,136,.5);
 	color: #eee;
-	border-radius: 4px;
 	cursor: pointer;
-    font-size: 10px;
-    border: 4px solid rgba(255,255,255,.4);
-    margin: 0px;
-    padding: 0.5em;
+    font-size: .6rem;
+    border: none;
+    margin-right: -.3em;
+    padding: 0.7em;
     height: auto;
 }
 
-#menu-scale:focus, #menu-scale:hover {
-    background-color:rgba(0,60,136,.7);
+#map-controls {
+    top: .7em;
+    right: 3em;
 }
 
-.download {
-    top: 1em;
-    right: 5em;
+#map-controls .button-group {
+    margin-bottom: -.05em;
 }
 
-.download a {
+#map-controls a, #map-controls .select-button {
+	background-color: rgba(0,60,136,.3);
+}
+
+#map-controls a:focus, #map-controls a:hover,
+#map-controls .select-button:focus, #map-controls .select-button:hover {
 	background-color: rgba(0,60,136,.5);
-}
-
-.download a:focus, .download a:hover {
-	background-color: rgba(0,60,136,.7);
 }
 
 /* Set height of internal layers to allow for bottom details */

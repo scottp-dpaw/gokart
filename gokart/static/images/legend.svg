@@ -30,7 +30,7 @@
   </g>
   <g transform="translate(0 -.40190)" font-family="sans-serif" fill="#000000">
    <text style="word-spacing:0px;letter-spacing:0px" transform="scale(.89796 1.1136)" line-height="125%" xml:space="preserve" font-size="13.791px" y="-0.54994416" x="2.8649783"><tspan y="-0.54994416" x="2.8649783">{{ title }}</tspan></text>
-   <text style="word-spacing:0px;letter-spacing:0px" transform="scale(.89796 1.1136)" line-height="125%" xml:space="preserve" font-size="11.225px" y="12.774043" x="3.1857841"><tspan y="12.774043" x="3.1857841">{{ subtitle }}</tspan></text>
+   <text style="word-spacing:0px;letter-spacing:0px" transform="scale(.89796 1.1136)" line-height="125%" xml:space="preserve" font-size="11.225px" y="12.774043" x="3.1857841"><tspan y="12.774043" x="3.1857841">{{ author }}</tspan></text>
    <text style="word-spacing:0px;letter-spacing:0px" transform="scale(.89796 1.1136)" line-height="125%" xml:space="preserve" font-size="8.9796px" y="26.193958" x="3.4663973"><tspan y="26.193958" x="3.4663973">{{ date }}</tspan></text>
   </g>
   <text style="mix-blend-mode:normal;text-anchor:end" font-family="monospace" font-size="7px" y="-2.4210854" x="232.71523" font-weight="bold" fill="#000000">{{ scale }}</text>

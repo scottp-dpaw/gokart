@@ -29,11 +29,14 @@
             </div>
             <div class="off-canvas-content" data-off-canvas-content>
                 {% block content %}
-                <div class="download map-widget button-group tiny">
-                    <a class="button" id="download-jpg"><i class="fa fa-download"></i> JPG</a>
-                    <a class="button" id="download-pdf"><i class="fa fa-print"></i> PDF</a>
+                <div id="map-controls" class="map-widget">
+                    <div class="button-group tiny">
+                        <a class="button" id="download-jpg"><i class="fa fa-download"></i> JPG</a>
+                        <a class="button" id="download-pdf"><i class="fa fa-print"></i> PDF</a>
+                    </div>
+                    <select class="select-button" id="menu-pagesize"></select>
+                    <select class="select-button" id="menu-scale"></select>
                 </div>
-                <select class="map-widget" id="menu-scale"></select>
                 <div class="map" id="map"></div>
                 {% endblock %}
             </div>

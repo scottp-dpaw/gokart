@@ -225,22 +225,30 @@ window.gokart = (function(self) {
       A4: [297, 210]
     }
 
+    layout.paperSize = "A3";
+
+    Object.keys(layout.paperSizes).forEach(function(key, i) {
+        document.querySelectorAll("#menu-pagesize")[0].appendChild(new Option(key));
+    });
+    $("#menu-pagesize").val(layout.paperSize).on("change", function() {
+        layout.paperSize = this.value;
+    })
+
     // resize to mm dimensions, save layout
-    layout.setSize = function(paperSize) {
+    layout.setSize = function() {
         $("body").css("cursor", "progress");
-        $(".download").addClass("hide");
-        layout.paperSize = paperSize;
-        var dims = layout.paperSizes[paperSize];
+        $("#map-controls").addClass("hide");
+        var dims = layout.paperSizes[layout.paperSize];
         layout.width = dims[0];
         layout.height = dims[1];
         layout.size = self.map.getSize()
         layout.extent = self.map.getView().calculateExtent(layout.size);
         layout.dpmm = self.dpmm;
-        layout.scale = self.get_fixed_scale();
+        layout.scale = self.get_scale();
         self.dpmm = layout.minDPI / self.mmPerInch;
         self.map.setSize([self.dpmm * layout.width, self.dpmm * layout.height]);
         self.map.getView().fit(layout.extent, self.map.getSize());
-        self.set_scale(layout.scale);
+        self.set_scale(self.get_fixed_scale());
     }
 
     layout.resetSize = function() {
@@ -249,16 +257,16 @@ window.gokart = (function(self) {
         self.map.getView().fit(layout.extent, self.map.getSize());
         self.set_scale(layout.scale);
         $("body").css("cursor", "default");
-        $(".download").removeClass("hide");
+        $("#map-controls").removeClass("hide");
     }
 
     self.renderLegend = function(title, subtitle) {
         return URL.createObjectURL(new Blob([layout.legendTmpl({
             // scale ruler is 40mm wide
             km: (Math.round(self.get_scale() * 40) / 1000).toLocaleString(),
-            scale: layout.paperSize + " " + $("#menu-scale").val(),
+            scale: "ISO " + layout.paperSize + " " + $("#menu-scale").val(),
             title: layout.title,
-            subtitle: self.whoami.email,
+            author: self.whoami.email,
             date: moment().format('[Printed] MMMM Do YYYY, h:mm:ss a')
         })], {type: "image/svg+xml;charset=utf-8"}));
     }
@@ -268,6 +276,8 @@ window.gokart = (function(self) {
         formData.append("extent", self.map.getView().calculateExtent(self.map.getSize()).join(" "));
         formData.append("jpg", blob, name + ".jpg");
         formData.append("dpi", Math.round(layout.canvasPxPerMM * 25.4))
+        formData.append("title", layout.title)
+        formData.append("author", self.whoami.email)
         var req = new XMLHttpRequest();
         req.open("POST", "/gdal/pdf");
         req.responseType = "blob";
