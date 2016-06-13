@@ -40,7 +40,7 @@ window.gokart = (function(self) {
     });
 
     self.createWFSLayer = function(options) {
-        var url = "https://kmi.dpaw.wa.gov.au/geoserver/wfs"
+        var url = "/geoserver/wfs"
         options.params = $.extend({
             version: "1.1.0",
             service: "WFS",
@@ -73,7 +73,7 @@ window.gokart = (function(self) {
             format: "image/jpeg",
             tileSize: 1024,
             projection: "EPSG:4326",
-            wmts_url: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
+            wmts_url: "/geoserver/gwc/service/wmts",
         }, layer);
 
         var matrixSet = _matrixSets[layer.projection][layer.tileSize];

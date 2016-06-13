@@ -7,6 +7,13 @@ html, body {
     overflow: hidden; 
 }
 
+#info {
+  position: absolute;
+  height: 1px;
+  width: 1px;
+  z-index: 100;
+}
+
 /* full-height the foundation off-canvas stuff also */
 .off-canvas-wrapper { 
     height: 100%; 
