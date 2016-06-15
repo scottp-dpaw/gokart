@@ -19,10 +19,10 @@
                     <script id="layers-active-template" type="text/x-handlebars-template">
                     {% raw %}
                         {{#each layers}}
-                            <div class="row" data-layer-id="{{ this.values_.id }}">
+                            <div class="row layer-row" data-layer-id="{{ this.values_.id }}">
                                 <div class="small-9">    
-                                    <h4>{{ this.values_.name }}</h4>
-                                    <h6>{{ this.values_.catalogueEntry.id }}</h6>
+                                    <div class="layer-title">{{ this.values_.name }}</div>
+                                    <div class="layer-id">{{ this.values_.catalogueEntry.id }}</div>
                                 </div>
                                 <div class="small-3"><div class="text-right">
                                     <a data-action="remove" class="button alert">&#x2715;</a>

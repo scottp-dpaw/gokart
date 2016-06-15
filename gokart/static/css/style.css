@@ -99,10 +99,10 @@ html, body {
     border: 0; 
 }
 
-/* fix tool labels */
-.text-right { 
+/* fix tool labels/padding */
+.tool-label, .off-canvas label.tool-label { 
     margin-right: 1em;
-    color: #ffffff;
+    font-size: 80%;
 }
 
 .tool-slice {
@@ -191,7 +191,7 @@ html, body {
     border: 1px solid rgba(37,45,51,0.9);
 }
 
-/* styling for switch widgets used on side pane */
+/* styling for switch widgets used in the side pane */
 .off-canvas .switch-paddle {
     background: rgba(37,45,51,0.9);
 }
@@ -222,11 +222,31 @@ html, body {
     padding: 1rem 0 0 0;
 }
 
+/* styling for movable row boxes */
+.layer-row {
+    color: white;
+    background-color: rgba(37,45,51,0.5);
+    padding: 4px;
+}
+
+.layer-row:nth-child(2) {
+    background-color: rgba(37,45,51,0.3);
+}
+
+.layer-row .layer-title {
+    font-size: 120%;
+}
+
+.layer-row .layer-id {
+    font-style: italic;
+    font-size: 75%;
+}
+
+
 /* Add dotted line box to dragged layers*/
-.gu-transit {
+.layer-row.gu-transit {
     border: 2px dashed #ffffff;
     border-radius: 4px;
-    padding: 4px;
 }
 
 /* custom F6 tab style overrides for the side buttons  */
