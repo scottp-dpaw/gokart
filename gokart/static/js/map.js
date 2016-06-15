@@ -71,7 +71,7 @@ window.gokart = (function(self) {
         vector.set("name", options.name);
         vector.set("id", options.id);
         this.olLayer = vector;
-        vector.set("catalogEntry", this);
+        vector.set("catalogueEntry", this);
         return vector;
     }
 
@@ -121,7 +121,7 @@ window.gokart = (function(self) {
         tileLayer.set("name", layer.name);
         tileLayer.set("id", layer.id);
         this.olLayer = this;
-        tileLayer.set("catalogEntry", this);
+        tileLayer.set("catalogueEntry", this);
         return tileLayer;
     };
 
@@ -167,7 +167,7 @@ window.gokart = (function(self) {
         return closest;
     };
 
-    self.loadCatalog = function(options) {
+    self.loadCatalogue = function(options) {
         options = options || {};
         options.url = options.url || "/catalogue/";
         options.params = $.extend({
@@ -181,7 +181,7 @@ window.gokart = (function(self) {
         }, options.params || {});
         var req = new XMLHttpRequest();
         req.onload = function() {
-            self.cswCatalog = JSON.parse(this.responseText);
+            self.cswCatalogue = JSON.parse(this.responseText);
         };
         req.open("GET", options.url + "?" + $.param(options.params));
         req.send();

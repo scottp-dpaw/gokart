@@ -53,7 +53,7 @@ var resource_tracking_style = function(f) {
         new ol.style.Style({image: icon})
     ]
 }
-gokart.catalog = {
+gokart.catalogue = {
     "resource_tracking_aircraft": {
         init: gokart.createWFSLayer,
         'name': "Resource Tracking Aircraft",
@@ -79,8 +79,8 @@ gokart.catalog = {
     },
 }
 gokart.init([
-    gokart.catalog["resource_tracking"].init(),
-    gokart.catalog["state_map_base"].init()
+    gokart.catalogue["resource_tracking"].init(),
+    gokart.catalogue["state_map_base"].init()
 ]);
 </script>
 {% endblock %}

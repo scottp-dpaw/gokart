@@ -8,7 +8,7 @@
             <div class="columns shrink">
                 <ul class="tabs" data-tabs id="layers-tabs">
                     <li class="tabs-title is-active"><a href="#layers-active" aria-selected="true">Map Layers</a></li>
-                    <li class="tabs-title"><a href="#layers-catalog" aria-selected="true">Layer Catalog</a></li>
+                    <li class="tabs-title"><a href="#layers-catalogue" aria-selected="true">Layer Catalogue</a></li>
                     <li class="tabs-title"><a href="#layers-categories" aria-selected="true">Categories</a></li>
                 </ul>
             </div>
@@ -22,7 +22,7 @@
                             <div class="row" data-layer-id="{{ this.values_.id }}">
                                 <div class="small-9">    
                                     <h4>{{ this.values_.name }}</h4>
-                                    <h6>{{ this.values_.catalogEntry.id }}</h6>
+                                    <h6>{{ this.values_.catalogueEntry.id }}</h6>
                                 </div>
                                 <div class="small-3"><div class="text-right">
                                     <a data-action="remove" class="button alert">&#x2715;</a>
@@ -32,7 +32,7 @@
                     {% endraw %}
                     </script>
                     <div class="tabs-panel is-active" id="layers-active"></div>
-                    <div class="tabs-panel" id="layers-catalog">
+                    <div class="tabs-panel" id="layers-catalogue">
                         <div class="row">
                             <div class="switch tiny">
                                 <input class="switch-input" id="switchBaseLayers" type="checkbox" checked>
@@ -51,7 +51,7 @@
             <script id="layer-details-template" type="text/x-handlebars-template">
             {% raw %}
                 <h4>{{ ol_layer.values_.name }}</h4>
-                <p>{{ catalog_layer.abstract }}</p>
+                <p>{{ catalogue_layer.abstract }}</p>
             {% endraw %}
             </script>
             <div class="columns" id="layer-details"></div>
