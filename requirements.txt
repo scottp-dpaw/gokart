@@ -3,3 +3,5 @@ Jinja2>=2.8
 SQLAlchemy>=1.0.13
 confy>=0.3.8
 gevent
+six>=1.10.0
+pytz>=2016.4
