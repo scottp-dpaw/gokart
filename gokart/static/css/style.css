@@ -9,8 +9,8 @@ html, body {
 
 #info {
   position: absolute;
-  height: 1px;
-  width: 1px;
+  width: 4px;
+  height: 4px;
   z-index: 100;
 }
 
@@ -156,10 +156,6 @@ html, body {
 #map-controls {
     top: .7em;
     right: 3em;
-}
-
-#map-controls .button-group {
-    margin-bottom: -.05em;
 }
 
 #map-controls a, #map-controls .select-button {

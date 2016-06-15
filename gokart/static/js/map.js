@@ -39,7 +39,10 @@ window.gokart = (function(self) {
         });
     });
 
-    self.createWFSLayer = function(options) {
+
+    // for layers with hover querying
+    self.createWFSLayer = function() {
+        var options = this;
         var url = "/geoserver/wfs"
         options.params = $.extend({
             version: "1.1.0",
@@ -51,23 +54,32 @@ window.gokart = (function(self) {
         }, options.params || {})
         var vectorSource = new ol.source.Vector({
             format: new ol.format.GeoJSON(),
-            url: function(extent) { return url + "?" + $.param(options.params) + "&bbox=" + extent.join(",") + "," + options.params.srsname },
+            url: function(extent) { 
+                options.params.cql_filter = "BBOX(wkb_geometry," + extent.join(",") + ",'EPSG:4326')";
+                if (options.cql_filter) {
+                    options.params.cql_filter = options.params.cql_filter + " AND " + options.cql_filter;
+                }
+                return url + "?" + $.param(options.params)
+            },
             strategy: ol.loadingstrategy.bbox
         });
         var vector = new ol.layer.Vector({
+            opacity: options.opacity || 1,
             source: vectorSource,
             style: options.style
         });
         vector.set("name", options.name);
         vector.set("id", options.id);
+        this.olLayer = vector;
+        vector.set("catalogEntry", this);
         return vector;
     }
 
     // Convenience loader to create a WMTS layer from a kmi datasource
-    self.createTileLayer = function(layer) {
-        layer = layer || {};
+    self.createTileLayer = function() {
+        var layer = this;
         layer = $.extend({
-            opacity: 100,
+            opacity: 1,
             name: "MapBox Outdoors",
             id: "dpaw:mapbox_outdoors",
             format: "image/jpeg",
@@ -93,7 +105,7 @@ window.gokart = (function(self) {
             var url = layer.wmts_url + "?time="+ layer.time;
         } else { var url = layer.wmts_url };
         var tileLayer = new ol.layer.Tile({
-            opacity: (layer.opacity || 100) / 100,
+            opacity: layer.opacity || 1,
             source: new ol.source.WMTS({
                 url: url,
                 crossOrigin: 'https://' + window.location.hostname,
@@ -108,6 +120,8 @@ window.gokart = (function(self) {
         // set properties for use in layer selector
         tileLayer.set("name", layer.name);
         tileLayer.set("id", layer.id);
+        this.olLayer = this;
+        tileLayer.set("catalogEntry", this);
         return tileLayer;
     };
 
@@ -153,6 +167,44 @@ window.gokart = (function(self) {
         return closest;
     };
 
+    self.loadCatalog = function(options) {
+        options = options || {};
+        options.url = options.url || "/catalogue/";
+        options.params = $.extend({
+            request: "GetRecords",
+            service: "CSW",
+            version: "2.0.2",
+            ElementSetName: "full",
+            typeNames: "csw:Record",
+            outputFormat: "application/json",
+            resultType: "results"
+        }, options.params || {});
+        var req = new XMLHttpRequest();
+        req.onload = function() {
+            self.cswCatalog = JSON.parse(this.responseText);
+        };
+        req.open("GET", options.url + "?" + $.param(options.params));
+        req.send();
+    }
+
+    self.infoDiv = $("#info").powerTip({
+        fadeInTime: 0, fadeOutTime: 0, mouseOnToPopup: true,
+        smartPlacement: true, placement: 'e',
+        intentPollInterval: 10, intentSensitivity: 100,
+        offset: 20, closeDelay: 10
+    });
+
+    // hover information
+    self.displayFeatureInfo = function(pixel) {
+        var content = "";
+        self.infoDiv.css({left: 0, top: 0})
+        var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) { 
+            content += f.get("label") + "<br>";
+            self.infoDiv.data("powertip", content);
+            self.infoDiv.css({left: pixel[0] - 2 + "px", top: pixel[1] - 2 + "px"});
+        });
+    }
+
     // initialise map
     self.init = function(layers) {
         self.map = new ol.Map({
@@ -176,6 +228,12 @@ window.gokart = (function(self) {
         // Create the graticule component
         self.graticule = new ol.LabelGraticule();
         self.graticule.setMap(self.map);
+        // display hover popups
+        self.map.on('pointermove', function(evt) {
+            if (evt.dragging) { return };
+            var pixel = self.map.getEventPixel(evt.originalEvent);
+            self.displayFeatureInfo(pixel);
+        });
         $self.trigger("init_map");
     };
     return self;

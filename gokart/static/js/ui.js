@@ -95,6 +95,10 @@ window.gokart = (function(self) {
                     ol_layer: self.layerById($(this).attr("data-layer-id")),
                     catalog_layer: {abstract: "placeholder abstract"}
                 }));
+            }).on("click", "div[data-layer-id] a[data-action='remove']", function() {
+                var layer = self.layerById($(this).parents("div[data-layer-id]").attr("data-layer-id"));
+                self.map.removeLayer(layer);
+                layer.catalogEntry.olLayer = undefined;
             });
             self.map.getLayerGroup().on("change", ui.renderActiveLayers);
             dragula([ui.layersActive.get(0)]).on("dragend", ui.updateOrder);

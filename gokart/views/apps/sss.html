@@ -20,45 +20,67 @@
 <script>
 // load map
 var symbols_url_base = "/static/symbols/device/";
-gokart.init([
-    gokart.createWFSLayer({
+var resource_tracking_style = function(f) {
+    var color = "#f00";
+    if (f.get("age") < 3) { color = "#ff0" };
+    if (f.get("age") <= 1) { color = "#0f0" };
+    var icon = new ol.style.Icon({
+        src: symbols_url_base + f.get("symbolid") + "_64.png",
+        scale: .3
+    });
+    var text = undefined;
+    if (!f.get("label")) {
+        f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
+    }
+    if (gokart.map.getView().getResolution() < .002) {
+        text = new ol.style.Text({
+            text: f.get("label"),
+            offsetX: 12,
+            textAlign: "left",
+            font: "12px Helvetica,Roboto,Arial,sans-serif",
+            stroke: new ol.style.Stroke({ color: "#fff", width: 4 })
+        });
+    }
+    return [
+        new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 10,
+                fill: new ol.style.Fill({ color: color }),
+                stroke: new ol.style.Stroke({ color: "#000", width: 2 }),
+            }),
+            text: text
+        }),
+        new ol.style.Style({image: icon})
+    ]
+}
+gokart.catalog = {
+    "resource_tracking_aircraft": {
+        init: gokart.createWFSLayer,
+        'name': "Resource Tracking Aircraft",
+        'id': 'dpaw:resource_tracking',
+        'style': resource_tracking_style,
+        'cql_filter': "symbolid LIKE '%aircraft'"
+    },
+    "resource_tracking": {
+        init: gokart.createWFSLayer,
         'name': "Resource Tracking",
         'id': 'dpaw:resource_tracking',
-        'style': function(f) {
-            var color = "rgba(255,0,0,0.7)";
-            if (f.get("age") < 3) { color = "rgba(255,255,0,0.7)" };
-            if (f.get("age") <= 1) { color = "rgba(0,255,0,0.7)" };
-            var icon = new ol.style.Icon({
-                src: symbols_url_base + f.get("symbolid") + "_64.png",
-                scale: .3
-            });
-            var text = undefined;
-            if (gokart.map.getView().getResolution() < .0015) {
-                text = new ol.style.Text({ 
-                    stroke: new ol.style.Stroke({ color: "#fff", width: 2 }),
-                    textAlign: "left",
-                    offsetX: 12
-                });
-                text.setText(f.get("callsign"));
-            }
-            f.style = [
-                new ol.style.Style({
-                    image: new ol.style.Circle({
-                        radius: 10,
-                        fill: new ol.style.Fill({ color: color }),
-                        stroke: new ol.style.Stroke({ color: "rgba(0,0,0,0.7)", width: 2 }),
-                    }),
-                    text: text
-                }),
-                new ol.style.Style({image: icon})
-            ]
-        return f.style;
-        }
-    }),
-    gokart.createTileLayer({
+        'style': resource_tracking_style,
+    },
+    "state_map_base": {
+        init: gokart.createTileLayer,
+        'name': "State Map Base",
+        'id': 'cddp:smb_250K'
+    },
+    "virtual_mosaic": {
+        init: gokart.createTileLayer,
         'name': "Virtual Mosaic",
         'id': 'landgate:LGATE-V001'
-    }),
+    },
+}
+gokart.init([
+    gokart.catalog["resource_tracking"].init(),
+    gokart.catalog["state_map_base"].init()
 ]);
 </script>
 {% endblock %}

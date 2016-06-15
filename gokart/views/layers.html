@@ -21,6 +21,8 @@
                         {{#each layers}}
                             <div class="row" data-layer-id="{{ this.values_.id }}">
                                 <h4>{{ this.values_.name }}</h4>
+                                <p><a data-action="remove" class="button alert">Remove</a></p>
+                                <p>{{ this.values_.catalogEntry.id }}</p>
                             </div>
                         {{/each}}
                     {% endraw %}
