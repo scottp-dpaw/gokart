@@ -167,15 +167,66 @@ html, body {
 	background-color: rgba(37,88,153,0.82);
 }
 
+
+/* styling for tabs used in the side-pane */
+.off-canvas .tabs {
+    background-color: rgba(37,45,51,0.9);
+    border: 0;
+}
+.off-canvas .tabs a {
+    color: white;
+    border: 1px solid transparent;
+}
+
+.off-canvas .tabs a:hover {
+    background-color: rgba(128,128,128,0.23);
+}
+
+.off-canvas .tabs a:focus {
+    background-color: transparent;
+}
+
+.off-canvas .tabs a[aria-selected="true"] {
+    background-color: rgba(128,128,128,0.46);
+    border: 1px solid rgba(37,45,51,0.9);
+}
+
+/* styling for switch widgets used on side pane */
+.off-canvas .switch-paddle {
+    background: rgba(37,45,51,0.9);
+}
+
+.off-canvas .switch-input, .off-canvas .switch {
+    margin: 0;
+}
+
+.off-canvas label {
+    color: white;
+    line-height: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.side-label {
+    margin-left: 1em;
+}
+
 /* Set height of internal layers to allow for bottom details */
 #layers-tab-panels {
     min-height: 60vh;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(37,45,51,0.9);
 }
 
 /* remove extra padding for tab boxes inside other tab boxes */
 #layers-list {
     padding: 1rem 0 0 0;
+}
+
+/* Add dotted line box to dragged layers*/
+.gu-transit {
+    border: 2px dashed #ffffff;
+    border-radius: 4px;
+    padding: 4px;
 }
 
 /* custom F6 tab style overrides for the side buttons  */
@@ -199,7 +250,7 @@ html, body {
     background-color: rgba(37,45,51,0.7);
 }
 .side-button > a[aria-selected="true"] {
-    background-color: rgba(66,79,90,0.9);
+    background-color: rgba(37,45,51,0.8);
     border-left: 3px solid rgb(237, 177, 0);
 }
 

@@ -20,15 +20,29 @@
                     {% raw %}
                         {{#each layers}}
                             <div class="row" data-layer-id="{{ this.values_.id }}">
-                                <h4>{{ this.values_.name }}</h4>
-                                <p><a data-action="remove" class="button alert">Remove</a></p>
-                                <p>{{ this.values_.catalogEntry.id }}</p>
+                                <div class="small-9">    
+                                    <h4>{{ this.values_.name }}</h4>
+                                    <h6>{{ this.values_.catalogEntry.id }}</h6>
+                                </div>
+                                <div class="small-3"><div class="text-right">
+                                    <a data-action="remove" class="button alert">&#x2715;</a>
+                                </div></div>
                             </div>
                         {{/each}}
                     {% endraw %}
                     </script>
                     <div class="tabs-panel is-active" id="layers-active"></div>
-                    <div class="tabs-panel" id="layers-catalog">readonly view of catalog</div>
+                    <div class="tabs-panel" id="layers-catalog">
+                        <div class="row">
+                            <div class="switch tiny">
+                                <input class="switch-input" id="switchBaseLayers" type="checkbox" checked>
+                                <label class="switch-paddle" for="switchBaseLayers">
+                                    <span class="show-for-sr">Switch out base layers</span>
+                                </label>
+                            </div>
+                            <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
+                        </div>
+                    </div>
                     <div class="tabs-panel" id="layers-categories">browseable categories (jqtree?)</div>
                 </div>
             </div>
