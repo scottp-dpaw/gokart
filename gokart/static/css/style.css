@@ -229,7 +229,7 @@ html, body {
     padding: 4px;
 }
 
-.layer-row:nth-child(2) {
+.layer-row:nth-child(even) {
     background-color: rgba(37,45,51,0.3);
 }
 

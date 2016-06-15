@@ -35,15 +35,38 @@
                     <div class="tabs-panel" id="layers-catalogue">
                         <div class="row">
                             <div class="switch tiny">
-                                <input class="switch-input" id="switchBaseLayers" type="checkbox" checked>
+                                <input class="switch-input" id="switchBaseLayers" type="checkbox" checked/>
                                 <label class="switch-paddle" for="switchBaseLayers">
                                     <span class="show-for-sr">Switch out base layers</span>
                                 </label>
                             </div>
                             <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
                         </div>
+                        <script id="layers-catalogue-template" type="text/x-handlebars-template">
+                        {% raw %}
+                        {{#each layers}}
+                            <div class="row layer-row" data-layer-id="{{ @key }}">
+                                <div class="small-9">    
+                                    <div class="layer-title">{{ this.name }}</div>
+                                    <div class="layer-id">{{ this.id }}</div>
+                                </div>
+                                <div class="small-3"><div class="text-right">
+                                     <div class="switch tiny">
+                                        <input class="switch-input" id="switch_{{ @key }}" type="checkbox"/>
+                                        <label class="switch-paddle" for="switch_{{ @key }}">
+                                            <span class="show-for-sr">Toggle layer</span>
+                                        </label>
+                                    </div> 
+                                </div></div>
+                            </div>
+                        {{/each}}
+                        {% endraw %}
+                        </script>
+                        <div id="layers-catalogue-list"></div>  
                     </div>
-                    <div class="tabs-panel" id="layers-categories">browseable categories (jqtree?)</div>
+                    <div class="tabs-panel" id="layers-categories">
+                        browseable categories (jqtree?)
+                    </div>
                 </div>
             </div>
         </div>

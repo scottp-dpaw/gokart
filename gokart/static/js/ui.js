@@ -58,6 +58,7 @@ window.gokart = (function(self) {
         self.colour = this.id;
     });
 
+    // update "Map Layers" pane
     ui.renderActiveLayers = function(ev) {
         if (ui.updatingOrder) { return }
         ui.layersActive.html(ui.activeLayersTmpl({
@@ -65,6 +66,14 @@ window.gokart = (function(self) {
         })).append(ui.layersActive.children().get().reverse());
     }
     
+    // update "Layer Catalogue" pane
+    ui.renderCatalogueLayers = function(ev) {
+        $("#layers-catalogue-list").html(ui.catalogueLayersTmpl({
+            layers: self.catalogue
+        }));
+    }
+
+    // change order of OL layers based on "Map Layers" list order
     ui.updateOrder = function(el) {
         ui.updatingOrder = true;
         $(ui.layersActive.children().get().reverse()).each(function() {
@@ -103,6 +112,11 @@ window.gokart = (function(self) {
             self.map.getLayerGroup().on("change", ui.renderActiveLayers);
             dragula([ui.layersActive.get(0)]).on("dragend", ui.updateOrder);
             ui.renderActiveLayers();
+        }
+
+        if ($("#layers-catalogue-list").length == 1) {
+            ui.catalogueLayersTmpl = Handlebars.compile($("#layers-catalogue-template").html());
+            ui.renderCatalogueLayers();
         }
     });
 
