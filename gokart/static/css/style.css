@@ -118,7 +118,7 @@ html, body {
 
 .button-group input:checked + label,
 .button-group input:checked + label:active {
-    background-color: rgba(0,60,136,.7);
+    background-color: rgba(0,60,136,0.7);
 }
 
 /* make tool button text bigger */
@@ -158,13 +158,13 @@ html, body {
     right: 3em;
 }
 
-#map-controls a, #map-controls .select-button {
-	background-color: rgba(0,60,136,.3);
+#map-controls a, #map-controls .select-button, .ol-scale-line {
+	background-color: rgba(73,115,170,0.7);
 }
 
 #map-controls a:focus, #map-controls a:hover,
 #map-controls .select-button:focus, #map-controls .select-button:hover {
-	background-color: rgba(0,60,136,.5);
+	background-color: rgba(37,88,153,0.82);
 }
 
 /* Set height of internal layers to allow for bottom details */
@@ -180,7 +180,7 @@ html, body {
 
 /* custom F6 tab style overrides for the side buttons  */
 .side-button > a {
-    background-color: rgba(37,45,51,.5);
+    background-color: rgba(37,45,51,0.7);
     border-left: 3px solid transparent;
     padding: 1em;
     font-size: 24px;
@@ -193,13 +193,13 @@ html, body {
 }
 
 .side-button > a:hover {
-    background-color: rgba(37,45,51,.9);
+    background-color: rgba(37,45,51,0.9);
 }
 .side-button > a:focus {
-    background-color: rgba(37,45,51,.5);
+    background-color: rgba(37,45,51,0.7);
 }
 .side-button > a[aria-selected="true"] {
-    background-color: rgba(66,79,90,.9);
+    background-color: rgba(66,79,90,0.9);
     border-left: 3px solid rgb(237, 177, 0);
 }
 
