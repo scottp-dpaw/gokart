@@ -11,6 +11,7 @@ html, body {
   position: absolute;
   z-index: 100;
   padding: 2em;
+  display: none;
   background-color: #424f5a;
 }
 
@@ -57,6 +58,7 @@ html, body {
     flex: 1; 
     background: url('/static/images/bg.png') repeat; 
     background-position: center;  
+    position: relative;
 }
 
 /* abs positioning shifts for OpenLayers widgets */
