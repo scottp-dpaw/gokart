@@ -29,31 +29,37 @@
 <script>
 // load map
 var symbols_url_base = "/static/symbols/device/";
+var stylecache = {}
+var text_style = new ol.style.Text({
+    offsetX: 12,
+    textAlign: "left",
+    font: "12px Helvetica,Roboto,Arial,sans-serif",
+    stroke: new ol.style.Stroke({ color: "#fff", width: 4 })
+});
 var resource_tracking_style = function(f, res) {
-    var color = "#f00";
-    if (f.get("age") < 3) { color = "#ff0" };
-    if (f.get("age") <= 1) { color = "#0f0" };
-    var icon = new ol.style.Icon({
-        src: symbols_url_base + f.get("symbolid") + "_64.png",
-        //color: color,
-        scale: .5
-    });
-    var text = undefined;
+    var color = "_red";
+    if (f.get("age") < 24) { color = "_orange" };
+    if (f.get("age") < 3) { color = "_yellow" };
+    if (f.get("age") <= 1) { color = "_green" };
+    var style_key = f.get("symbolid") + color;
+    style = stylecache[style_key]
+    if (!style) {
+        var icon = new ol.style.Icon({
+            src: symbols_url_base + f.get("symbolid") + color + ".svg",
+            opacity: .9
+        });
+        var style = new ol.style.Style({ image: icon, text: text_style });
+        stylecache[style_key] = style
+    }
     if (!f.get("label")) {
         f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
     }
-    if (res < .002) {
-        text = new ol.style.Text({
-            text: f.get("label"),
-            offsetX: 12,
-            textAlign: "left",
-            font: "12px Helvetica,Roboto,Arial,sans-serif",
-            stroke: new ol.style.Stroke({ color: "#fff", width: 4 })
-        });
+    if (res < 0.002) {
+        style.getText().setText(f.get("label"));
+    } else {
+        style.getText().setText("");
     }
-    return [
-        new ol.style.Style({ image: icon, text: text })
-    ]
+    return style
 }
 gokart.catalogue = {
     "resource_tracking_aircraft": {
