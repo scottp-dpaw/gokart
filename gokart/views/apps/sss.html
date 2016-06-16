@@ -29,20 +29,20 @@
 <script>
 // load map
 var symbols_url_base = "/static/symbols/device/";
-var resource_tracking_style = function(f) {
+var resource_tracking_style = function(f, res) {
     var color = "#f00";
     if (f.get("age") < 3) { color = "#ff0" };
     if (f.get("age") <= 1) { color = "#0f0" };
     var icon = new ol.style.Icon({
         src: symbols_url_base + f.get("symbolid") + "_64.png",
-        color: color,
+        //color: color,
         scale: .5
     });
     var text = undefined;
     if (!f.get("label")) {
         f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
     }
-    if (gokart.map.getView().getResolution() < .002) {
+    if (res < .002) {
         text = new ol.style.Text({
             text: f.get("label"),
             offsetX: 12,
