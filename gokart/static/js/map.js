@@ -125,7 +125,7 @@ window.gokart = (function(self) {
         // set properties for use in layer selector
         tileLayer.set("name", layer.name);
         tileLayer.set("id", layer.id);
-        this.olLayer = this;
+        this.olLayer = tileLayer;
         tileLayer.set("catalogueEntry", this);
         return tileLayer;
     };
@@ -192,27 +192,6 @@ window.gokart = (function(self) {
         };
         req.open("GET", options.url + "?" + $.param(options.params));
         req.send();
-    }
-
-    // hover information
-    self.infoDiv = $("#info")
-    self.displayFeatureInfo = function(pixel) {
-        var content = "";
-        var count = 0;
-        var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
-            content += f.get("to_html")(f);
-            count += 1;
-        });
-        if (content) {
-            self.infoDiv.find(".content").html(content);
-            self.infoDiv.find(".title").html("<h5>" + count + " feature(s): <small>" + ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3) + "</small></h5>")
-            self.infoDiv.show();
-            var topPx = pixel[1] - self.infoDiv.outerHeight();
-            if (topPx < 0) { topPx = 0 };
-            var leftPx = pixel[0] + 10;
-            if (leftPx + self.infoDiv.outerWidth() > $("#map").width()) { leftPx = $("#map").width() - self.infoDiv.outerWidth(); }
-            self.infoDiv.css({left: leftPx + "px", top: topPx + "px"});
-        }
     }
 
     // initialise map

@@ -58,6 +58,27 @@ window.gokart = (function(self) {
         self.colour = this.id;
     });
 
+    // hover information
+    self.infoDiv = $("#info")
+    self.displayFeatureInfo = function(pixel) {
+        var features = {}
+        var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
+            features[f.id_] = f.get("to_html")(f);
+        });
+        if (Object.values(features).length > 0) {
+            self.infoDiv.find(".content").html(Object.values(features).join(""));
+            self.infoDiv.find(".title").html("<h5>" + Object.values(features).length + " feature(s): <small>" + ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3) + "</small></h5>")
+            var topPx = pixel[1] - self.infoDiv.outerHeight();
+            if (topPx < 0) { topPx = 0 };
+            var leftPx = pixel[0] + 10;
+            if (leftPx + self.infoDiv.outerWidth() > $("#map").width()) { 
+                leftPx = $("#map").width() - self.infoDiv.outerWidth(); 
+            }
+            self.infoDiv.css({left: leftPx + "px", top: topPx + "px"});
+            self.infoDiv.show();
+        }
+    }
+
     // update "Map Layers" pane
     ui.renderActiveLayers = function(ev) {
         if (ui.updatingOrder) { return }
@@ -99,15 +120,26 @@ window.gokart = (function(self) {
         if ($("#layers-active").length == 1) {
             ui.activeLayersTmpl = Handlebars.compile($("#layers-active-template").html());
             ui.layerDetailsTmpl = Handlebars.compile($("#layer-details-template").html());
-            ui.layersActive = $("#layers-active").on("click", "div[data-layer-id]", function() {
+            ui.layersActive = $("#layers-active").on("click", "div[data-id]", function() {
                 $("#layer-details").html(ui.layerDetailsTmpl({
-                    ol_layer: self.layerById($(this).attr("data-layer-id")),
+                    ol_layer: self.layerById($(this).attr("data-id")),
                     catalogue_layer: {abstract: "placeholder abstract"}
                 }));
-            }).on("click", "div[data-layer-id] a[data-action='remove']", function() {
-                var layer = self.layerById($(this).parents("div[data-layer-id]").attr("data-layer-id"));
+            }).on("click", "div[data-id] a[data-action='remove']", function() {
+                var layer = self.layerById($(this).parents("div[data-id]").attr("data-id"));
                 self.map.removeLayer(layer);
                 layer.catalogueEntry.olLayer = undefined;
+            })
+            ui.layersCatalogue = $("#layers-catalogue").on("change", "div[data-id] input[data-action='toggle']", function() {
+                var layer = self.catalogue[$(this).parents("div[data-id]").attr("data-id")];
+                // TODO: baselayer logic
+                if ($(this).prop('checked')) {
+                    console.log('adding');
+                    self.map.addLayer(layer.init());
+                } else {
+                    self.map.removeLayer(layer.olLayer);
+                    layer.olLayer = undefined;
+                }
             });
             self.map.getLayerGroup().on("change", ui.renderActiveLayers);
             dragula([ui.layersActive.get(0)]).on("dragend", ui.updateOrder);

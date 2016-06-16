@@ -73,12 +73,14 @@ gokart.catalogue = {
     "state_map_base": {
         init: gokart.createTileLayer,
         'name': "State Map Base",
-        'id': 'cddp:smb_250K'
+        'id': 'cddp:smb_250K',
+        'base': true
     },
     "virtual_mosaic": {
         init: gokart.createTileLayer,
         'name': "Virtual Mosaic",
-        'id': 'landgate:LGATE-V001'
+        'id': 'landgate:LGATE-V001',
+        'base': true
     },
 }
 gokart.init([
