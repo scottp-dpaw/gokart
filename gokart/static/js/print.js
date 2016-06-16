@@ -288,7 +288,7 @@ window.gokart = (function(self) {
         req.send(formData);
     }
     
-    self.print = function(format) {
+    self.print = debounce(function(format) {
         layout.title = window.prompt("Title for printout?", "Quick Print")
         if (!layout.title) { return };
         // Resize to A3 landscape 150dpi
@@ -322,7 +322,7 @@ window.gokart = (function(self) {
             }, 5000);
         });
         self.map.renderSync();
-    }
+    }, 250);
 
     return self;
 })(window.gokart || {});

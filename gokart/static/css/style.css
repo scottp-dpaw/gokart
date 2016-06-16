@@ -9,9 +9,15 @@ html, body {
 
 #info {
   position: absolute;
-  width: 4px;
-  height: 4px;
   z-index: 100;
+  padding: 2em;
+  display: none;
+  background-color: #424f5a;
+}
+
+#info .content {
+  max-height: 40vh;
+  overflow: auto;
 }
 
 /* full-height the foundation off-canvas stuff also */
@@ -52,6 +58,7 @@ html, body {
     flex: 1; 
     background: url('/static/images/bg.png') repeat; 
     background-position: center;  
+    position: relative;
 }
 
 /* abs positioning shifts for OpenLayers widgets */
@@ -223,13 +230,13 @@ html, body {
 }
 
 /* styling for movable row boxes */
-.layer-row {
+.layer-row, .feature-row {
     color: white;
     background-color: rgba(37,45,51,0.5);
     padding: 4px;
 }
 
-.layer-row:nth-child(even) {
+.layer-row:nth-child(even), .feature-row:nth-child(even) {
     background-color: rgba(37,45,51,0.3);
 }
 

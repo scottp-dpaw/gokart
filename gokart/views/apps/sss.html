@@ -5,6 +5,15 @@
 {% block tab_panels %}
 {{ super() }}
 <div class="tabs-panel" id="menu-tab-tracking">
+    <script id="tracking-template" type="text/x-handlebars-template">
+    {% raw %}
+        <div class="row feature-row" data-feature-id="{{ id_ }}">
+            <div class="small-12">    
+                <div class="feature-title">{{ values_.label }}</div>
+            </div>
+        </div>
+    {% endraw %}
+    </script>
     Tracking goes here.
 </div>
 {% endblock %}
@@ -20,20 +29,20 @@
 <script>
 // load map
 var symbols_url_base = "/static/symbols/device/";
-var resource_tracking_style = function(f) {
+var resource_tracking_style = function(f, res) {
     var color = "#f00";
     if (f.get("age") < 3) { color = "#ff0" };
     if (f.get("age") <= 1) { color = "#0f0" };
     var icon = new ol.style.Icon({
         src: symbols_url_base + f.get("symbolid") + "_64.png",
-        color: color,
-        scale: .3
+        //color: color,
+        scale: .5
     });
     var text = undefined;
     if (!f.get("label")) {
         f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
     }
-    if (gokart.map.getView().getResolution() < .002) {
+    if (res < .002) {
         text = new ol.style.Text({
             text: f.get("label"),
             offsetX: 12,
@@ -59,16 +68,19 @@ gokart.catalogue = {
         'name': "Resource Tracking",
         'id': 'dpaw:resource_tracking',
         'style': resource_tracking_style,
+        'template': Handlebars.compile($("#tracking-template").html())
     },
     "state_map_base": {
         init: gokart.createTileLayer,
         'name': "State Map Base",
-        'id': 'cddp:smb_250K'
+        'id': 'cddp:smb_250K',
+        'base': true
     },
     "virtual_mosaic": {
         init: gokart.createTileLayer,
         'name': "Virtual Mosaic",
-        'id': 'landgate:LGATE-V001'
+        'id': 'landgate:LGATE-V001',
+        'base': true
     },
 }
 gokart.init([

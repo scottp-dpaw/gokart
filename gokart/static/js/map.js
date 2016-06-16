@@ -1,4 +1,22 @@
 "use strict";
+// Returns a function, that, as long as it continues to be invoked, will not
+// be triggered. The function will be called after it stops being called for
+// N milliseconds. If `immediate` is passed, trigger the function on the
+// leading edge, instead of the trailing.
+function debounce(func, wait, immediate) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
+        var later = function() {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+};
 window.gokart = (function(self) {
     var $self = $(self)
 
@@ -39,6 +57,7 @@ window.gokart = (function(self) {
         });
     });
 
+    self.defaultTemplate = Handlebars.compile($("#default-feature-template").html());
 
     // for layers with hover querying
     self.createWFSLayer = function() {
@@ -62,6 +81,10 @@ window.gokart = (function(self) {
                 return url + "?" + $.param(options.params)
             },
             strategy: ol.loadingstrategy.bbox
+        });
+        var template = this.template || self.defaultTemplate;
+        vectorSource.on("addfeature", function(event) {
+            event.feature.set("to_html", template);
         });
         var vector = new ol.layer.Vector({
             opacity: options.opacity || 1,
@@ -120,7 +143,7 @@ window.gokart = (function(self) {
         // set properties for use in layer selector
         tileLayer.set("name", layer.name);
         tileLayer.set("id", layer.id);
-        this.olLayer = this;
+        this.olLayer = tileLayer;
         tileLayer.set("catalogueEntry", this);
         return tileLayer;
     };
@@ -141,13 +164,15 @@ window.gokart = (function(self) {
         }
     }
 
+    self.wgs84Sphere = new ol.Sphere(6378137);
+
     //return the scale 000's, in meters
     self.get_scale = function() {
         var size = self.map.getSize();
         var center = self.map.getView().getCenter();
         var extent = self.map.getView().calculateExtent(size);
-        var distance = turf.distance(turf.point([extent[0], center[1]]), turf.point(center), 'kilometers') * 2;
-        return distance * 1000 * self.dpmm / size[0] ;
+        var distance = self.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2;
+        return distance * self.dpmm / size[0] ;
     }
 
     self.getScaleString = function() {
@@ -185,24 +210,6 @@ window.gokart = (function(self) {
         };
         req.open("GET", options.url + "?" + $.param(options.params));
         req.send();
-    }
-
-    self.infoDiv = $("#info").powerTip({
-        fadeInTime: 0, fadeOutTime: 0, mouseOnToPopup: true,
-        smartPlacement: true, placement: 'e',
-        intentPollInterval: 10, intentSensitivity: 100,
-        offset: 20, closeDelay: 10
-    });
-
-    // hover information
-    self.displayFeatureInfo = function(pixel) {
-        var content = "";
-        self.infoDiv.css({left: 0, top: 0})
-        var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) { 
-            content += f.get("label") + "<br>";
-            self.infoDiv.data("powertip", content);
-            self.infoDiv.css({left: pixel[0] - 2 + "px", top: pixel[1] - 2 + "px"});
-        });
     }
 
     // initialise map

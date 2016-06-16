@@ -19,7 +19,7 @@
                     <script id="layers-active-template" type="text/x-handlebars-template">
                     {% raw %}
                         {{#each layers}}
-                            <div class="row layer-row" data-layer-id="{{ this.values_.id }}">
+                            <div class="row layer-row" data-id="{{ this.values_.id }}">
                                 <div class="small-9">    
                                     <div class="layer-title">{{ this.values_.name }}</div>
                                     <div class="layer-id">{{ this.values_.catalogueEntry.id }}</div>
@@ -45,14 +45,14 @@
                         <script id="layers-catalogue-template" type="text/x-handlebars-template">
                         {% raw %}
                         {{#each layers}}
-                            <div class="row layer-row" data-layer-id="{{ @key }}">
+                            <div class="row layer-row" data-id="{{ @key }}">
                                 <div class="small-9">    
                                     <div class="layer-title">{{ this.name }}</div>
                                     <div class="layer-id">{{ this.id }}</div>
                                 </div>
                                 <div class="small-3"><div class="text-right">
                                      <div class="switch tiny">
-                                        <input class="switch-input" id="switch_{{ @key }}" type="checkbox"/>
+                                        <input class="switch-input" id="switch_{{ @key }}" data-action="toggle" type="checkbox" {{#if this.olLayer}}checked{{/if}}/>
                                         <label class="switch-paddle" for="switch_{{ @key }}">
                                             <span class="show-for-sr">Toggle layer</span>
                                         </label>
