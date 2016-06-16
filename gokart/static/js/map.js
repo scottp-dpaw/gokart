@@ -39,6 +39,7 @@ window.gokart = (function(self) {
         });
     });
 
+    self.defaultTemplate = Handlebars.compile($("#default-feature-template").html());
 
     // for layers with hover querying
     self.createWFSLayer = function() {
@@ -62,6 +63,10 @@ window.gokart = (function(self) {
                 return url + "?" + $.param(options.params)
             },
             strategy: ol.loadingstrategy.bbox
+        });
+        var template = this.template || self.defaultTemplate;
+        vectorSource.on("addfeature", function(event) {
+            event.feature.set("to_html", template);
         });
         var vector = new ol.layer.Vector({
             opacity: options.opacity || 1,
@@ -141,13 +146,15 @@ window.gokart = (function(self) {
         }
     }
 
+    self.wgs84Sphere = new ol.Sphere(6378137);
+
     //return the scale 000's, in meters
     self.get_scale = function() {
         var size = self.map.getSize();
         var center = self.map.getView().getCenter();
         var extent = self.map.getView().calculateExtent(size);
-        var distance = turf.distance(turf.point([extent[0], center[1]]), turf.point(center), 'kilometers') * 2;
-        return distance * 1000 * self.dpmm / size[0] ;
+        var distance = self.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2;
+        return distance * self.dpmm / size[0] ;
     }
 
     self.getScaleString = function() {
@@ -187,22 +194,21 @@ window.gokart = (function(self) {
         req.send();
     }
 
-    self.infoDiv = $("#info").powerTip({
-        fadeInTime: 0, fadeOutTime: 0, mouseOnToPopup: true,
-        smartPlacement: true, placement: 'e',
-        intentPollInterval: 10, intentSensitivity: 100,
-        offset: 20, closeDelay: 10
-    });
-
     // hover information
+    self.infoDiv = $("#info")
     self.displayFeatureInfo = function(pixel) {
         var content = "";
-        self.infoDiv.css({left: 0, top: 0})
-        var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) { 
-            content += f.get("label") + "<br>";
-            self.infoDiv.data("powertip", content);
-            self.infoDiv.css({left: pixel[0] - 2 + "px", top: pixel[1] - 2 + "px"});
+        var count = 0;
+        var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
+            content += f.get("to_html")(f);
+            count += 1;
         });
+        if (content) {
+            self.infoDiv.find(".content").html(content);
+            self.infoDiv.find(".title").html("<h5>" + count + " feature(s): <small>" + ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3) + "</small></h5>")
+            self.infoDiv.show();
+            self.infoDiv.css({left: pixel[0] + 10 + "px", top: pixel[1] - self.infoDiv.height() + "px"});
+        }
     }
 
     // initialise map

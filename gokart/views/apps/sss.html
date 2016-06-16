@@ -5,6 +5,15 @@
 {% block tab_panels %}
 {{ super() }}
 <div class="tabs-panel" id="menu-tab-tracking">
+    <script id="tracking-template" type="text/x-handlebars-template">
+    {% raw %}
+        <div class="row feature-row" data-feature-id="{{ id_ }}">
+            <div class="small-12">    
+                <div class="feature-title">{{ values_.label }}</div>
+            </div>
+        </div>
+    {% endraw %}
+    </script>
     Tracking goes here.
 </div>
 {% endblock %}
@@ -59,6 +68,7 @@ gokart.catalogue = {
         'name': "Resource Tracking",
         'id': 'dpaw:resource_tracking',
         'style': resource_tracking_style,
+        'template': Handlebars.compile($("#tracking-template").html())
     },
     "state_map_base": {
         init: gokart.createTileLayer,
