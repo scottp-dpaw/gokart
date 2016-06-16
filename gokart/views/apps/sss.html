@@ -26,6 +26,7 @@ var resource_tracking_style = function(f) {
     if (f.get("age") <= 1) { color = "#0f0" };
     var icon = new ol.style.Icon({
         src: symbols_url_base + f.get("symbolid") + "_64.png",
+        color: color,
         scale: .3
     });
     var text = undefined;
@@ -42,15 +43,7 @@ var resource_tracking_style = function(f) {
         });
     }
     return [
-        new ol.style.Style({
-            image: new ol.style.Circle({
-                radius: 10,
-                fill: new ol.style.Fill({ color: color }),
-                stroke: new ol.style.Stroke({ color: "#000", width: 2 }),
-            }),
-            text: text
-        }),
-        new ol.style.Style({image: icon})
+        new ol.style.Style({ image: icon, text: text })
     ]
 }
 gokart.catalogue = {
