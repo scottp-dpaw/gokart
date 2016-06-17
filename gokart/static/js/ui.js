@@ -63,7 +63,7 @@ window.gokart = (function(self) {
     self.displayFeatureInfo = debounce(function(pixel) {
         var features = {}
         var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
-            features[f.getGeometry().getExtent().join(" ")] = f.get("to_html")(f);
+            features[f.getGeometry().getExtent().join(" ")] = f.get("to_html")(f.getProperties());
         });
         if (Object.values(features).length > 0) {
             self.infoDiv.find(".content").html(Object.values(features).join(""));
