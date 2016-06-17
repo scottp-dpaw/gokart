@@ -267,7 +267,7 @@ window.gokart = (function(self) {
             scale: "ISO " + layout.paperSize + " " + $("#menu-scale").val(),
             title: layout.title,
             author: self.whoami.email,
-            date: moment().format('[Printed] MMMM Do YYYY, h:mm:ss a')
+            date: "Printed " + moment().toLocaleString()
         })], {type: "image/svg+xml;charset=utf-8"}));
     }
 

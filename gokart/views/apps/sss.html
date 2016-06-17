@@ -9,7 +9,8 @@
     {% raw %}
         <div class="row feature-row" data-feature-id="{{ id_ }}">
             <div class="small-12">    
-                <div class="feature-title">{{ values_.label }}</div>
+                <div class="feature-title">{{ values_.label }} <small>({{ values_.deviceid }})</small></div>
+                <small>{{ values_.time }}</small>
             </div>
         </div>
     {% endraw %}
@@ -53,6 +54,7 @@ var resource_tracking_style = function(f, res) {
     }
     if (!f.get("label")) {
         f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
+        f.set("time", moment(f.get("seen")).toLocaleString());
     }
     if (res < 0.002) {
         style.getText().setText(f.get("label"));

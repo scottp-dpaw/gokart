@@ -92,9 +92,9 @@ window.gokart = (function(self) {
             style: options.style
         });
         if (options.refresh) {
-            vector.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+            vector.set("updated", moment().toLocaleString())
             vectorSource.refresh = setInterval(function() {
-                vector.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+                vector.set("updated", moment().toLocaleString());
                 vectorSource.clear();
             }, options.refresh * 1000)
         };
@@ -146,9 +146,9 @@ window.gokart = (function(self) {
             source: tileSource(layer.wmts_url)
         });
         if (layer.refresh) {
-            tileLayer.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+            tileLayer.set("updated", moment().toLocaleString());
             tileLayer.refresh = setInterval(function() {
-                tileLayer.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+                tileLayer.set("updated", moment().toLocaleString());
                 tileLayer.setSource(tileSource(layer.wmts_url + "?time=" + moment.utc().unix()));
             }, layer.refresh * 1000);
         };
