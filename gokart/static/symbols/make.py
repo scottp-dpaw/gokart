@@ -4,6 +4,25 @@ import os
 import csv
 import shutil
 
+IN_PATH = "svgs"
+OUT_PATH = "png"
+OUT_RES = "48"
+
+if os.path.isdir(OUT_PATH):
+    shutil.rmtree(OUT_PATH)
+os.mkdir(OUT_PATH)
+for x in [y for y in os.listdir(IN_PATH) if os.path.isdir(os.path.join(IN_PATH, y))]:
+    os.mkdir(os.path.join(OUT_PATH, x))
+    svg_path = os.path.join(IN_PATH, x)
+    out_path = os.path.join(OUT_PATH, x)
+    for s in [y for y in os.listdir(svg_path) if y.endswith('.svg')]:
+        out_src = os.path.join(out_path, s)
+        out_png = os.path.splitext(out_src)[0]+'.png'
+        subprocess.check_call(["inkscape", os.path.join(svg_path, s), "-w", OUT_RES, "-h", OUT_RES, "-l", out_src])
+        subprocess.check_call(["inkscape", out_src, "-w", OUT_RES, "-h", OUT_RES, "-e", out_png ])
+
+exit()
+
 for d in os.listdir("svgs"): 
     shutil.rmtree(d)
     subprocess.check_call(["svgo", "-f", os.path.join("svgs", d), "-o", d])

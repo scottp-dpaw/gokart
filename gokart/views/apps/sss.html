@@ -29,7 +29,7 @@
 {% block loader_script %}
 <script>
 // load map
-var stylecache = {}
+var stylecache = {};
 var text_style = new ol.style.Text({
     offsetX: 12,
     textAlign: "left",
@@ -45,7 +45,7 @@ var initStyle = function(stylekey) {
     var style = new ol.style.Style({ image: icon, text: text_style });
     stylecache[stylekey] = style
     return style;
-}
+};
 var resource_tracking_style = function(f, res) {
     var color = "_red";
     if (f.get("age") < 24) { color = "_orange" };
@@ -66,8 +66,15 @@ var resource_tracking_style = function(f, res) {
         style.getText().setText("");
     }
     return style
-}
+};
 var trackingTmpl = Handlebars.compile($("#tracking-template").html())
+{% if env.WMTS_SRC %}
+gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
+{% endif %}
+{% if env.WFS_SRC %}
+gokart.defaultWFSSrc = "{{ env.WFS_SRC }}";
+{% endif %}
+
 gokart.catalogue = {
     "resource_tracking_aircraft": {
         init: gokart.createWFSLayer,
@@ -103,7 +110,7 @@ gokart.catalogue = {
         'id': 'landgate:LGATE-V001',
         'base': true
     },
-}
+};
 gokart.init([
     gokart.catalogue["resource_tracking"].init(),
     gokart.catalogue["state_map_base"].init()

@@ -21,6 +21,8 @@ function debounce(func, wait, immediate) {
 window.gokart = (function(self) {
     var $self = $(self)
 
+    // method to precache SVGs as raster,
+    // workaround for Firefox missing the SurfaceCache when blitting to canvas
     self.pngs = {}
     self.svgToPNG = function(url) {
         if (self.pngs[url]) { return self.pngs[url] };
@@ -38,6 +40,7 @@ window.gokart = (function(self) {
         img.src = url;
         return url;
     }
+    
     // calculate screen res
     self.mmPerInch = 25.4;
     $("body").append('<div id="dpi" style="width:1in;display:none"></div>');
@@ -64,6 +67,11 @@ window.gokart = (function(self) {
         },
     };
 
+    // overridable defaults for WMTS and WFS loading
+    // (these default paths are handled by a reverse proxy in front of the app)
+    self.defaultWMTSSrc = "/geoserver/gwc/service/wmts";
+    self.defaultWFSSrc = "/geoserver/wfs";
+
     // generate matrix IDs from name and level number
     $.each(_matrixSets, function(projection, innerMatrixSets) {
         $.each(innerMatrixSets, function(tileSize, matrixSet) {
@@ -80,7 +88,7 @@ window.gokart = (function(self) {
     // for layers with hover querying
     self.createWFSLayer = function() {
         var options = this;
-        var url = "/geoserver/wfs"
+        var url = self.defaultWFSSrc;
         options.params = $.extend({
             version: "1.1.0",
             service: "WFS",
@@ -133,7 +141,7 @@ window.gokart = (function(self) {
             format: "image/jpeg",
             tileSize: 1024,
             projection: "EPSG:4326",
-            wmts_url: "/geoserver/gwc/service/wmts",
+            wmts_url: self.defaultWMTSSrc,
         }, layer);
 
         var matrixSet = _matrixSets[layer.projection][layer.tileSize];
@@ -243,7 +251,9 @@ window.gokart = (function(self) {
     }
 
     // initialise map
-    self.init = function(layers) {
+    self.init = function(layers, options) {
+        options = options || {};
+
         self.map = new ol.Map({
             logo: false,
             renderer: "canvas",
