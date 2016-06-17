@@ -101,7 +101,7 @@ window.gokart = (function(self) {
     ui.updateOrder = function(el) {
         ui.updatingOrder = true;
         $(ui.layersActive.children().get().reverse()).each(function() {
-            var layer = self.layerById($(this).attr("data-layer-id"));
+            var layer = self.layerById($(this).attr("data-id"));
             self.map.removeLayer(layer);
             self.map.addLayer(layer);
         })
