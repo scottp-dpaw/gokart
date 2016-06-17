@@ -17,9 +17,27 @@ function debounce(func, wait, immediate) {
         if (callNow) func.apply(context, args);
     };
 };
+
 window.gokart = (function(self) {
     var $self = $(self)
 
+    self.pngs = {}
+    self.svgToPNG = function(url) {
+        if (self.pngs[url]) { return self.pngs[url] };
+        var canvas = $("<canvas>").get(0);
+        var ctx = canvas.getContext("2d");
+        var img = new Image()
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(function(blob) {
+                self.pngs[url] = URL.createObjectURL(blob);
+            }, 'image/png');
+        }
+        img.src = url;
+        return url;
+    }
     // calculate screen res
     self.mmPerInch = 25.4;
     $("body").append('<div id="dpi" style="width:1in;display:none"></div>');
