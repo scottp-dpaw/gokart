@@ -60,7 +60,7 @@ window.gokart = (function(self) {
 
     // hover information
     self.infoDiv = $("#info")
-    self.displayFeatureInfo = function(pixel) {
+    self.displayFeatureInfo = debounce(function(pixel) {
         var features = {}
         var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
             features[f.id_] = f.get("to_html")(f);
@@ -78,7 +78,7 @@ window.gokart = (function(self) {
             self.infoDiv.css({left: leftPx + "px", top: topPx + "px"});
             self.infoDiv.show();
         }
-    }
+    }, 10);
 
     // update "Map Layers" pane
     ui.renderActiveLayers = debounce(function(ev) {
