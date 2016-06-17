@@ -17,9 +17,27 @@ function debounce(func, wait, immediate) {
         if (callNow) func.apply(context, args);
     };
 };
+
 window.gokart = (function(self) {
     var $self = $(self)
 
+    self.pngs = {}
+    self.svgToPNG = function(url) {
+        if (self.pngs[url]) { return self.pngs[url] };
+        var canvas = $("<canvas>").get(0);
+        var ctx = canvas.getContext("2d");
+        var img = new Image()
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(function(blob) {
+                self.pngs[url] = URL.createObjectURL(blob);
+            }, 'image/png');
+        }
+        img.src = url;
+        return url;
+    }
     // calculate screen res
     self.mmPerInch = 25.4;
     $("body").append('<div id="dpi" style="width:1in;display:none"></div>');
@@ -92,9 +110,9 @@ window.gokart = (function(self) {
             style: options.style
         });
         if (options.refresh) {
-            vector.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+            vector.set("updated", moment().toLocaleString())
             vectorSource.refresh = setInterval(function() {
-                vector.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+                vector.set("updated", moment().toLocaleString());
                 vectorSource.clear();
             }, options.refresh * 1000)
         };
@@ -146,9 +164,9 @@ window.gokart = (function(self) {
             source: tileSource(layer.wmts_url)
         });
         if (layer.refresh) {
-            tileLayer.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+            tileLayer.set("updated", moment().toLocaleString());
             tileLayer.refresh = setInterval(function() {
-                tileLayer.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+                tileLayer.set("updated", moment().toLocaleString());
                 tileLayer.setSource(tileSource(layer.wmts_url + "?time=" + moment.utc().unix()));
             }, layer.refresh * 1000);
         };
