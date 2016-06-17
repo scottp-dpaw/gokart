@@ -15,7 +15,34 @@
         </div>
     {% endraw %}
     </script>
-    <div id="tracking-list"></div>
+    <div class="row collapse">
+        <div class="columns shrink">
+            <ul class="tabs" data-tabs id="tracking-tabs">
+                <li class="tabs-title is-active"><a href="#tracking-list-tab" aria-selected="true">Resource Tracking</a></li>
+                <li class="tabs-title"><a href="#tracking-groups-tab" aria-selected="true">Device Groups</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="row collapse" id="tracking-tab-panels">
+        <div class="columns">
+            <div class="tabs-content vertical" data-tabs-content="tracking-tabs">
+                <div id="tracking-list-tab" class="tabs-panel is-active">
+                    <div id="tracking-list"></div>
+                </div>
+                <div id="tracking-groups-tab" class="tabs-panel">
+                    Group search shortcuts here
+                </div>
+            </div>
+        </div>
+    </div>
+    <style type="text/css">
+        div.feature-row {
+            cursor: pointer;
+        }
+        div.feature-row:hover {
+            border-right: 1px solid #fff;
+        }
+    </style>
 </div>
 {% endblock %}
 
@@ -71,20 +98,13 @@ var resource_tracking_style = function(f, res) {
 }
 var trackingTmpl = Handlebars.compile($("#tracking-template").html())
 gokart.catalogue = {
-    "resource_tracking_aircraft": {
-        init: gokart.createWFSLayer,
-        'name': "Resource Tracking Aircraft",
-        'id': 'dpaw:resource_tracking',
-        'style': resource_tracking_style,
-        'cql_filter': "symbolid LIKE '%aircraft'"
-    },
     "resource_tracking": {
         init: gokart.createWFSLayer,
-        'name': "Resource Tracking",
-        'id': 'dpaw:resource_tracking',
-        'style': resource_tracking_style,
-        'template': trackingTmpl,
-        'refresh': 30
+        name: "Resource Tracking",
+        id: 'dpaw:resource_tracking',
+        style: resource_tracking_style,
+        template: trackingTmpl,
+        refresh: 30
     },
     "hotspots": {
         init: gokart.createTileLayer,
@@ -95,15 +115,15 @@ gokart.catalogue = {
     },
     "state_map_base": {
         init: gokart.createTileLayer,
-        'name': "State Map Base",
-        'id': 'cddp:smb_250K',
-        'base': true
+        name: "State Map Base",
+        id: 'cddp:smb_250K',
+        base: true
     },
     "virtual_mosaic": {
         init: gokart.createTileLayer,
-        'name': "Virtual Mosaic",
-        'id': 'landgate:LGATE-V001',
-        'base': true
+        name: "Virtual Mosaic",
+        id: 'landgate:LGATE-V001',
+        base: true
     },
 }
 gokart.init([
@@ -115,12 +135,28 @@ var renderTracking = debounce(function() {
     if (gokart.catalogue.resource_tracking.olLayer) {
         var layer = gokart.catalogue.resource_tracking.olLayer;
         var html = "";
+        var features = {};
         layer.getSource().getFeatures().forEach(function(f) {
+            features[f.get("deviceid")] = f
+        });
+        Object.values(features).sort(function(a, b) {
+            if (a.get("seen") > b.get("seen")) { return -1 };
+            if (a.get("seen") < b.get("seen")) { return 1 };
+            return 0;
+        }).forEach(function(f) {
             html += trackingTmpl(f);
         });
         trackingList.html(html);
     }
 }, 250);
+trackingList.on("click", "div[data-feature-id]", function() {
+    var fid = $(this).attr("data-feature-id");
+    var f = gokart.catalogue.resource_tracking.olLayer.getSource().getFeatureById(fid);
+    gokart.map.getView().setCenter(f.getGeometry().getCoordinates());
+    if (gokart.get_scale() > 250) {
+        gokart.set_scale(250)
+    }
+})
 gokart.map.getLayerGroup().on("change", renderTracking);
 </script>
 {% endblock %}
