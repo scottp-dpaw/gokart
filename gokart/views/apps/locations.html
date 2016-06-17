@@ -5,6 +5,13 @@
 {% block loader_script %}
 <script>
 // load map
+{% if env.WMTS_SRC %}
+gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
+{% endif %}
+{% if env.WFS_SRC %}
+gokart.defaultWFSSrc = "{{ env.WFS_SRC }}";
+{% endif %}
+
 gokart.init([
     gokart.createTileLayer({
         'id': 'cddp:dpaw_offices',

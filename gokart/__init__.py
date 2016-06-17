@@ -1,5 +1,5 @@
 import bottle 
-import confy
+import dotenv
 import os
 import pytz
 import random
@@ -9,6 +9,7 @@ import tempfile
 from datetime import datetime, timedelta
 from six.moves import urllib
 
+dotenv.load_dotenv(dotenv.find_dotenv())
 
 bottle.TEMPLATE_PATH.append('./gokart/views')
 bottle.debug(True)
@@ -16,7 +17,7 @@ bottle.debug(True)
 # serve up map apps
 @bottle.route('/<app_name>')
 def index( app_name ):
-    return bottle.jinja2_template('apps/{}.html'.format( app_name ))
+    return bottle.jinja2_template('apps/{}.html'.format( app_name ), env=os.environ)
 
 
 # WMS shim for Himawari 8
