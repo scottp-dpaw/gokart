@@ -8,7 +8,7 @@
     <script id="tracking-template" type="text/x-handlebars-template">
     {% raw %}
         <div class="row feature-row" data-feature-id="{{ id_ }}">
-            <div class="small-12">    
+            <div class="small-12 columns">    
                 <div class="feature-title"><img src="{{ values_.icon }}" /> {{ values_.label }} <small>({{ values_.deviceid }})</small></div>
                 <small>{{ values_.time }}</small>
             </div>
@@ -27,6 +27,17 @@
         <div class="columns">
             <div class="tabs-content vertical" data-tabs-content="tracking-tabs">
                 <div id="tracking-list-tab" class="tabs-panel is-active">
+                    <div class="row collapse">
+                        <div class="small-6 columns">
+                            <select name="select" id="resource-tracking-cql">
+                                <option value="" selected>All resources</option> 
+                                <option value="symbolid LIKE '%aircraft'">Aircraft</option>
+                            </select>
+                        </div>
+                        <div class="small-6 columns">
+                            <input type="search" id="resource-tracking-search" placeholder="Find a resource...">
+                        </div>
+                    </div>
                     <div id="tracking-list"></div>
                 </div>
                 <div id="tracking-groups-tab" class="tabs-panel">
@@ -134,9 +145,9 @@ var trackingList = $("#tracking-list");
 var renderTracking = debounce(function() {
     if (gokart.catalogue.resource_tracking.olLayer) {
         var layer = gokart.catalogue.resource_tracking.olLayer;
-        var html = "";
+        var html = [];
         var features = {};
-        layer.getSource().getFeatures().forEach(function(f) {
+        layer.getSource().getFeaturesInExtent(gokart.map.getView().calculateExtent(gokart.map.getSize())).forEach(function(f) {
             features[f.get("deviceid")] = f
         });
         Object.values(features).sort(function(a, b) {
@@ -144,9 +155,9 @@ var renderTracking = debounce(function() {
             if (a.get("seen") < b.get("seen")) { return 1 };
             return 0;
         }).forEach(function(f) {
-            html += trackingTmpl(f);
+            html.push(trackingTmpl(f));
         });
-        trackingList.html(html);
+        trackingList.html(html.join(""));
     }
 }, 250);
 trackingList.on("click", "div[data-feature-id]", function() {
@@ -157,6 +168,12 @@ trackingList.on("click", "div[data-feature-id]", function() {
         gokart.set_scale(250)
     }
 })
+$("#resource-tracking-cql").on("change", function() {
+    gokart.catalogue.resource_tracking.cql_filter = $(this).val();
+    gokart.catalogue.resource_tracking.olLayer.getSource().clear();
+}).change();
 gokart.map.getLayerGroup().on("change", renderTracking);
+gokart.map.getView().on("propertychange", renderTracking);
+$("#resource-tracking-search").on("change", renderTracking);
 </script>
 {% endblock %}
