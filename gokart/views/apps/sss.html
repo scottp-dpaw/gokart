@@ -9,7 +9,7 @@
     {% raw %}
         <div class="row feature-row" data-feature-id="{{ id_ }}">
             <div class="small-12">    
-                <div class="feature-title">{{ values_.label }} <small>({{ values_.deviceid }})</small></div>
+                <div class="feature-title"><img src="{{ values_.icon }}" /> {{ values_.label }} <small>({{ values_.deviceid }})</small></div>
                 <small>{{ values_.time }}</small>
             </div>
         </div>
@@ -36,14 +36,13 @@ var text_style = new ol.style.Text({
     font: "12px Helvetica,Roboto,Arial,sans-serif",
     stroke: new ol.style.Stroke({ color: "#fff", width: 4 })
 });
-var initStyle = function(stylekey) {
-    var symbols_url_base = "/static/symbols/device/";
-    var icon = new ol.style.Icon({
-        src: gokart.svgToPNG(symbols_url_base + stylekey + ".svg"),
+var initStyle = function(icon) {
+    var imageicon = new ol.style.Icon({
+        src: gokart.svgToPNG(icon),
         opacity: .9
     });
-    var style = new ol.style.Style({ image: icon, text: text_style });
-    stylecache[stylekey] = style
+    var style = new ol.style.Style({ image: imageicon, text: text_style });
+    stylecache[icon] = style
     return style;
 }
 var resource_tracking_style = function(f, res) {
@@ -51,14 +50,17 @@ var resource_tracking_style = function(f, res) {
     if (f.get("age") < 24) { color = "_orange" };
     if (f.get("age") < 3) { color = "_yellow" };
     if (f.get("age") <= 1) { color = "_green" };
-    var style_key = f.get("symbolid") + color;
-    style = stylecache[style_key]
-    if (!style) { var style = initStyle(style_key) }
+    var icon = "/static/symbols/device/" + f.get("symbolid") + color + ".svg";
+    style = stylecache[icon]
+    if (!style) { var style = initStyle(icon) }
     var png = gokart.pngs[style.getImage().iconImage_.src_]
-    if (png) { var style = initStyle(style_key) };
+    if (png) { var style = initStyle(icon) };
     if (!f.get("label")) {
         f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
         f.set("time", moment(f.get("seen")).toLocaleString());
+    }
+    if (!f.get("icon")) {
+        f.set("icon", icon);
     }
     if (res < 0.002) {
         style.getText().setText(f.get("label"));
