@@ -14,7 +14,7 @@
         </div>
     {% endraw %}
     </script>
-    Tracking goes here.
+    <div id="tracking-list"></div>
 </div>
 {% endblock %}
 
@@ -61,6 +61,7 @@ var resource_tracking_style = function(f, res) {
     }
     return style
 }
+var trackingTmpl = Handlebars.compile($("#tracking-template").html())
 gokart.catalogue = {
     "resource_tracking_aircraft": {
         init: gokart.createWFSLayer,
@@ -74,7 +75,15 @@ gokart.catalogue = {
         'name': "Resource Tracking",
         'id': 'dpaw:resource_tracking',
         'style': resource_tracking_style,
-        'template': Handlebars.compile($("#tracking-template").html())
+        'template': trackingTmpl,
+        'refresh': 30
+    },
+    "hotspots": {
+        init: gokart.createTileLayer,
+        name: "Firewatch Hotspots 72hrs",
+        id: "landgate:firewatch_ecu_hotspots_last_0_72",
+        format: "image/png",
+        refresh: 60
     },
     "state_map_base": {
         init: gokart.createTileLayer,
@@ -93,5 +102,17 @@ gokart.init([
     gokart.catalogue["resource_tracking"].init(),
     gokart.catalogue["state_map_base"].init()
 ]);
+var trackingList = $("#tracking-list");
+var renderTracking = debounce(function() {
+    if (gokart.catalogue.resource_tracking.olLayer) {
+        var layer = gokart.catalogue.resource_tracking.olLayer;
+        var html = "";
+        layer.getSource().getFeatures().forEach(function(f) {
+            html += trackingTmpl(f);
+        });
+        trackingList.html(html);
+    }
+}, 250);
+gokart.map.getLayerGroup().on("change", renderTracking);
 </script>
 {% endblock %}

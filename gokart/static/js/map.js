@@ -91,6 +91,13 @@ window.gokart = (function(self) {
             source: vectorSource,
             style: options.style
         });
+        if (options.refresh) {
+            vector.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+            vectorSource.refresh = setInterval(function() {
+                vector.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+                vectorSource.clear();
+            }, options.refresh * 1000)
+        };
         vector.set("name", options.name);
         vector.set("id", options.id);
         this.olLayer = vector;
@@ -123,23 +130,28 @@ window.gokart = (function(self) {
         tileGrid.getZForResolution = function(resolution, opt_direction) {
             return tileGrid.origGetZForResolution(resolution, -1);
         };
-        // allow for reconstructing unique layers to bust caching for live tiles
-        if (layer.time) {
-            var url = layer.wmts_url + "?time="+ layer.time;
-        } else { var url = layer.wmts_url };
-        var tileLayer = new ol.layer.Tile({
-            opacity: layer.opacity || 1,
-            source: new ol.source.WMTS({
+        var tileSource = function(url) {
+            return new ol.source.WMTS({
                 url: url,
-                crossOrigin: 'https://' + window.location.hostname,
                 layer: layer.id,
                 matrixSet: matrixSet.name,
                 format: layer.format,
                 projection: layer.projection,
                 wrapX: true,
                 tileGrid: tileGrid
-            })
+            });
+        }
+        var tileLayer = new ol.layer.Tile({
+            opacity: layer.opacity || 1,
+            source: tileSource(layer.wmts_url)
         });
+        if (layer.refresh) {
+            tileLayer.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+            tileLayer.refresh = setInterval(function() {
+                tileLayer.set("updated", moment().format('[Updated] MMMM Do YYYY, h:mm:ss a'));
+                tileLayer.setSource(tileSource(layer.wmts_url + "?time=" + moment.utc().unix()));
+            }, layer.refresh * 1000);
+        };
         // set properties for use in layer selector
         tileLayer.set("name", layer.name);
         tileLayer.set("id", layer.id);

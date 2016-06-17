@@ -68,9 +68,10 @@ window.gokart = (function(self) {
         if (Object.values(features).length > 0) {
             self.infoDiv.find(".content").html(Object.values(features).join(""));
             self.infoDiv.find(".title").html("<h5>" + Object.values(features).length + " feature(s): <small>" + ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3) + "</small></h5>")
-            var topPx = pixel[1] - self.infoDiv.outerHeight();
+            var offset = 20;
+            var topPx = pixel[1] - self.infoDiv.outerHeight() - offset;
             if (topPx < 0) { topPx = 0 };
-            var leftPx = pixel[0] + 10;
+            var leftPx = pixel[0] + offset;
             if (leftPx + self.infoDiv.outerWidth() > $("#map").width()) { 
                 leftPx = $("#map").width() - self.infoDiv.outerWidth(); 
             }
