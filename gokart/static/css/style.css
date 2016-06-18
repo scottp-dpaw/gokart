@@ -7,11 +7,14 @@ html, body {
     overflow: hidden; 
 }
 
+[v-cloak] {
+    display: none;
+}
+
 #info {
   position: absolute;
   z-index: 100;
   padding: 2em;
-  display: none;
   background-color: #424f5a;
 }
 

@@ -59,26 +59,34 @@ window.gokart = (function(self) {
     });
 
     // hover information
-    self.infoDiv = $("#info")
+    ui.info = new Vue({
+        el: '#info',
+        data: {
+            features: [],
+            coordinate: "",
+            css: { left: '0px', top: '0px' }
+        }
+    })
     self.displayFeatureInfo = debounce(function(pixel) {
         var features = {}
         var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
-            features[f.getGeometry().getExtent().join(" ")] = f.get("to_html")(f.getProperties());
+            features[f.getGeometry().getExtent().join(" ")] = f.getProperties();
         });
-        if (Object.values(features).length > 0) {
-            self.infoDiv.find(".content").html(Object.values(features).join(""));
-            self.infoDiv.find(".title").html("<h5>" + Object.values(features).length + " feature(s): <small>" + ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3) + "</small></h5>")
+        features = Object.values(features);
+        if (features.length > 0) {
+            ui.info.features = features;
+            ui.info.coordinate = ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3);
             var offset = 20;
-            var topPx = pixel[1] - self.infoDiv.outerHeight() - offset;
+            var topPx = pixel[1] - $(ui.info.$el).outerHeight() - offset;
             if (topPx < 0) { topPx = 0 };
             var leftPx = pixel[0] + offset;
-            if (leftPx + self.infoDiv.outerWidth() > $("#map").width()) { 
-                leftPx = $("#map").width() - self.infoDiv.outerWidth(); 
+            if (leftPx + $(ui.info.$el).outerWidth() > $("#map").width()) { 
+                leftPx = $("#map").width() - $(ui.info.$el).outerWidth(); 
             }
-            self.infoDiv.css({left: leftPx + "px", top: topPx + "px"});
-            self.infoDiv.show();
+            ui.info.css.left = leftPx + 'px';
+            ui.info.css.top = topPx + 'px';
         }
-    }, 10);
+    }, 20);
 
     // update "Map Layers" pane
     ui.renderActiveLayers = debounce(function(ev) {

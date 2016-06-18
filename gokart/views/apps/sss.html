@@ -5,16 +5,6 @@
 {% block tab_panels %}
 {{ super() }}
 <div class="tabs-panel" id="menu-tab-tracking">
-    <script id="tracking-template" type="text/x-handlebars-template">
-    {% raw %}
-        <div class="row feature-row" data-feature-id="{{ id }}">
-            <div class="small-12 columns">    
-                <div class="feature-title"><img src="{{ icon }}" /> {{ label }} <small>({{ deviceid }})</small></div>
-                <small>{{ time }}</small>
-            </div>
-        </div>
-    {% endraw %}
-    </script>
     <div class="row collapse">
         <div class="columns shrink">
             <ul class="tabs" data-tabs id="tracking-tabs">
@@ -26,10 +16,10 @@
     <div class="row collapse" id="tracking-tab-panels">
         <div class="columns">
             <div class="tabs-content vertical" data-tabs-content="tracking-tabs">
-                <div id="tracking-list-tab" class="tabs-panel is-active">
+                <div id="tracking-list-tab" class="tabs-panel is-active" v-cloak>
                     <div class="row collapse">
                         <div class="small-6 columns">
-                            <select name="select" id="resource-tracking-cql">
+                            <select name="select" v-model="cql" @change="setCQLFilter(cql)">
                                 <option value="" selected>All resources</option> 
                                 <option value="symbolid LIKE '%comms_bus'">Communications Bus</option>
                                 <option value="symbolid LIKE '%gang_truck'">Gang Truck</option>
@@ -39,10 +29,20 @@
                             </select>
                         </div>
                         <div class="small-6 columns">
-                            <input type="search" id="resource-tracking-search" placeholder="Find a resource...">
+                            <input type="search" v-model="search">
                         </div>
                     </div>
-                    <div id="tracking-list"></div>
+                    <div id="tracking-list">
+                        <div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" 
+                            @click="zoomTo(f.geometry.getCoordinates())">
+                        {% block infotemplates %}
+                            <div v-if="f.vueTemplate == 'resource_tracking'" class="small-12 columns">{% raw %}
+                                <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
+                                <small>{{ f.time }}</small>
+                            </div>{% endraw %}
+                        {% endblock %}
+                        </div>
+                    </div>
                 </div>
                 <div id="tracking-groups-tab" class="tabs-panel">
                     Group search shortcuts here
@@ -112,7 +112,6 @@ var resource_tracking_style = function(f, res) {
     }
     return style
 };
-var trackingTmpl = Handlebars.compile($("#tracking-template").html())
 {% if env.WMTS_SRC %}
 gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
 {% endif %}
@@ -126,7 +125,7 @@ gokart.catalogue = {
         name: "Resource Tracking",
         id: 'dpaw:resource_tracking',
         style: resource_tracking_style,
-        template: trackingTmpl,
+        vueTemplate: 'resource_tracking',
         refresh: 30
     },
     "hotspots": {
@@ -153,50 +152,46 @@ gokart.init([
     gokart.catalogue["resource_tracking"].init(),
     gokart.catalogue["state_map_base"].init()
 ]);
-var trackingList = $("#tracking-list");
+var trackingList = new Vue({
+    el: "#tracking-list-tab",
+    data: {
+        features: [],
+        search: "",
+        cql: "",
+        fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"]
+    },
+    methods: {
+        setCQLFilter: function(cql) {
+            gokart.catalogue.resource_tracking.cql_filter = cql;
+            gokart.catalogue.resource_tracking.olLayer.getSource().clear();
+        },
+        zoomTo: function(coords) {
+            gokart.map.getView().setCenter(coords);
+            if (gokart.get_scale() > 250) {
+                gokart.set_scale(50)
+            }
+        }
+    }
+});
+
 var renderTracking = debounce(function() {
     if (gokart.catalogue.resource_tracking.olLayer) {
         $("#menu-tab-tracking-label").parents("li").removeClass("hide");
         var layer = gokart.catalogue.resource_tracking.olLayer;
-        var html = [];
         var features = {};
         layer.getSource().getFeaturesInExtent(gokart.map.getView().calculateExtent(gokart.map.getSize())).forEach(function(f) {
             features[f.get("deviceid")] = f.getProperties()
         });
-        gokart.fuse = new Fuse(Object.values(features).sort(function(a, b) {
-            if (a.seen > b.seen) { return -1 };
-            if (a.seen < b.seen) { return 1 };
-            return 0;
-        }), { keys: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"] });
-        var search = $("#resource-tracking-search").val();
-        var filtered = gokart.fuse.list
-        if (search) { var filtered = gokart.fuse.search(search) };
-        if (filtered.length == 0 && gokart.get_fixed_scale() < 25000) {
-            if(confirm("No resources in current extent, search whole state?")) {
-                gokart.set_scale(25000);
-            }
-        }
-        filtered.forEach(function(f) {
-            html.push(trackingTmpl(f));
-        });
-        trackingList.html(html.join(""));
+        trackingList.features = Object.values(features);
     } else {
         $("#menu-tab-tracking-label").parents("li").addClass("hide");
     }
 }, 250);
-trackingList.on("click", "div[data-feature-id]", function() {
+$(trackingList.$el).on("click", "div[data-feature-id]", function() {
     var fid = $(this).attr("data-feature-id");
     var s = gokart.catalogue.resource_tracking.olLayer.getSource();
     var f = $.grep(s.getFeatures(), function(feat) {return feat.get("id") == fid})[0]
-    gokart.map.getView().setCenter(f.getGeometry().getCoordinates());
-    if (gokart.get_scale() > 250) {
-        gokart.set_scale(50)
-    }
 })
-$("#resource-tracking-cql").on("change", function() {
-    gokart.catalogue.resource_tracking.cql_filter = $(this).val();
-    gokart.catalogue.resource_tracking.olLayer.getSource().clear();
-}).change();
 gokart.map.getLayerGroup().on("change", renderTracking);
 gokart.map.getView().on("propertychange", renderTracking);
 $("#resource-tracking-search").on("keyup", renderTracking);

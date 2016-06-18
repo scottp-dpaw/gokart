@@ -83,8 +83,6 @@ window.gokart = (function(self) {
         });
     });
 
-    self.defaultTemplate = Handlebars.compile($("#default-feature-template").html());
-
     // for layers with hover querying
     self.createWFSLayer = function() {
         var options = this;
@@ -108,9 +106,9 @@ window.gokart = (function(self) {
             },
             strategy: ol.loadingstrategy.bbox
         });
-        var template = this.template || self.defaultTemplate;
+        var vueTemplate = this.vueTemplate || 'default';
         vectorSource.on("addfeature", function(event) {
-            event.feature.set("to_html", template);
+            event.feature.set("vueTemplate", vueTemplate);
         });
         var vector = new ol.layer.Vector({
             opacity: options.opacity || 1,
