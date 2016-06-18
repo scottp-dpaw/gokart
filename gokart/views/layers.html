@@ -18,7 +18,7 @@
                 <div class="tabs-content vertical" data-tabs-content="layers-tabs">
                     <div class="tabs-panel is-active" id="layers-active" v-cloak>
                     {% raw %}
-                            <div v-for="l in layers.slice().reverse()" class="row layer-row" v-if="l" data-id="{{ l.get('id') }}">
+                            <div v-for="l in layers.slice().reverse()" class="row layer-row" v-if="l.get('catalogueEntry').olLayer" data-id="{{ l.get('id') }}">
                                 <div class="small-9">    
                                     <div class="layer-title">{{ l.get("name") }}</div>
                                     <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>

@@ -88,8 +88,17 @@ window.gokart = (function(self) {
         }
     }, 20);
 
-    // update "Map Layers" pane
 
+    // change order of OL layers based on "Map Layers" list order
+    ui.updateOrder = function(el) {
+        Array.prototype.slice.call(document.querySelectorAll("#layers-active > .row")).reverse().forEach(function(row) {
+            var layer = self.layerById(row.dataset.id);
+            self.map.removeLayer(layer);
+            self.map.addLayer(layer);
+        })
+    }
+
+    // update "Map Layers" pane
     ui.layers = new Vue({
         el: '#menu-tab-layers',
         data: {
@@ -101,12 +110,14 @@ window.gokart = (function(self) {
                 layer.get("catalogueEntry").olLayer = undefined;
                 self.map.removeLayer(layer);
             }
+        },
+        ready: function () {
+            ui.drake = dragula([document.querySelector("#layers-active")]).on("dragend", ui.updateOrder);
         }
     });
-    ui.renderActiveLayers = debounce(function(ev) {
-        if (ui.updatingOrder) { return }
+    ui.renderActiveLayers = function() {
         ui.layers.layers = self.map.getLayers().getArray();
-    }, 250);
+    };
     
     // update "Layer Catalogue" pane
     ui.renderCatalogueLayers = function(ev) {
@@ -116,16 +127,6 @@ window.gokart = (function(self) {
         }));
     }
 
-    // change order of OL layers based on "Map Layers" list order
-    ui.updateOrder = function(el) {
-        ui.updatingOrder = true;
-        $(ui.layersActive.children().get().reverse()).each(function() {
-            var layer = self.layerById($(this).attr("data-id"));
-            self.map.removeLayer(layer);
-            self.map.addLayer(layer);
-        })
-        ui.updatingOrder = false;
-    }
 
     ui.swapBaseLayers = true;
 
@@ -159,20 +160,6 @@ window.gokart = (function(self) {
         });
     }
 
-    ui.initActiveLayers = function(element) {
-        ui.layerDetailsTmpl = Handlebars.compile($("#layer-details-template").html());
-        ui.layersActive = $(element).on("click", "div[data-id]", function() {
-            $("#layer-details").html(ui.layerDetailsTmpl({
-                ol_layer: self.layerById($(this).attr("data-id")),
-                catalogue_layer: {abstract: "placeholder abstract"}
-            }));
-        }).on("click", "div[data-id] a[data-action='remove']", function() {
-            var layer = self.layerById($(this).parents("div[data-id]").attr("data-id"));
-            layer.get("catalogueEntry").olLayer = undefined;
-            self.map.removeLayer(layer);
-        })
-    }
-
     $self.on("init_map", function() {
         // setup scale events
         ui.menuScale = $("#menu-scale").on("change", function() { self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "")) });
@@ -186,11 +173,9 @@ window.gokart = (function(self) {
         $("#download-pdf").on("click", function() { self.print("pdf") });
         // setup layer ordering if layer ui available
         if ($("#layers-active").length == 1) {
-            ui.initActiveLayers("#layers-active");
             ui.initCatalogue("#layers-catalogue");
             ui.renderActiveLayers();
             self.map.getLayerGroup().on("change", ui.renderActiveLayers);
-            dragula([ui.layersActive.get(0)]).on("dragend", ui.updateOrder);
         }
     });
 
