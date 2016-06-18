@@ -66,7 +66,7 @@ window.gokart = (function(self) {
             coordinate: "",
             css: { left: '0px', top: '0px' }
         }
-    })
+    });
     self.displayFeatureInfo = debounce(function(pixel) {
         var features = {}
         var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
@@ -89,12 +89,23 @@ window.gokart = (function(self) {
     }, 20);
 
     // update "Map Layers" pane
+
+    ui.layers = new Vue({
+        el: '#menu-tab-layers',
+        data: {
+            layers: [],
+            catalogue: {}
+        },
+        methods: {
+            removeLayer: function(layer) {
+                layer.get("catalogueEntry").olLayer = undefined;
+                self.map.removeLayer(layer);
+            }
+        }
+    });
     ui.renderActiveLayers = debounce(function(ev) {
         if (ui.updatingOrder) { return }
-        ui.layersActive.html(ui.activeLayersTmpl({
-            layers: self.map.getLayers().getArray()
-        })).append(ui.layersActive.children().get().reverse());
-        ui.renderCatalogueLayers();
+        ui.layers.layers = self.map.getLayers().getArray();
     }, 250);
     
     // update "Layer Catalogue" pane
@@ -149,7 +160,6 @@ window.gokart = (function(self) {
     }
 
     ui.initActiveLayers = function(element) {
-        ui.activeLayersTmpl = Handlebars.compile($(element + "-template").html());
         ui.layerDetailsTmpl = Handlebars.compile($("#layer-details-template").html());
         ui.layersActive = $(element).on("click", "div[data-id]", function() {
             $("#layer-details").html(ui.layerDetailsTmpl({

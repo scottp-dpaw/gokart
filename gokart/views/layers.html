@@ -16,23 +16,20 @@
         <div class="row collapse" id="layers-tab-panels">
             <div class="columns">
                 <div class="tabs-content vertical" data-tabs-content="layers-tabs">
-                    <script id="layers-active-template" type="text/x-handlebars-template">
+                    <div class="tabs-panel is-active" id="layers-active" v-cloak>
                     {% raw %}
-                        {{#each layers}}
-                            <div class="row layer-row" data-id="{{ this.values_.id }}">
+                            <div v-for="l in layers.slice().reverse()" class="row layer-row" v-if="l" data-id="{{ l.get('id') }}">
                                 <div class="small-9">    
-                                    <div class="layer-title">{{ this.values_.name }}</div>
-                                    <div class="layer-id">{{ this.values_.catalogueEntry.id }}</div>
-                                    {{#if this.values_.updated}}<small>Updated: {{ this.values_.updated }}</small>{{/if}}
+                                    <div class="layer-title">{{ l.get("name") }}</div>
+                                    <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
+                                    <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
                                 </div>
                                 <div class="small-3"><div class="text-right">
-                                    <a data-action="remove" class="button alert">&#x2715;</a>
+                                    <a @click="removeLayer(l)" class="button alert">&#x2715;</a>
                                 </div></div>
                             </div>
-                        {{/each}}
                     {% endraw %}
-                    </script>
-                    <div class="tabs-panel is-active" id="layers-active"></div>
+                    </div>
                     <div class="tabs-panel" id="layers-catalogue">
                         <div class="row">
                             <div class="switch tiny">
