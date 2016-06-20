@@ -125,6 +125,7 @@ window.gokart = (function(self) {
         vector.set("name", options.name);
         vector.set("id", options.id);
         this.olLayer = vector;
+        this.toggled = true;
         vector.set("catalogueEntry", this);
         return vector;
     }
@@ -180,6 +181,7 @@ window.gokart = (function(self) {
         tileLayer.set("name", layer.name);
         tileLayer.set("id", layer.id);
         this.olLayer = tileLayer;
+        this.toggled = true;
         tileLayer.set("catalogueEntry", this);
         return tileLayer;
     };

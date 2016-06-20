@@ -67,6 +67,7 @@ window.gokart = (function(self) {
             css: { left: '0px', top: '0px' }
         }
     });
+
     self.displayFeatureInfo = debounce(function(pixel) {
         var features = {}
         var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
@@ -89,76 +90,53 @@ window.gokart = (function(self) {
     }, 20);
 
 
-    // change order of OL layers based on "Map Layers" list order
-    ui.updateOrder = function(el) {
-        Array.prototype.slice.call(document.querySelectorAll("#layers-active > .row")).reverse().forEach(function(row) {
-            var layer = self.layerById(row.dataset.id);
-            self.map.removeLayer(layer);
-            self.map.addLayer(layer);
-        })
-    }
-
     // update "Map Layers" pane
     ui.layers = new Vue({
         el: '#menu-tab-layers',
         data: {
             layers: [],
-            catalogue: {}
+            catalogue: {},
+            swapBaseLayers: true
         },
         methods: {
-            removeLayer: function(layer) {
-                layer.get("catalogueEntry").olLayer = undefined;
-                self.map.removeLayer(layer);
+            removeLayer: function(olLayer) {
+                olLayer.get("catalogueEntry").toggled = false;
+                self.map.removeLayer(olLayer);
+            },
+            // change order of OL layers based on "Map Layers" list order
+            updateOrder: function(el) {
+                Array.prototype.slice.call(el.parentElement.children).reverse().forEach(function(row) {
+                    var layer = self.layerById(row.dataset.id);
+                    self.map.removeLayer(layer);
+                    self.map.addLayer(layer);
+                });
+            },
+            toggleLayer: function(layer) {
+                var vm = this;
+                if (layer.toggled) {
+                    if (layer.base) {
+                        if (vm.swapBaseLayers) {
+                            vm.layers.forEach(function(olLayer) {
+                                if (olLayer.get("catalogueEntry").base) {
+                                    vm.removeLayer(olLayer);
+                                }
+                            });
+                        }
+                        self.map.getLayers().insertAt(0, layer.init());
+                    } else {
+                        self.map.addLayer(layer.init());
+                    }
+                } else {
+                    vm.removeLayer(layer.olLayer);
+                }
             }
         },
         ready: function () {
-            ui.drake = dragula([document.querySelector("#layers-active")]).on("dragend", ui.updateOrder);
+            var vm = this;
+            ui.drake = dragula([document.querySelector("#layers-active")]).on("dragend", vm.updateOrder);
         }
     });
-    ui.renderActiveLayers = function() {
-        ui.layers.layers = self.map.getLayers().getArray();
-    };
     
-    // update "Layer Catalogue" pane
-    ui.renderCatalogueLayers = function(ev) {
-        if (ui.updatingCatalogue) { return }
-        $("#layers-catalogue-list").html(ui.catalogueLayersTmpl({
-            layers: self.catalogue
-        }));
-    }
-
-
-    ui.swapBaseLayers = true;
-
-    ui.initCatalogue = function(element) {
-        ui.catalogueLayersTmpl = Handlebars.compile($(element + "-template").html());
-        $(element).on("change", "div[data-id] input[data-action='toggle']", function() {
-            ui.updatingCatalogue = true;
-            var layer = self.catalogue[$(this).parents("div[data-id]").attr("data-id")];
-            // TODO: baselayer logic
-            if ($(this).prop('checked')) {
-                if (layer.base) {
-                    if (ui.swapBaseLayers) {
-                        self.map.getLayers().forEach(function(layer) {
-                            if (layer.get("catalogueEntry").base) {
-                                self.map.removeLayer(layer);
-                                layer.get("catalogueEntry").olLayer = undefined;
-                            }
-                        });
-                    }
-                    ui.updatingCatalogue = false;
-                    self.map.getLayers().insertAt(0, layer.init());
-                } else {
-                    self.map.addLayer(layer.init());
-                }
-            } else {
-                var olLayer = layer.olLayer;
-                layer.olLayer = undefined;
-                self.map.removeLayer(olLayer);
-            }
-            ui.updatingCatalogue = false;
-        });
-    }
 
     $self.on("init_map", function() {
         // setup scale events
@@ -173,9 +151,8 @@ window.gokart = (function(self) {
         $("#download-pdf").on("click", function() { self.print("pdf") });
         // setup layer ordering if layer ui available
         if ($("#layers-active").length == 1) {
-            ui.initCatalogue("#layers-catalogue");
-            ui.renderActiveLayers();
-            self.map.getLayerGroup().on("change", ui.renderActiveLayers);
+            ui.layers.layers = self.map.getLayers().getArray();
+            ui.layers.catalogue = self.catalogue;
         }
     });
 

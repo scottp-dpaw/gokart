@@ -18,7 +18,7 @@
                 <div class="tabs-content vertical" data-tabs-content="layers-tabs">
                     <div class="tabs-panel is-active" id="layers-active" v-cloak>
                     {% raw %}
-                            <div v-for="l in layers.slice().reverse()" class="row layer-row" v-if="l.get('catalogueEntry').olLayer" data-id="{{ l.get('id') }}">
+                            <div v-for="l in layers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id">
                                 <div class="small-9">    
                                     <div class="layer-title">{{ l.get("name") }}</div>
                                     <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
@@ -28,39 +28,34 @@
                                     <a @click="removeLayer(l)" class="button alert">&#x2715;</a>
                                 </div></div>
                             </div>
-                    {% endraw %}
                     </div>
                     <div class="tabs-panel" id="layers-catalogue">
                         <div class="row">
                             <div class="switch tiny">
-                                <input class="switch-input" id="switchBaseLayers" type="checkbox" checked/>
+                                <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers"/>
                                 <label class="switch-paddle" for="switchBaseLayers">
                                     <span class="show-for-sr">Switch out base layers</span>
                                 </label>
                             </div>
                             <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
                         </div>
-                        <script id="layers-catalogue-template" type="text/x-handlebars-template">
-                        {% raw %}
-                        {{#each layers}}
-                            <div class="row layer-row" data-id="{{ @key }}">
-                                <div class="small-9">    
-                                    <div class="layer-title">{{ this.name }}</div>
-                                    <div class="layer-id">{{ this.id }}</div>
+                        <div id="layers-catalogue-list">
+                            <div v-for="l in catalogue" class="row layer-row">
+                                <div class="small-9">
+                                    <div class="layer-title">{{ l.name }}</div>
+                                    <div class="layer-id">{{ l.id }}</div>
                                 </div>
                                 <div class="small-3"><div class="text-right">
                                      <div class="switch tiny">
-                                        <input class="switch-input" id="switch_{{ @key }}" data-action="toggle" type="checkbox" {{#if this.olLayer}}checked{{/if}}/>
-                                        <label class="switch-paddle" for="switch_{{ @key }}">
+                                        <input class="switch-input" id="ctlgsw{{ $index }}" v-model="l.toggled" @change="toggleLayer(l)" type="checkbox"/>
+                                        <label class="switch-paddle" for="ctlgsw{{ $index }}">
                                             <span class="show-for-sr">Toggle layer</span>
                                         </label>
                                     </div> 
                                 </div></div>
                             </div>
-                        {{/each}}
-                        {% endraw %}
-                        </script>
-                        <div id="layers-catalogue-list"></div>  
+                        </div>
+                    {% endraw %}
                     </div>
                     <div class="tabs-panel" id="layers-categories">
                         browseable categories (jqtree?)
