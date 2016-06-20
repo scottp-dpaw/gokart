@@ -154,15 +154,7 @@ window.gokart = (function(self) {
 
     $self.on("init_map", function() {
         // setup scale events
-        ui.menuScale = $("#menu-scale").on("change", function() { self.set_scale($(this).val().replace("1:", "").replace(/,/g, "").replace("K", "")) });
-        $.each(self.fixed_scales, function(index, val) { ui.menuScale.append("<option>1:" + val.toLocaleString() + "K</option>") });
-        ui.menuScale.prepend('<option id="actualScale">' + self.getScaleString() + '</option>');
-        self.map.on("postrender", function() {
-            ui.menuScale.find("#actualScale").text(self.getScaleString());
-            ui.menuScale.val(self.getScaleString());
-        });
-        $("#download-jpg").on("click", function() { self.print("jpg") });
-        $("#download-pdf").on("click", function() { self.print("pdf") });
+        self.map.on("postrender", function() { if (self.mapControls) { self.mapControls.scale = self.get_scale() }});
         // display hover popups
         self.map.on('pointermove', ui.info.display);
         if (document.querySelector("#menu-tab-layers")) { gokart.initLayers() };

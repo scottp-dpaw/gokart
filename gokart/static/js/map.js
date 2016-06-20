@@ -213,11 +213,6 @@ window.gokart = (function(self) {
         return distance * self.dpmm / size[0] ;
     }
 
-    self.getScaleString = function() {
-        return "1:" + (Math.round(self.get_scale() * 100) / 100).toLocaleString() + "K";
-    }
-
-
     //get a fixed scale 000's closest to current scale.
     self.get_fixed_scale = function() {
         var scale = self.get_scale();
