@@ -12,19 +12,28 @@ gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
 gokart.defaultWFSSrc = "{{ env.WFS_SRC }}";
 {% endif %}
 
+gokart.catalogue = {
+    "dpaw_offices": {
+        init: gokart.createTileLayer,
+        id: "cddp:dpaw_offices",
+        format: "image/png"
+    },
+    "telstra_gcm_4g_3g": {
+        init: gokart.createTileLayer,
+        id: "dpaw:telstra_gcm_4g_3g",
+        opacity: 0.5,
+        format: "image/png"
+    },
+    "mapbox_outdoors": {
+        init: gokart.createTileLayer,
+        id: "dpaw:mapbox_outdoors"
+    }
+};
+
 gokart.init([
-    gokart.createTileLayer({
-        'id': 'cddp:dpaw_offices',
-        'format': 'image/png'
-    }),
-    gokart.createTileLayer({
-        'id': 'dpaw:telstra_gcm_4g_3g',
-        'opacity': 60,
-        'format': 'image/png'
-    }),
-    gokart.createTileLayer({
-        'id': 'dpaw:mapbox_outdoors'
-    }),
+    gokart.catalogue["dpaw_offices"].init(),
+    gokart.catalogue["telstra_gcm_4g_3g"].init(),
+    gokart.catalogue["mapbox_outdoors"].init()
 ]);
 </script>
 {% endblock %}
