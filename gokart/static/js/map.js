@@ -275,12 +275,6 @@ window.gokart = (function(self) {
         // Create the graticule component
         self.graticule = new ol.LabelGraticule();
         self.graticule.setMap(self.map);
-        // display hover popups
-        self.map.on('pointermove', function(evt) {
-            if (evt.dragging) { return };
-            var pixel = self.map.getEventPixel(evt.originalEvent);
-            self.displayFeatureInfo(pixel);
-        });
         $self.trigger("init_map");
     };
     return self;

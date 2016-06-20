@@ -64,78 +64,92 @@ window.gokart = (function(self) {
         data: {
             features: [],
             coordinate: "",
-            css: { left: '0px', top: '0px' }
-        }
-    });
-
-    self.displayFeatureInfo = debounce(function(pixel) {
-        var features = {}
-        var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
-            features[f.getGeometry().getExtent().join(" ")] = f.getProperties();
-        });
-        features = Object.values(features);
-        if (features.length > 0) {
-            ui.info.features = features;
-            ui.info.coordinate = ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3);
-            var offset = 20;
-            var topPx = pixel[1] - $(ui.info.$el).outerHeight() - offset;
-            if (topPx < 0) { topPx = 0 };
-            var leftPx = pixel[0] + offset;
-            if (leftPx + $(ui.info.$el).outerWidth() > $("#map").width()) { 
-                leftPx = $("#map").width() - $(ui.info.$el).outerWidth(); 
-            }
-            ui.info.css.left = leftPx + 'px';
-            ui.info.css.top = topPx + 'px';
-        }
-    }, 20);
-
-
-    // update "Map Layers" pane
-    ui.layers = new Vue({
-        el: '#menu-tab-layers',
-        data: {
-            layers: [],
-            catalogue: {},
-            swapBaseLayers: true
+            offset: 20,
+            pixel: [0, 0],
+            height: 0
         },
-        methods: {
-            removeLayer: function(olLayer) {
-                olLayer.get("catalogueEntry").toggled = false;
-                self.map.removeLayer(olLayer);
-            },
-            // change order of OL layers based on "Map Layers" list order
-            updateOrder: function(el) {
-                Array.prototype.slice.call(el.parentElement.children).reverse().forEach(function(row) {
-                    var layer = self.layerById(row.dataset.id);
-                    self.map.removeLayer(layer);
-                    self.map.addLayer(layer);
-                });
-            },
-            toggleLayer: function(layer) {
-                var vm = this;
-                if (layer.toggled) {
-                    if (layer.base) {
-                        if (vm.swapBaseLayers) {
-                            vm.layers.forEach(function(olLayer) {
-                                if (olLayer.get("catalogueEntry").base) {
-                                    vm.removeLayer(olLayer);
-                                }
-                            });
-                        }
-                        self.map.getLayers().insertAt(0, layer.init());
-                    } else {
-                        self.map.addLayer(layer.init());
-                    }
-                } else {
-                    vm.removeLayer(layer.olLayer);
+        computed: {
+            height: function() { return $(this.$el).outerHeight() },
+            width: function() { return $(this.$el).outerWidth() },
+            mapWidth: function() { return $("#map").width() },
+            css: function() {
+                var leftPx = Math.min(this.mapWidth - this.width, this.pixel[0] + this.offset);
+                var topPx = Math.max(0, this.pixel[1] - this.height - this.offset);
+                console.log(this.height);
+                return {
+                    left: leftPx + 'px',
+                    top: topPx + 'px'
                 }
             }
         },
-        ready: function () {
-            var vm = this;
-            ui.drake = dragula([document.querySelector("#layers-active")]).on("dragend", vm.updateOrder);
+        methods: {
+            display: function(event) {
+                if (event.dragging) { return };
+                var pixel = self.map.getEventPixel(event.originalEvent);
+                var features = {}
+                var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
+                    features[f.getGeometry().getExtent().join(" ")] = f.getProperties();
+                });
+                features = Object.values(features);
+                if (features.length > 0) {
+                    this.features = features;
+                    this.coordinate = ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3);
+                    this.pixel = pixel;
+                }
+            }
         }
     });
+
+    // update "Map Layers" pane
+    self.initLayers = function() {
+        ui.layers = new Vue({
+            el: "#menu-tab-layers",
+            data: {
+                olLayers: [],
+                catalogue: {},
+                swapBaseLayers: true
+            },
+            methods: {
+                removeLayer: function(olLayer) {
+                    olLayer.get("catalogueEntry").toggled = false;
+                    self.map.removeLayer(olLayer);
+                },
+                // change order of OL layers based on "Map Layers" list order
+                updateOrder: function(el) {
+                    Array.prototype.slice.call(el.parentElement.children).reverse().forEach(function(row) {
+                        var layer = self.layerById(row.dataset.id);
+                        self.map.removeLayer(layer);
+                        self.map.addLayer(layer);
+                    });
+                },
+                toggleLayer: function(layer) {
+                    var vm = this;
+                    if (layer.toggled) {
+                        if (layer.base) {
+                            if (vm.swapBaseLayers) {
+                                vm.olLayers.forEach(function(olLayer) {
+                                    if (olLayer.get("catalogueEntry").base) {
+                                        vm.removeLayer(olLayer);
+                                    }
+                                });
+                            } 
+                            self.map.getLayers().insertAt(0, layer.init());
+                        } else {
+                            self.map.addLayer(layer.init());
+                        }
+                    } else {
+                        vm.removeLayer(layer.olLayer);
+                    }
+                }
+            },
+            ready: function () {
+                var vm = this;
+                ui.drake = dragula([document.querySelector("#layers-active")]).on("dragend", vm.updateOrder);
+            }
+        });
+        ui.layers.olLayers = self.map.getLayers().getArray();
+        ui.layers.catalogue = self.catalogue;
+    }
     
 
     $self.on("init_map", function() {
@@ -149,11 +163,9 @@ window.gokart = (function(self) {
         });
         $("#download-jpg").on("click", function() { self.print("jpg") });
         $("#download-pdf").on("click", function() { self.print("pdf") });
-        // setup layer ordering if layer ui available
-        if ($("#layers-active").length == 1) {
-            ui.layers.layers = self.map.getLayers().getArray();
-            ui.layers.catalogue = self.catalogue;
-        }
+        // display hover popups
+        self.map.on('pointermove', ui.info.display);
+        if (document.querySelector("#menu-tab-layers")) { gokart.initLayers() };
     });
 
     return self;

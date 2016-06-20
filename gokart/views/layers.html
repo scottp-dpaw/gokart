@@ -3,7 +3,7 @@
 {% block offcanvas %}
 <div class="tabs-content vertical" data-tabs-content="menu-tabs">
     {% block tab_panels %}
-    <div class="tabs-panel" id="menu-tab-layers">
+    <div class="tabs-panel" id="menu-tab-layers" v-cloak>
         <div class="row collapse">
             <div class="columns shrink">
                 <ul class="tabs" data-tabs id="layers-tabs">
@@ -16,9 +16,9 @@
         <div class="row collapse" id="layers-tab-panels">
             <div class="columns">
                 <div class="tabs-content vertical" data-tabs-content="layers-tabs">
-                    <div class="tabs-panel is-active" id="layers-active" v-cloak>
+                    <div class="tabs-panel is-active" id="layers-active">
                     {% raw %}
-                            <div v-for="l in layers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id">
+                            <div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id">
                                 <div class="small-9">    
                                     <div class="layer-title">{{ l.get("name") }}</div>
                                     <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layers.html' %}
 
 {% block title %}Networked Locations{% endblock %}
 
@@ -14,17 +14,20 @@ gokart.defaultWFSSrc = "{{ env.WFS_SRC }}";
 
 gokart.catalogue = {
     "dpaw_offices": {
+        name: "P&W Offices",
         init: gokart.createTileLayer,
         id: "cddp:dpaw_offices",
         format: "image/png"
     },
     "telstra_gcm_4g_3g": {
+        name: "Telstra coverage",
         init: gokart.createTileLayer,
         id: "dpaw:telstra_gcm_4g_3g",
         opacity: 0.5,
         format: "image/png"
     },
     "mapbox_outdoors": {
+        name: "Mapbox Oudoors",
         init: gokart.createTileLayer,
         id: "dpaw:mapbox_outdoors"
     }
