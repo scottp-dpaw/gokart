@@ -66,20 +66,20 @@ window.gokart = (function(self) {
             coordinate: "",
             offset: 20,
             pixel: [0, 0],
-            height: 0
         },
         computed: {
-            height: function() { return $(this.$el).outerHeight() },
-            width: function() { return $(this.$el).outerWidth() },
             mapWidth: function() { return $("#map").width() },
+            mapHeight: function() { return $("#map").height() },
             css: function() {
-                var leftPx = Math.min(this.mapWidth - this.width, this.pixel[0] + this.offset);
-                var topPx = Math.max(0, this.pixel[1] - this.height - this.offset);
-                console.log(this.height);
-                return {
-                    left: leftPx + 'px',
-                    top: topPx + 'px'
+                var css = {
+                    "left": this.pixel[0] + this.offset + "px",
+                    "top": this.pixel[1] + this.offset + "px",
+                    "bottom": this.mapHeight - this.pixel[1] + this.offset + "px",
+                    "right": this.mapWidth - this.pixel[0] + this.offset + "px"
                 }
+                if (this.pixel[0] < this.mapWidth / 2) { delete css.right } else { delete css.left };
+                if (this.pixel[1] < this.mapHeight / 2) { delete css.bottom } else { delete css.top };
+                return css;
             }
         },
         methods: {
