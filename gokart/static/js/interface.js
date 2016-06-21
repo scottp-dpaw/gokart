@@ -82,7 +82,7 @@ window.gokart = (function(self) {
                 swapBaseLayers: true
             },
             methods: {
-                update: function() { this.$set("olLayers", this.olLayers) },                },
+                update: function() { this.$set("olLayers", this.olLayers) },
                 removeLayer: function(olLayer) {
                     olLayer.get("catalogueEntry").toggled = false;
                     self.map.removeLayer(olLayer);
