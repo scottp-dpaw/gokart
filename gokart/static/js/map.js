@@ -83,6 +83,53 @@ window.gokart = (function(self) {
         });
     });
 
+    self.createTimelineLayer = function() {
+        var options = this;
+        options.params = $.extend({
+            FORMAT: "image/png",
+            SRS: "EPSG:4326",
+        }, options.params || {});
+        
+        var tileSource = new ol.source.TileWMS({
+            params: options.params
+        });
+    
+        var tileLayer = new ol.layer.Tile({
+            opacity: options.opacity || 1,
+            source: tileSource
+        });
+       
+        var updateTimeline = function() {
+            $.getJSON(options.source, function(data) {
+                tileLayer.set("updated", moment().toLocaleString());
+                tileSource.setUrls(data["servers"]);
+                this.timeline = data["layers"];
+                if (!this.current_time) {
+                    this.current_time = this.timeline[0][1];
+                    tileSource.updateParams({
+                        "layers": this.current_time
+                    });
+                }
+            });
+        };
+
+        updateTimeline();
+        if (options.refresh) {
+            tileLayer.refresh = setInterval(function() {
+                updateTimeline();
+            }, options.refresh*1000);
+        };
+
+        // set properties for use in layer selector
+        tileLayer.set("name", options.name);
+        tileLayer.set("id", options.id);
+        this.olLayer = tileLayer;
+        this.toggled = true;
+        tileLayer.set("catalogueEntry", this);
+        return tileLayer;
+    }
+    
+
     // for layers with hover querying
     self.createWFSLayer = function() {
         var options = this;
@@ -135,7 +182,7 @@ window.gokart = (function(self) {
         var layer = this;
         layer = $.extend({
             opacity: 1,
-            name: "MapBox Outdoors",
+            name: "Mapbox Outdoors",
             id: "dpaw:mapbox_outdoors",
             format: "image/jpeg",
             tileSize: 1024,

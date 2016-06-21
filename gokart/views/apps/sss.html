@@ -132,8 +132,44 @@ gokart.catalogue = {
         init: gokart.createTileLayer,
         name: "Firewatch Hotspots 72hrs",
         id: "landgate:firewatch_ecu_hotspots_last_0_72",
-        format: "image/png",
+        params: {
+            FORMATS: "image/png"
+        },
         refresh: 60
+    },
+    "himawari8-hotspots": {
+        init: gokart.createTimelineLayer,
+        name: "Himawari-8 Hotspots",
+        source: "/hi8/fhs",
+        refresh: 300,
+    },
+    "himawari8-bandtc": {
+        init: gokart.createTimelineLayer,
+        name: "Himawari-8 True Colour",
+        source: "/hi8/bandtc",
+        refresh: 300,
+        base: true
+    },
+    "himawari8-band3": {
+        init: gokart.createTimelineLayer,
+        name: "Himawari-8 Band 3",
+        source: "/hi8/band3",
+        refresh: 300,
+        base: true
+    },
+    "himawari8-band7": {
+        init: gokart.createTimelineLayer,
+        name: "Himawari-8 Band 7",
+        source: "/hi8/band7",
+        refresh: 300,
+        base: true
+    },
+    "himawari8-band15": {
+        init: gokart.createTimelineLayer,
+        name: "Himawari-8 Band 15",
+        source: "/hi8/band15",
+        refresh: 300,
+        base: true
     },
     "state_map_base": {
         init: gokart.createTileLayer,

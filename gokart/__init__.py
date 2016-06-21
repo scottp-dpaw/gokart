@@ -28,16 +28,17 @@ LANDGATE_TZ = pytz.timezone('Australia/Perth')
 # update period
 LANDGATE_PERIOD = timedelta(minutes=10)
 # approx. lead time before a layer is published 
-HI8_FHS_LEADTIME = timedelta(minutes=3)
+HI8_FHS_LEADTIME = timedelta(minutes=10)
 HI8_BAND_LEADTIME = timedelta(minutes=33)
 HI8 = {
+    'band3': ('layer63_{}_HI8_AHI_TKY_b3.tif', HI8_BAND_LEADTIME),
     'band7': ('layer63_{}_HI8_AHI_TKY_b7.tif', HI8_BAND_LEADTIME),
     'band15': ('layer63_{}_HI8_AHI_TKY_b15.tif', HI8_BAND_LEADTIME),
     'bandtc': ('layer63_{}_HI8_AHI_TKY_b321.tif', HI8_BAND_LEADTIME),
     'fhs': ('layer64_{}_HI8_AHI_TKY_FHS.shp', HI8_FHS_LEADTIME)
 }   
 # number of maps available in the rolling cache
-HI8_HISTORY = 134
+HI8_HISTORY = 144
 
 # formula to get the latest timestamp (rounded to 10 minutes)
 def himawari_latest_ts(leadtime):
@@ -46,23 +47,21 @@ def himawari_latest_ts(leadtime):
     
     return result   
     
-@bottle.route('/himawari8/<target>')
-def himawari8(target):
+@bottle.route('/hi8/<target>')
+def hi8(target):
     layer_id, layer_lead = HI8[target]
+    
+    now = himawari_latest_ts(leadtime=timedelta(0))
+    latest = himawari_latest_ts(leadtime=layer_lead)
 
-    now = himawari_latest_ts(leadtime=layer_lead)
-    query = {k.lower():v for k,v in bottle.request.query.items()}
-    
-    if 'layers' in query and query['layers'].isdigit():
-        layer = int(query['layers'])
-        ts = now - LANDGATE_PERIOD*layer
-        query['layers'] = layer_id.format(ts.strftime("%Y%m%d%H%M"))
-        
-    redirect = '{}?{}'.format(random.choice(LANDGATE_SERVERS), urllib.parse.urlencode(query))
-    
-    #return bottle.redirect('')
-    print('{}'.format((now, query, redirect)))
-    return bottle.redirect(redirect)
+    layer_ts = [ now-LANDGATE_PERIOD*i for i in range(HI8_HISTORY) if (now-LANDGATE_PERIOD*i) <= latest ]
+
+    result = {
+        'servers': LANDGATE_SERVERS,
+        'layers': [ (t.isoformat(), layer_id.format(t.strftime("%Y%m%d%H%M"))) for t in layer_ts ]
+    }
+
+    return result
 
 
 # PDF renderer, accepts a JPG
