@@ -13,15 +13,6 @@ window.gokart = (function(self) {
     };
 
     ui.colours = {
-        "tool-colour-r": "#cc0000",
-        "tool-colour-o": "#f57900",
-        "tool-colour-y": "#edd400",
-        "tool-colour-g": "#73d216",
-        "tool-colour-b": "#3465a4",
-        "tool-colour-v": "#75507b",
-        "tool-colour-br": "#8f5902",
-        "tool-colour-gr": "#555753",
-        "tool-colour-bl": "#000000"
     };
 
     // bind menu side-tabs to reveal the side pane
@@ -37,25 +28,6 @@ window.gokart = (function(self) {
         offCanvasLeft.removeClass("reveal-for-medium");
         $(this).attr("aria-selected", false);
         self.map.updateSize();
-    });
-
-    // rig up groups
-    $("#tool-group-mode").on("click", ".button", function(ev) {
-        $("#tool-group-mode .button").removeClass("selected");
-        $(this).addClass("selected");
-        self.mode = this.id;
-    });
-
-    $("#tool-group-size").on("click", ".button", function(ev) {
-        $("#tool-group-size .button").removeClass("selected");
-        $(this).addClass("selected");
-        self.size = this.id;
-    });
-
-    $("#tool-group-colour").on("click", ".button", function(ev) {
-        $("#tool-group-colour .button").removeClass("selected");
-        $(this).addClass("selected");
-        self.colour = this.id;
     });
 
     // hover information
@@ -150,6 +122,34 @@ window.gokart = (function(self) {
         ui.layers.olLayers = self.map.getLayers().getArray();
         ui.layers.catalogue = self.catalogue;
     }
+
+    self.initAnnotations = function() {
+        ui.annotations = new Vue({
+            el: "#menu-tab-annotations",
+            data: {
+                mode: "pan",
+                size: 12,
+                colour: "#cc0000",
+                colours: [
+                    ["red", "#cc0000"],
+                    ["orange", "#f57900"],
+                    ["yellow", "#edd400"],
+                    ["green", "#73d216"],
+                    ["blue", "#3465a4"],
+                    ["violet", "#75507b"],
+                    ["brown", "#8f5902"],
+                    ["grey", "#555753"],
+                    ["black", "#000000"]
+                ],
+                advanced: false
+            },
+            methods: {
+                setMode: function(mode) {
+                    this.mode = mode
+                }
+            }
+        });
+    }
     
 
     $self.on("init_map", function() {
@@ -158,6 +158,7 @@ window.gokart = (function(self) {
         // display hover popups
         self.map.on('pointermove', ui.info.display);
         if (document.querySelector("#menu-tab-layers")) { gokart.initLayers() };
+        if (document.querySelector("#menu-tab-annotations")) { gokart.initAnnotations() };
     });
 
     return self;

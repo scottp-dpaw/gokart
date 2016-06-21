@@ -144,18 +144,19 @@ window.gokart = (function(self) {
         }, options.params || {})
         var vectorSource = new ol.source.Vector({
             format: new ol.format.GeoJSON(),
-            url: function(extent) { 
-                options.params.cql_filter = "BBOX(wkb_geometry," + extent.join(",") + ",'EPSG:4326')";
+            url: function() {
                 if (options.cql_filter) {
-                    options.params.cql_filter = options.params.cql_filter + " AND " + options.cql_filter;
+                    options.params.cql_filter = options.cql_filter 
+                } else if (options.params.cql_filter) {
+                    delete options.params.cql_filter
                 }
-                return url + "?" + $.param(options.params)
-            },
-            strategy: ol.loadingstrategy.bbox
+                return url + "?" + $.param(options.params);
+            }
         });
         var vueTemplate = this.vueTemplate || 'default';
         vectorSource.on("addfeature", function(event) {
             event.feature.set("vueTemplate", vueTemplate);
+            if (options.onadd) { options.onadd(event.feature) };
         });
         var vector = new ol.layer.Vector({
             opacity: options.opacity || 1,

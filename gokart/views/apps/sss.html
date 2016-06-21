@@ -16,7 +16,16 @@
     <div class="row collapse" id="tracking-tab-panels">
         <div class="columns">
             <div class="tabs-content vertical" data-tabs-content="tracking-tabs">
-                <div id="tracking-list-tab" class="tabs-panel is-active" v-cloak>
+                <div id="tracking-list-tab" class="tabs-panel is-active" v-cloak>{% raw %}
+                    <div class="row">
+                        <div class="switch tiny">
+                            <input class="switch-input" id="resourcesInViewport" type="checkbox" v-model="viewportOnly"/>
+                            <label class="switch-paddle" for="resourcesInViewport">
+                                <span class="show-for-sr">Viewport resources only</span>
+                            </label>
+                        </div>
+                        <label for="resourcesInViewport" class="side-label">Restrict to viewport ({{ stats }})</label>
+                    </div>
                     <div class="row collapse">
                         <div class="small-6 columns">
                             <select name="select" v-model="cql" @change="setCQLFilter(cql)">
@@ -29,9 +38,9 @@
                             </select>
                         </div>
                         <div class="small-6 columns">
-                            <input type="search" v-model="search">
+                            <input type="search" v-model="search" placeholder="Find a resource">
                         </div>
-                    </div>
+                    </div>{% endraw %}
                     <div id="tracking-list">
                         <div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" 
                             @click="zoomTo(f.geometry.getCoordinates())">
@@ -88,30 +97,25 @@ var initStyle = function(icon) {
     stylecache[icon] = style
     return style;
 };
-var resource_tracking_style = function(f, res) {
+var addResource = function(f) {
     var color = "_red";
     if (f.get("age") < 24) { color = "_orange" };
     if (f.get("age") < 3) { color = "_yellow" };
     if (f.get("age") <= 1) { color = "_green" };
-    var icon = "/static/symbols/device/" + f.get("symbolid") + color + ".svg";
-    style = stylecache[icon]
-    if (!style) { var style = initStyle(icon) }
-    var png = gokart.pngs[style.getImage().iconImage_.src_]
-    if (png) { var style = initStyle(icon) };
-    if (!f.get("label")) {
-        f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
-        f.set("time", moment(f.get("seen")).toLocaleString());
-    }
-    if (!f.get("icon")) {
-        f.set("icon", icon);
-    }
+    f.set("icon", "/static/symbols/device/" + f.get("symbolid") + color + ".svg");
+    f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
+    f.set("time", moment(f.get("seen")).toLocaleString());
+}
+var resource_tracking_style = function(f, res) {
+    var style = stylecache[f.get('icon')] || initStyle(f.get('icon'))
+    if (gokart.pngs[style.getImage().iconImage_.src_]) { var style = initStyle(f.get('icon')) };
     if (res < 0.002) {
         style.getText().setText(f.get("label"));
     } else {
         style.getText().setText("");
     }
     return style
-};
+}
 {% if env.WMTS_SRC %}
 gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
 {% endif %}
@@ -126,6 +130,7 @@ gokart.catalogue = {
         id: 'dpaw:resource_tracking',
         style: resource_tracking_style,
         vueTemplate: 'resource_tracking',
+        onadd: addResource,
         refresh: 30
     },
     "hotspots": {
@@ -191,10 +196,16 @@ gokart.init([
 var trackingList = new Vue({
     el: "#tracking-list-tab",
     data: {
-        features: [],
+        viewportOnly: true,
         search: "",
         cql: "",
-        fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"]
+        fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
+        allFeatures: {},
+        extentFeatures: {},
+    },
+    computed: {
+        features: function() { if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; },
+        stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; }
     },
     methods: {
         setCQLFilter: function(cql) {
@@ -211,25 +222,19 @@ var trackingList = new Vue({
 });
 
 var renderTracking = debounce(function() {
-    if (gokart.catalogue.resource_tracking.olLayer) {
-        $("#menu-tab-tracking-label").parents("li").removeClass("hide");
-        var layer = gokart.catalogue.resource_tracking.olLayer;
-        var features = {};
-        layer.getSource().getFeaturesInExtent(gokart.map.getView().calculateExtent(gokart.map.getSize())).forEach(function(f) {
-            features[f.get("deviceid")] = f.getProperties()
-        });
-        trackingList.features = Object.values(features);
-    } else {
-        $("#menu-tab-tracking-label").parents("li").addClass("hide");
-    }
-}, 250);
-$(trackingList.$el).on("click", "div[data-feature-id]", function() {
-    var fid = $(this).attr("data-feature-id");
-    var s = gokart.catalogue.resource_tracking.olLayer.getSource();
-    var f = $.grep(s.getFeatures(), function(feat) {return feat.get("id") == fid})[0]
-})
+    var layer = gokart.catalogue.resource_tracking.olLayer;
+    if (layer.getSource().getFeatures().length == 0) { return };
+    trackingList.extentFeatures = {};
+    layer.getSource().getFeaturesInExtent(gokart.mapControls.mapLayout.extent).forEach(function(f) {
+        trackingList.extentFeatures[f.get("deviceid")] = f.getProperties()
+    });
+    trackingList.allFeatures = {};
+    layer.getSource().getFeatures().forEach(function(f) {
+        trackingList.allFeatures[f.get("deviceid")] = f.getProperties()
+    });
+}, 100);
+
 gokart.map.getLayerGroup().on("change", renderTracking);
 gokart.map.getView().on("propertychange", renderTracking);
-$("#resource-tracking-search").on("keyup", renderTracking);
 </script>
 {% endblock %}
