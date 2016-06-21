@@ -95,10 +95,16 @@ window.gokart = (function(self) {
             srsname: "EPSG:4326",
             typename: options.id,
         }, options.params || {})
-        if (options.cql_filter) { options.params.cql_filter = options.cql_filter }
         var vectorSource = new ol.source.Vector({
             format: new ol.format.GeoJSON(),
-            url: url + "?" + $.param(options.params)
+            url: function() {
+                if (options.cql_filter) {
+                    options.params.cql_filter = options.cql_filter 
+                } else if (options.params.cql_filter) {
+                    delete options.params.cql_filter
+                }
+                return url + "?" + $.param(options.params);
+            }
         });
         var vueTemplate = this.vueTemplate || 'default';
         vectorSource.on("addfeature", function(event) {
