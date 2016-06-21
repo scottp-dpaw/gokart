@@ -95,20 +95,15 @@ window.gokart = (function(self) {
             srsname: "EPSG:4326",
             typename: options.id,
         }, options.params || {})
+        if (options.cql_filter) { options.params.cql_filter = options.cql_filter }
         var vectorSource = new ol.source.Vector({
             format: new ol.format.GeoJSON(),
-            url: function(extent) { 
-                options.params.cql_filter = "BBOX(wkb_geometry," + extent.join(",") + ",'EPSG:4326')";
-                if (options.cql_filter) {
-                    options.params.cql_filter = options.params.cql_filter + " AND " + options.cql_filter;
-                }
-                return url + "?" + $.param(options.params)
-            },
-            strategy: ol.loadingstrategy.bbox
+            url: url + "?" + $.param(options.params)
         });
         var vueTemplate = this.vueTemplate || 'default';
         vectorSource.on("addfeature", function(event) {
             event.feature.set("vueTemplate", vueTemplate);
+            if (options.onadd) { options.onadd(event.feature) };
         });
         var vector = new ol.layer.Vector({
             opacity: options.opacity || 1,

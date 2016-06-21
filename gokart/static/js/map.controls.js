@@ -35,10 +35,11 @@ window.gokart = (function(self) {
                     return "1:" + (Math.round(this.scale * 100) / 100).toLocaleString() + "K"
                 },
                 legendInfo: function() {
+                    var whoami = self.whoami || {email: ""};
                     return {
                         km: (Math.round(self.get_scale() * 40) / 1000).toLocaleString(),
                         scale: "ISO " + this.paperSize + " " + this.scaleString,
-                        title: this.title, author: self.whoami.email,
+                        title: this.title, author: whoami.email,
                         date: "Printed " + moment().toLocaleString()
                     }
                 }
