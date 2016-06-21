@@ -102,12 +102,13 @@ window.gokart = (function(self) {
         var updateTimeline = function() {
             $.getJSON(options.source, function(data) {
                 tileLayer.set("updated", moment().toLocaleString());
+                self.ui.layers.update();
                 tileSource.setUrls(data["servers"]);
-                this.timeline = data["layers"];
-                if (!this.current_time) {
-                    this.current_time = this.timeline[0][1];
+                options.timeline = data["layers"];
+                if (!options.current_time) {
+                    options.current_time = options.timeline[0][1];
                     tileSource.updateParams({
-                        "layers": this.current_time
+                        "layers": options.current_time
                     });
                 }
             });

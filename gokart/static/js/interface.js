@@ -40,8 +40,8 @@ window.gokart = (function(self) {
             pixel: [0, 0],
         },
         computed: {
-            mapWidth: function() { this.pixel; return $("#map").width() },
-            mapHeight: function() { this.pixel; return $("#map").height() },
+            mapWidth: { cache: false, get: function() { return $("#map").width() }},
+            mapHeight: { cache: false, get: function() { return $("#map").height() }},
             css: function() {
                 var css = {
                     "left": this.pixel[0] + this.offset + "px",
@@ -82,6 +82,7 @@ window.gokart = (function(self) {
                 swapBaseLayers: true
             },
             methods: {
+                update: function() { this.$set("olLayers", this.olLayers) },                },
                 removeLayer: function(olLayer) {
                     olLayer.get("catalogueEntry").toggled = false;
                     self.map.removeLayer(olLayer);

@@ -5,3 +5,4 @@ python-dotenv>=0.5.1
 gevent
 six>=1.10.0
 pytz>=2016.4
+requests
