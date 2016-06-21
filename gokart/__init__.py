@@ -28,8 +28,8 @@ LANDGATE_TZ = pytz.timezone('Australia/Perth')
 # update period
 LANDGATE_PERIOD = timedelta(minutes=10)
 # approx. lead time before a layer is published 
-HI8_FHS_LEADTIME = timedelta(minutes=10)
-HI8_BAND_LEADTIME = timedelta(minutes=33)
+HI8_FHS_LEADTIME = timedelta(minutes=60)
+HI8_BAND_LEADTIME = timedelta(minutes=60)
 HI8 = {
     'band3': ('layer63_{}_HI8_AHI_TKY_b3.tif', HI8_BAND_LEADTIME),
     'band7': ('layer63_{}_HI8_AHI_TKY_b7.tif', HI8_BAND_LEADTIME),
