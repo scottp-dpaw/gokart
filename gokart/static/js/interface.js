@@ -40,8 +40,8 @@ window.gokart = (function(self) {
             pixel: [0, 0],
         },
         computed: {
-            mapWidth: function() { return $("#map").width() },
-            mapHeight: function() { return $("#map").height() },
+            mapWidth: function() { this.pixel; return $("#map").width() },
+            mapHeight: function() { this.pixel; return $("#map").height() },
             css: function() {
                 var css = {
                     "left": this.pixel[0] + this.offset + "px",
