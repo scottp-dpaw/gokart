@@ -103,7 +103,6 @@ window.gokart = (function(self) {
                     }
                 },
                 sliderTimeline: {
-                    cache: false,
                     get: function() {
                         return this.layer.current_time_index;
                     },
@@ -116,7 +115,15 @@ window.gokart = (function(self) {
                     get: function() {
                         return this.layer.timeline.length-1;
                     }
-                }
+                },
+                layerOpacity: {
+                    get: function() {
+                        return Math.round(this.layer.olLayer.getOpacity() * 100);
+                    },
+                    set: function(val) {
+                        this.layer.olLayer.setOpacity(val / 100);
+                    }
+                }    
             },
             // methods callable from inside the template
             methods: {
