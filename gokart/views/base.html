@@ -42,10 +42,10 @@
                     <div class="hide" id="legendsvg"></div>
                 </div>{% endraw %}
                 <div class="map" id="map">
-                    <div id="info" v-bind:style="css" v-show="features.length > 0" v-cloak>
+                    <div id="info" v-bind:style="css" v-show="features" v-cloak>
                         <div class="row collapse">
-                            <div class="columns title"><h5>{% raw %}{{ features.length }} {{ features.length | pluralize 'feature' }} <small>{{ coordinate }}{% endraw %}</small></h5></div>
-                            <button class="close-button float-right" aria-label="Dismiss info" type="button" v-on:click="features = []"><span aria-hidden="true">&times;</span></button>
+                            <div class="columns title"><h5>{% raw %}{{ featuresLength }} {{ featuresLength | pluralize 'feature' }} <small>{{ coordinate }}{% endraw %}</small></h5></div>
+                            <button class="close-button float-right" aria-label="Dismiss info" type="button" v-on:click="features = false"><span aria-hidden="true">&times;</span></button>
                         </div>
                         <div class="row">
                             <div class="columns content">{% raw %}

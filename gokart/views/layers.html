@@ -27,7 +27,7 @@
                             </div>
                             <label for="toggleGraticule" class="side-label">Display graticule</label>
                         </div>
-                        <div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = l">
+                        <div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = l.get('catalogueEntry')">
                             <div class="small-9">    
                                 <div class="layer-title">{{ l.get("name") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
                                 <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
@@ -61,7 +61,7 @@
                             </div>
                         </div>
                         <div id="layers-catalogue-list">
-                            <div v-for="l in catalogue | filterBy search in searchAttrs" class="row layer-row" @mouseover="layer = l.olLayer || l">
+                            <div v-for="l in catalogue | filterBy search in searchAttrs" class="row layer-row" @mouseover="layer = l">
                                 <div class="small-9">
                                     <div class="layer-title">{{ l.name }}</div>
                                     <div class="layer-id">{{ l.id }}</div>
@@ -85,17 +85,18 @@
             </div>
         </div>
         <div class="row collapse">{% raw %}
-            <div class="columns" v-if="layer.id">
+            <div class="columns">
                 <h4>{{ layer.name }}</h4>
-                Layer details/legend
-            </div>
-            <div class="columns" v-if="layer.get">
-                <h4>{{ layer.get('catalogueEntry').name }}</h4>
-                Layer details/legend
-                <div class="row">
-                    <div class="columns small-3"><label class="side-label">Opacity {{ sliderOpacity }}%: </label></div>
-                    <div class="columns small-9">
-                        <input type="range" min="1" max="100" step="1" v-bind:value="layer.getOpacity() * 100" @input="layer.setOpacity(sliderOpacity / 100)" v-model="sliderOpacity" number>
+                <div class="tool-slice row" v-if="layer.olLayer">
+                    <div class="columns small-2"><label class="tool-label text-right">Opacity {{ sliderOpacity }}%:</label></div>
+                    <div class="columns small-10">
+                        <input type="range" min="1" max="100" step="1" v-bind:value="layer.olLayer.getOpacity() * 100" @input="layer.olLayer.setOpacity(sliderOpacity / 100)" v-model="sliderOpacity" number/>
+                    </div>
+                </div>
+                <div class="tool-slice row" v-if="layer.timeline">
+                    <div class="columns small-2"><label class="tool-label text-right">Timeline {{ layer.timeline[sliderTimeline][0] }} ({{ sliderTimeline }}):</label></div>
+                    <div class="columns small-10">
+                        <input type="range" v-bind:max="sliderMax" min="0" step="1" v-model="sliderTimeline" number/>
                     </div>
                 </div>
             </div>
