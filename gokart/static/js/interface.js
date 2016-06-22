@@ -16,7 +16,7 @@ window.gokart = (function(self) {
     };
 
     // bind menu side-tabs to reveal the side pane
-    var offCanvasLeft = $("#offCanvasLeft")
+    var offCanvasLeft = $("#offCanvasLeft");
     $("#menu-tabs").on("change.zf.tabs", function(ev) {
         offCanvasLeft.addClass("reveal-responsive");
         self.map.updateSize();
@@ -27,6 +27,11 @@ window.gokart = (function(self) {
     }).on("click", ".tabs-title a[aria-selected=true]", function(ev) {
         offCanvasLeft.removeClass("reveal-responsive");
         $(this).attr("aria-selected", false);
+        self.map.updateSize();
+    });
+    $("#side-pane-close").on("click", function(ev) {
+        offCanvasLeft.removeClass("reveal-responsive");
+        $("#menu-tabs").find(".tabs-title a[aria-selected=true]").attr("aria-selected", false);
         self.map.updateSize();
     });
 

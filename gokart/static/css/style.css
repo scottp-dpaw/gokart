@@ -97,6 +97,17 @@ html, body {
     margin-left: 100vw; 
 }
 
+#side-pane-close {
+    display: none;
+}
+
+.position-left.reveal-responsive #side-pane-close {
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
 /* for non-mobile screens, have a fixed 400px left pane */
 @media screen and (min-width: 40em) {
     /* widen the off canvas area*/
@@ -113,6 +124,15 @@ html, body {
     .position-left.reveal-responsive ~ .off-canvas-content {
         margin-left: 400px; 
     }
+
+    #side-pane-close {
+        display: none;
+    }
+
+    .position-left.reveal-responsive #side-pane-close {
+        display: none;
+    }
+
 }
 
 /* raise our widgets above the slippy map */
