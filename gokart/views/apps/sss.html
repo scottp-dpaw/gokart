@@ -40,7 +40,41 @@
                         <div class="small-6 columns">
                             <input type="search" v-model="search" placeholder="Find a resource">
                         </div>
-                    </div>{% endraw %}
+                    </div>
+                    <div class="row">
+                        <div class="switch tiny">
+                            <input class="switch-input" id="resourceHistory" type="checkbox" />
+                            <label class="switch-paddle" for="resourceHistory">
+                                <span class="show-for-sr">Query history tools</span>
+                            </label>
+                        </div>
+                        <label for="resourceHistory" class="side-label small-4">Query history</label>
+                        <div class="small-5">
+                            <select name="select" v-model="history" @change="setHistoryRange(history)">
+                                <option value="" selected>Date range</option> 
+                                <option value="1hour">Last hour</option> 
+                                <option value="3hour">Last 3 hours</option> 
+                                <option value="day">Last day</option> 
+                                <option value="week">Last week</option> 
+                                <option value="month">Last month</option> 
+                            </select>
+                        </div>
+                    </div>
+                    <div id="history-panel">
+                        <div class="row collapse">
+                            <div class="small-6">
+                                <label for="historyFrom">From:</label>
+                                <input type="text" placeholder="dd/mm/yyyy"></input>
+                                <input type="text" placeholder="24:00"></input>
+                            </div>
+                            <div class="small-6">
+                                <label for="historyTo">To:</label>
+                                <input type="text" placeholder="dd/mm/yyyy"></input>
+                                <input type="text" placeholder="24:00"></input>
+                            </div>
+                        </div>
+                    </div>
+                    {% endraw %}
                     <div id="tracking-list">
                         <div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" 
                             @click="zoomTo(f.geometry.getCoordinates())">
