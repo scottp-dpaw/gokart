@@ -108,11 +108,12 @@ window.gokart = (function(self) {
                     }
                 },
                 sliderTimeline: {
+                    cache: false,
                     get: function() {
-                        return this.layer.current_time_index;
+                        return this.layer.olLayer.get("timeIndex");
                     },
                     set: function(val) {
-                        this.layer.setTimeIndex(val);
+                        this.layer.olLayer.set("timeIndex", val);
                     }
                 },
                 sliderMax: {
