@@ -85,7 +85,15 @@ window.gokart = (function(self) {
                 search: "",
                 searchAttrs: ["name", "id"],
             },
+            computed: { graticule: {cache: false, get: function() { return self.graticule.getMap() == self.map }} },
             methods: {
+                toggleGraticule: function() {
+                    if (this.graticule) {
+                        self.graticule.setMap(null);
+                    } else {
+                        self.graticule.setMap(self.map);
+                    }
+                },
                 update: function() {
                     var vm = this;
                     vm.olLayers = [];
