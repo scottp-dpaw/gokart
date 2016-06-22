@@ -26,13 +26,13 @@ def index( app_name ):
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
 FIREWATCH_SERVICE = os.environ.get("FIREWATCH_SERVICE", "/mapproxy/firewatch/service")
-FIREWATCH_GETCAPS = os.environ.get("FIREWATCH_GETCAPS", "http://srss-ows-6.landgate.wa.gov.au" + FIREWATCH_SERVICE + "?service=wms&request=getcapabilities")
+FIREWATCH_GETCAPS = os.environ.get("FIREWATCH_GETCAPS", FIREWATCH_SERVICE + "?service=wms&request=getcapabilities")
 @bottle.route("/hi8/<target>")
 def himawari8(target):
     if uwsgi.cache_exists("himawari8"):
-        getcaps = uwsgi.cache_get("himawari8").decode("utf-8")
+        getcaps = uwsgi.cache_get("himawari8")
     else:
-        getcaps = requests.get(FIREWATCH_GETCAPS).content
+        getcaps = requests.get(FIREWATCH_GETCAPS).content.decode("utf-8")
         uwsgi.cache_set("himawari8", getcaps, 60*10) # cache for 10 mins
     layernames = re.findall("\w+HI8\w+{}\.\w+".format(target), getcaps)
     layers = []
