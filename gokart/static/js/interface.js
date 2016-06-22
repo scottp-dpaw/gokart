@@ -92,9 +92,17 @@ window.gokart = (function(self) {
                 search: "",
                 searchAttrs: ["name", "id"],
             },
+            // parts of the template to be computed live
+            computed: { graticule: {cache: false, get: function() { return self.graticule.getMap() == self.map }} },
             // methods callable from inside the template
             methods: {
-
+                toggleGraticule: function() {
+                    if (this.graticule) {
+                        self.graticule.setMap(null);
+                    } else {
+                        self.graticule.setMap(self.map);
+                    }
+                },
                 update: function() {
                     var vm = this;
                     vm.olLayers = [];
