@@ -102,6 +102,14 @@ window.gokart = (function(self) {
             opacity: options.opacity || 1,
             source: tileSource
         });
+
+        tileLayer.on("propertychange", function(event) {
+            if (event.key == "timeIndex") {
+                tileSource.updateParams({
+                    "layers": options.timeline[event.target.get(event.key)][1]
+                });
+            }
+        });
        
         // helper function to update the time index
         options.updateTimeline = function() {
@@ -111,22 +119,11 @@ window.gokart = (function(self) {
                 tileSource.setUrls(data["servers"]);
                 options.timeline = data["layers"].reverse();
                 tileLayer.set("timeIndex", options.timeIndex || options.timeline.length-1);
-                tileSource.updateParams({
-                    "layers": options.timeline[tileLayer.get("timeIndex")][1]
-                });
                 self.ui.layers.update();
             });
         };
 
         options.updateTimeline();
-
-        tileLayer.setTimeIndex = function(index) {
-            tileLayer.set("timeIndex", index);
-            tileSource.updateParams({
-                "layers": options.timeline[tileLayer.get("timeIndex")][1]
-            });
-        };
-
         // if the "refresh" option is set, set a timer
         // to update the source
         if (options.refresh) {
