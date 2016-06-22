@@ -104,26 +104,34 @@ window.gokart = (function(self) {
         });
        
         // helper function to update the time index
-        var updateTimeline = function() {
+        options.updateTimeline = function() {
             // fetch the latest timestamp-to-layerID map from the source URL
             $.getJSON(options.source, function(data) {
                 tileLayer.set("updated", moment().toLocaleString());
                 tileSource.setUrls(data["servers"]);
-                options.timeline = data["layers"];
-                options.current_time = options.current_time || options.timeline[0][1];
+                options.timeline = data["layers"].reverse();
+                options.current_time_index = options.current_time_index || options.timeline.length-1;
                 tileSource.updateParams({
-                    "layers": options.current_time
+                    "layers": options.timeline[options.current_time_index][1]
                 });
                 self.ui.layers.update();
             });
         };
 
-        updateTimeline();
+        options.updateTimeline();
+
+        options.setTimeIndex = function(index) {
+            options.current_time_index = index;
+            tileSource.updateParams({
+                "layers": options.timeline[options.current_time_index][1]
+            });
+        };
+
         // if the "refresh" option is set, set a timer
         // to update the source
         if (options.refresh) {
             tileLayer.refresh = setInterval(function() {
-                updateTimeline();
+                options.updateTimeline();
             }, options.refresh*1000);
         };
 

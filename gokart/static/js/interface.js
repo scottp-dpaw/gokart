@@ -35,7 +35,7 @@ window.gokart = (function(self) {
         el: '#info',
         // variables
         data: {
-            features: [],
+            features: false,
             coordinate: "",
             offset: 20,
             pixel: [0, 0],
@@ -45,6 +45,9 @@ window.gokart = (function(self) {
             // because the viewport size changes when the tab pane opens, don't cache the map width and height
             mapWidth: { cache: false, get: function() { return $("#map").width() }},
             mapHeight: { cache: false, get: function() { return $("#map").height() }},
+            featuresLength: function() {
+                return Object.keys(this.features).length;
+            },
             // info panel should be positioned near the mouse in the quadrant furthest away from the viewport edges
             css: function() {
                 var css = {
@@ -68,8 +71,7 @@ window.gokart = (function(self) {
                 var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
                     features[f.getGeometry().getExtent().join(" ")] = f.getProperties();
                 });
-                features = Object.values(features);
-                if (features.length > 0) {
+                if (Object.keys(features).length > 0) {
                     this.features = features;
                     this.coordinate = ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3);
                     this.pixel = pixel;
@@ -93,7 +95,29 @@ window.gokart = (function(self) {
                 searchAttrs: ["name", "id"],
             },
             // parts of the template to be computed live
-            computed: { graticule: {cache: false, get: function() { return self.graticule.getMap() == self.map }} },
+            computed: { 
+                graticule: {
+                    cache: false, 
+                    get: function() { 
+                        return self.graticule.getMap() == self.map 
+                    }
+                },
+                sliderTimeline: {
+                    cache: false,
+                    get: function() {
+                        return this.layer.current_time_index;
+                    },
+                    set: function(val) {
+                        this.layer.setTimeIndex(val);
+                    }
+                },
+                sliderMax: {
+                    cache: false,
+                    get: function() {
+                        return this.layer.timeline.length-1;
+                    }
+                }
+            },
             // methods callable from inside the template
             methods: {
                 toggleGraticule: function() {

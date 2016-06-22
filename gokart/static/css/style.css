@@ -132,6 +132,15 @@ html, body {
     background-color: rgba(0,60,136,0.7);
 }
 
+/* make range sliders visible */
+input[type="range"] {
+    background-color: transparent;
+}
+
+.tool-slice input[type="range"] {
+    width: 100%;
+}
+
 /* make tool button text bigger */
 .button-group.expanded .button-tool { 
     padding: 0.5em; 
