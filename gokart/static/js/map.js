@@ -357,7 +357,8 @@ window.gokart = (function(self) {
             controls: [
                 new ol.control.Zoom(),
                 new ol.control.ScaleLine(),
-                new ol.control.FullScreen({source: $("body").get(0)})
+                new ol.control.FullScreen({source: $("body").get(0)}),
+                new ol.control.Control({element: $("#map-controls").get(0)})
             ]
         });
         // Create the graticule component

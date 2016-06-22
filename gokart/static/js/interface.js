@@ -18,14 +18,14 @@ window.gokart = (function(self) {
     // bind menu side-tabs to reveal the side pane
     var offCanvasLeft = $("#offCanvasLeft")
     $("#menu-tabs").on("change.zf.tabs", function(ev) {
-        offCanvasLeft.addClass("reveal-for-medium");
+        offCanvasLeft.addClass("reveal-responsive");
         self.map.updateSize();
     }).on("click", ".tabs-title a[aria-selected=false]", function(ev) {
-        offCanvasLeft.addClass("reveal-for-medium");
+        offCanvasLeft.addClass("reveal-responsive");
         $(this).attr("aria-selected", true);
         self.map.updateSize();
     }).on("click", ".tabs-title a[aria-selected=true]", function(ev) {
-        offCanvasLeft.removeClass("reveal-for-medium");
+        offCanvasLeft.removeClass("reveal-responsive");
         $(this).attr("aria-selected", false);
         self.map.updateSize();
     });
@@ -220,6 +220,11 @@ window.gokart = (function(self) {
         self.map.on('pointermove', ui.info.display);
         if (document.querySelector("#menu-tab-layers")) { gokart.initLayers() };
         if (document.querySelector("#menu-tab-annotations")) { gokart.initAnnotations() };
+
+        $.get("/static/images/legend.svg", function(tmpl) {
+            $("#legendsvg").html(tmpl);
+            self.initMapControls();
+        }, "text");
     });
 
     return self;
