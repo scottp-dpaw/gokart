@@ -32,8 +32,9 @@ def himawari8(target):
     if uwsgi.cache_exists("himawari8"):
         getcaps = uwsgi.cache_get("himawari8")
     else:
-        getcaps = requests.get(FIREWATCH_GETCAPS).content.decode("utf-8")
+        getcaps = requests.get(FIREWATCH_GETCAPS).content
         uwsgi.cache_set("himawari8", getcaps, 60*10) # cache for 10 mins
+    getcaps = getcaps.decode("utf-8")
     layernames = re.findall("\w+HI8\w+{}\.\w+".format(target), getcaps)
     layers = []
     for layer in layernames:
