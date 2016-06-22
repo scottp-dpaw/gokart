@@ -139,10 +139,5 @@ window.gokart = (function(self) {
         });
     }
 
-    $.get("/static/images/legend.svg", function(tmpl) {
-        $("#legendsvg").html(tmpl);
-        self.initMapControls();
-    }, "text");
-
     return self;
 })(window.gokart || {});
