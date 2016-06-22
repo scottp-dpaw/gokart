@@ -103,7 +103,6 @@ window.gokart = (function(self) {
                     }
                 },
                 sliderTimeline: {
-                    cache: false,
                     get: function() {
                         return this.layer.olLayer.get("timeIndex");
                     },
