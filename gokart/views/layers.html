@@ -20,7 +20,7 @@
                     {% raw %}
                             <div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = l">
                                 <div class="small-9">    
-                                    <div class="layer-title">{{ l.get("name") }} - {{ l.getOpacity() * 100 }}%</div>
+                                    <div class="layer-title">{{ l.get("name") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
                                     <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
                                     <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
                                 </div>
@@ -86,7 +86,7 @@
                 <div class="row">
                     <div class="columns small-3"><label class="side-label">Opacity {{ sliderOpacity }}%: </label></div>
                     <div class="columns small-9">
-                        <input type="range" min="1" max="100" step="1" value="{{layer.getOpacity() * 100}}" @change="layer.setOpacity(sliderOpacity / 100)" v-model="sliderOpacity">
+                        <input type="range" min="1" max="100" step="1" v-bind:value="layer.getOpacity() * 100" @input="layer.setOpacity(sliderOpacity / 100)" v-model="sliderOpacity" number>
                     </div>
                 </div>
             </div>
