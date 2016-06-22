@@ -110,9 +110,9 @@ window.gokart = (function(self) {
                 tileLayer.set("updated", moment().toLocaleString());
                 tileSource.setUrls(data["servers"]);
                 options.timeline = data["layers"].reverse();
-                options.current_time_index = options.current_time_index || options.timeline.length-1;
+                tileLayer.set("timeIndex", options.timeIndex || options.timeline.length-1);
                 tileSource.updateParams({
-                    "layers": options.timeline[options.current_time_index][1]
+                    "layers": options.timeline[tileLayer.get("timeIndex")][1]
                 });
                 self.ui.layers.update();
             });
@@ -120,10 +120,10 @@ window.gokart = (function(self) {
 
         options.updateTimeline();
 
-        options.setTimeIndex = function(index) {
-            options.current_time_index = index;
+        tileLayer.setTimeIndex = function(index) {
+            tileLayer.set("timeIndex", index);
             tileSource.updateParams({
-                "layers": options.timeline[options.current_time_index][1]
+                "layers": options.timeline[tileLayer.get("timeIndex")][1]
             });
         };
 
