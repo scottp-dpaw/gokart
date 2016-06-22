@@ -38,7 +38,7 @@
                         <option v-for="size in paperSizes">{{ $key }}</option></select>
                     <select class="select-button" v-model="scale" @change="setScale(scale)" id="menu-scale">
                         <option value="{{ scale }}">{{ scaleString }}</option>
-                        <option v-for="s in fixedScales" value="{{ s }}">1:{{ s.toLocaleString() }}K</option></select>
+                        <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option></select>
                     <div class="hide" id="legendsvg"></div>
                 </div>{% endraw %}
                 <div class="map" id="map">

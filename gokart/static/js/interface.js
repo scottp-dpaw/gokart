@@ -30,18 +30,22 @@ window.gokart = (function(self) {
         self.map.updateSize();
     });
 
-    // hover information
+    // hovering layer information panel
     ui.info = new Vue({
         el: '#info',
+        // variables
         data: {
             features: [],
             coordinate: "",
             offset: 20,
             pixel: [0, 0],
         },
+        // parts of the template to be computed live
         computed: {
+            // because the viewport size changes when the tabs open, don't cache the map width and height
             mapWidth: { cache: false, get: function() { return $("#map").width() }},
             mapHeight: { cache: false, get: function() { return $("#map").height() }},
+            // viewport should be positioned near the mouse in the quadrant furthest away from the viewport edges
             css: function() {
                 var css = {
                     "left": this.pixel[0] + this.offset + "px",
@@ -54,7 +58,9 @@ window.gokart = (function(self) {
                 return css;
             }
         },
+        // methods callable from inside the template
         methods: {
+            // update the panel content
             display: function(event) {
                 if (event.dragging) { return };
                 var pixel = self.map.getEventPixel(event.originalEvent);
@@ -76,6 +82,7 @@ window.gokart = (function(self) {
     self.initLayers = function() {
         ui.layers = new Vue({
             el: "#menu-tab-layers",
+            // variables            
             data: {
                 sliderOpacity: 0,
                 layer: {},
@@ -85,7 +92,9 @@ window.gokart = (function(self) {
                 search: "",
                 searchAttrs: ["name", "id"],
             },
+            // methods callable from inside the template
             methods: {
+
                 update: function() {
                     var vm = this;
                     vm.olLayers = [];
@@ -105,10 +114,13 @@ window.gokart = (function(self) {
                         self.map.addLayer(layer);
                     });
                 },
+                // toggle a layer in the Layer Catalogue
                 toggleLayer: function(layer) {
                     var vm = this;
                     if (layer.toggled) {
                         if (layer.base) {
+                            // "Switch out base layers automatically" is enabled, remove
+                            // all other layers with the "base" option set.
                             if (vm.swapBaseLayers) {
                                 vm.olLayers.forEach(function(olLayer) {
                                     if (olLayer.get("catalogueEntry").base) {
@@ -116,6 +128,7 @@ window.gokart = (function(self) {
                                     }
                                 });
                             } 
+                            // add new base layer to bottom
                             self.map.getLayers().insertAt(0, layer.init());
                         } else {
                             self.map.addLayer(layer.init());
@@ -162,7 +175,7 @@ window.gokart = (function(self) {
 
     $self.on("init_map", function() {
         // setup scale events
-        self.map.on("postrender", function() { if (self.mapControls) { self.mapControls.scale = self.get_scale() }});
+        self.map.on("postrender", function() { if (self.mapControls) { self.mapControls.scale = self.getScale() }});
         // display hover popups
         self.map.on('pointermove', ui.info.display);
         if (document.querySelector("#menu-tab-layers")) { gokart.initLayers() };

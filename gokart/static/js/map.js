@@ -21,7 +21,7 @@ function debounce(func, wait, immediate) {
 window.gokart = (function(self) {
     var $self = $(self)
 
-    // method to precache SVGs as raster,
+    // method to precache SVGs as raster (PNGs)
     // workaround for Firefox missing the SurfaceCache when blitting to canvas
     self.pngs = {}
     self.svgToPNG = function(url) {
@@ -83,6 +83,7 @@ window.gokart = (function(self) {
         });
     });
 
+    // loader for layers with a "time" axis, e.g. live satellite imagery
     self.createTimelineLayer = function() {
         var options = this;
         options.params = $.extend({
@@ -90,6 +91,9 @@ window.gokart = (function(self) {
             SRS: "EPSG:4326",
         }, options.params || {});
         
+        // technically, we can specify a WMS source and a layer without
+        // either the source URL or the layerID. which is good, because
+        // we need to do that later on in a callback.
         var tileSource = new ol.source.TileWMS({
             params: options.params
         });
@@ -99,7 +103,9 @@ window.gokart = (function(self) {
             source: tileSource
         });
        
+        // helper function to update the time index
         var updateTimeline = function() {
+            // fetch the latest timestamp-to-layerID map from the source URL
             $.getJSON(options.source, function(data) {
                 tileLayer.set("updated", moment().toLocaleString());
                 tileSource.setUrls(data["servers"]);
@@ -113,6 +119,8 @@ window.gokart = (function(self) {
         };
 
         updateTimeline();
+        // if the "refresh" option is set, set a timer
+        // to update the source
         if (options.refresh) {
             tileLayer.refresh = setInterval(function() {
                 updateTimeline();
@@ -129,10 +137,11 @@ window.gokart = (function(self) {
     }
     
 
-    // for layers with hover querying
+    // loader for vector layers with hover querying
     self.createWFSLayer = function() {
         var options = this;
         var url = self.defaultWFSSrc;
+        // default overridable params sent to the WFS source
         options.params = $.extend({
             version: "1.1.0",
             service: "WFS",
@@ -141,6 +150,8 @@ window.gokart = (function(self) {
             srsname: "EPSG:4326",
             typename: options.id,
         }, options.params || {})
+
+        
         var vectorSource = new ol.source.Vector({
             format: new ol.format.GeoJSON(),
             url: function() {
@@ -152,16 +163,23 @@ window.gokart = (function(self) {
                 return url + "?" + $.param(options.params);
             }
         });
-        var vueTemplate = this.vueTemplate || 'default';
+
+        // bind vue template (specified in options) to update
+        // whenever OL3 fires the "addfeature" event
+        var vueTemplate = options.vueTemplate || 'default';
         vectorSource.on("addfeature", function(event) {
             event.feature.set("vueTemplate", vueTemplate);
             if (options.onadd) { options.onadd(event.feature) };
         });
+
         var vector = new ol.layer.Vector({
             opacity: options.opacity || 1,
             source: vectorSource,
             style: options.style
         });
+
+        // if the "refresh" option is set, set a timer
+        // to update the source
         if (options.refresh) {
             vector.set("updated", moment().toLocaleString())
             vectorSource.refresh = setInterval(function() {
@@ -169,6 +187,7 @@ window.gokart = (function(self) {
                 vectorSource.clear();
             }, options.refresh * 1000)
         };
+
         vector.set("name", options.name);
         vector.set("id", options.id);
         this.olLayer = vector;
@@ -177,7 +196,7 @@ window.gokart = (function(self) {
         return vector;
     }
 
-    // Convenience loader to create a WMTS layer from a kmi datasource
+    // loader to create a WMTS layer from a kmi datasource
     self.createTileLayer = function() {
         var layer = this;
         layer = $.extend({
@@ -190,6 +209,7 @@ window.gokart = (function(self) {
             wmts_url: self.defaultWMTSSrc,
         }, layer);
 
+        // create a tile grid using the stock KMI resolutions
         var matrixSet = _matrixSets[layer.projection][layer.tileSize];
         var tileGrid = new ol.tilegrid.WMTS({
             origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
@@ -197,11 +217,18 @@ window.gokart = (function(self) {
             matrixIds: matrixSet.matrixIds,
             tileSize: layer.tileSize
         });
-        // Make grids pick nicer zoom levels for client zooming
+
+        // override getZForResolution on tile grid object;
+        // for weird zoom levels, the default is to round up or down to the 
+        // nearest integer to determine which tiles to use. 
+        // because we want the printing rasters to contain as much detail as 
+        // possible, we rig it here to always round up.
         tileGrid.origGetZForResolution = tileGrid.getZForResolution;
         tileGrid.getZForResolution = function(resolution, opt_direction) {
             return tileGrid.origGetZForResolution(resolution, -1);
         };
+
+        // helper function to create a tile source
         var tileSource = function(url) {
             return new ol.source.WMTS({
                 url: url,
@@ -217,6 +244,8 @@ window.gokart = (function(self) {
             opacity: layer.opacity || 1,
             source: tileSource(layer.wmts_url)
         });
+        // if the "refresh" option is set, set a timer
+        // to force a reload of the tile content
         if (layer.refresh) {
             tileLayer.set("updated", moment().toLocaleString());
             tileLayer.refresh = setInterval(function() {
@@ -239,20 +268,20 @@ window.gokart = (function(self) {
         });
     }
 
-    //supported fixed scales
-    self.fixed_scales = [.25, .5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000];
+    // fixed scales for the scale selector (1:1K increments)
+    self.fixedScales = [.25, .5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000];
 
-    //set scale 000's, in meters
-    self.set_scale = function(scale) {
-        while (Math.abs(self.get_scale() - scale) > 0.001) {
-            self.map.getView().setResolution(self.map.getView().getResolution() * scale / self.get_scale());
+    // force OL to approximate a fixed scale (1:1K increments)
+    self.setScale = function(scale) {
+        while (Math.abs(self.getScale() - scale) > 0.001) {
+            self.map.getView().setResolution(self.map.getView().getResolution() * scale / self.getScale());
         }
     }
 
     self.wgs84Sphere = new ol.Sphere(6378137);
 
-    //return the scale 000's, in meters
-    self.get_scale = function() {
+    // return the scale (1:1K increments)
+    self.getScale = function() {
         var size = self.map.getSize();
         var center = self.map.getView().getCenter();
         var extent = self.map.getView().calculateExtent(size);
@@ -260,11 +289,11 @@ window.gokart = (function(self) {
         return distance * self.dpmm / size[0] ;
     }
 
-    //get a fixed scale 000's closest to current scale.
-    self.get_fixed_scale = function() {
-        var scale = self.get_scale();
+    // get the fixed scale (1:1K increments) closest to current scale
+    self.getFixedScale = function() {
+        var scale = self.getScale();
         var closest = null;
-        $.each(self.fixed_scales, function() {
+        $.each(self.fixedScales, function() {
             if (closest == null || Math.abs(this - scale) < Math.abs(closest - scale)) {
                 closest = this;
             }
@@ -272,6 +301,18 @@ window.gokart = (function(self) {
         return closest;
     };
 
+    // generate a human-readable scale string
+    self.getScaleString = function(scale) {
+        if (scale < 1.0) {
+            return "1:" + (Math.round(scale * 100000)/100).toLocaleString();
+        } else if (scale >= 1000.0) {
+            return "1:" + (Math.round(scale/10)/100).toLocaleString() + "M";
+        }
+        
+        return "1:" + (Math.round(scale * 100) / 100).toLocaleString() + "K";
+    };
+
+    // helper to populate the catalogue from a CSW service
     self.loadCatalogue = function(options) {
         options = options || {};
         options.url = options.url || "/catalogue/";
@@ -317,6 +358,8 @@ window.gokart = (function(self) {
         // Create the graticule component
         self.graticule = new ol.LabelGraticule();
         self.graticule.setMap(self.map);
+
+        // alert other components that the map is ready
         $self.trigger("init_map");
     };
     return self;

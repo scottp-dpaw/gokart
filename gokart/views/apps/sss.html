@@ -217,8 +217,8 @@ var trackingList = new Vue({
         },
         zoomTo: function(coords) {
             gokart.map.getView().setCenter(coords);
-            if (gokart.get_scale() > 250) {
-                gokart.set_scale(50)
+            if (gokart.getScale() > 250) {
+                gokart.setScale(50);
             }
         }
     }
@@ -229,11 +229,11 @@ var renderTracking = debounce(function() {
     if (layer.getSource().getFeatures().length == 0) { return };
     trackingList.extentFeatures = {};
     layer.getSource().getFeaturesInExtent(gokart.mapControls.mapLayout.extent).forEach(function(f) {
-        trackingList.extentFeatures[f.get("deviceid")] = f.getProperties()
+        trackingList.extentFeatures[f.get("deviceid")] = f.getProperties();
     });
     trackingList.allFeatures = {};
     layer.getSource().getFeatures().forEach(function(f) {
-        trackingList.allFeatures[f.get("deviceid")] = f.getProperties()
+        trackingList.allFeatures[f.get("deviceid")] = f.getProperties();
     });
 }, 100);
 
