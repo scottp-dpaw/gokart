@@ -25,20 +25,21 @@ def index( app_name ):
 
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
-LANDGATE_SERVERS = ['http://t{}.srss-ows-6.landgate.wa.gov.au/mapproxy/firewatch/service'.format(x) for x in range(1,6)]
+FIREWATCH_SERVICE = os.environ.get("FIREWATCH_SERVICE", "/mapproxy/firewatch/service")
+FIREWATCH_GETCAPS = os.environ.get("FIREWATCH_GETCAPS", "http://srss-ows-6.landgate.wa.gov.au" + FIREWATCH_SERVICE + "?service=wms&request=getcapabilities")
 @bottle.route("/hi8/<target>")
 def himawari8(target):
     if uwsgi.cache_exists("himawari8"):
         getcaps = uwsgi.cache_get("himawari8").decode("utf-8")
     else:
-        getcaps = requests.get("http://srss-ows-6.landgate.wa.gov.au/mapproxy/firewatch/service?service=wms&request=getcapabilities").content
+        getcaps = requests.get(FIREWATCH_GETCAPS).content
         uwsgi.cache_set("himawari8", getcaps, 60*10) # cache for 10 mins
     layernames = re.findall("\w+HI8\w+{}\.\w+".format(target), getcaps)
     layers = []
     for layer in layernames:
         layers.append([datetime.strptime(re.findall("\w+_(\d+)_\w+", layer)[0], "%Y%m%d%H%M").isoformat(), layer])
     result = {
-        "servers": LANDGATE_SERVERS,
+        "servers": [FIREWATCH_SERVICE],
         "layers": layers
     }
     return result

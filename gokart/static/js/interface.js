@@ -82,14 +82,20 @@ window.gokart = (function(self) {
                 swapBaseLayers: true
             },
             methods: {
-                update: function() { this.$set("olLayers", this.olLayers) },
+                update: function() {
+                    var vm = this;
+                    vm.olLayers = [];
+                    Vue.nextTick(function() {
+                        vm.olLayers = gokart.map.getLayers().getArray();
+                    });
+                },
                 removeLayer: function(olLayer) {
                     olLayer.get("catalogueEntry").toggled = false;
                     self.map.removeLayer(olLayer);
                 },
                 // change order of OL layers based on "Map Layers" list order
                 updateOrder: function(el) {
-                    Array.prototype.slice.call(el.parentElement.children).reverse().forEach(function(row) {
+                    Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function(row) {
                         var layer = self.layerById(row.dataset.id);
                         self.map.removeLayer(layer);
                         self.map.addLayer(layer);
@@ -115,10 +121,7 @@ window.gokart = (function(self) {
                     }
                 }
             },
-            ready: function () {
-                var vm = this;
-                ui.drake = dragula([document.querySelector("#layers-active")]).on("dragend", vm.updateOrder);
-            }
+            ready: function () { dragula([document.querySelector("#layers-active")]).on("dragend", this.updateOrder); }
         });
         ui.layers.olLayers = self.map.getLayers().getArray();
         ui.layers.catalogue = self.catalogue;
