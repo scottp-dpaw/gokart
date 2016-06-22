@@ -88,16 +88,12 @@
             <div class="columns">
                 <h4>{{ layer.name }}</h4>
                 <div class="tool-slice row" v-if="layer.olLayer">
-                    <div class="columns small-2"><label class="tool-label text-right">Opacity {{ sliderOpacity }}%:</label></div>
-                    <div class="columns small-10">
-                        <input type="range" min="1" max="100" step="1" v-bind:value="layer.olLayer.getOpacity() * 100" @input="layer.olLayer.setOpacity(sliderOpacity / 100)" v-model="sliderOpacity" number/>
-                    </div>
+                    <div class="columns small-2"><label class="tool-label text-right">Opacity:</label></div>
+                    <div class="columns small-10"><input type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
                 </div>
                 <div class="tool-slice row" v-if="layer.timeline">
-                    <div class="columns small-2"><label class="tool-label text-right">Timeline {{ layer.timeline[sliderTimeline][0] }} ({{ sliderTimeline }}):</label></div>
-                    <div class="columns small-10">
-                        <input type="range" v-bind:max="sliderMax" min="0" step="1" v-model="sliderTimeline" number/>
-                    </div>
+                    <div class="columns small-2"><label class="tool-label text-right">Timeline:</label></div>
+                    <div class="columns small-10"><input type="range" v-bind:max="sliderMax" min="0" step="1" v-model="sliderTimeline"></div>
                 </div>
             </div>
         </div>{% endraw %}
