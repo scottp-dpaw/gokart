@@ -18,9 +18,9 @@
                 <div class="tabs-content vertical" data-tabs-content="layers-tabs">
                     <div class="tabs-panel is-active" id="layers-active">
                     {% raw %}
-                            <div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id">
+                            <div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = l">
                                 <div class="small-9">    
-                                    <div class="layer-title">{{ l.get("name") }}</div>
+                                    <div class="layer-title">{{ l.get("name") }} - {{ l.getOpacity() * 100 }}%</div>
                                     <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
                                     <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
                                 </div>
@@ -39,8 +39,20 @@
                             </div>
                             <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
                         </div>
+                        <div class="row collapse">
+                            <div class="small-6 columns">
+                                <select name="select" v-model="search">
+                                    <option value="" selected>All layers</option> 
+                                    <option value="himawari">Himawari</option>
+                                    <option value="{{ search }}">Custom search:</option>
+                                </select>
+                            </div>
+                            <div class="small-6 columns">
+                                <input type="search" v-model="search" placeholder="Find a layer">
+                            </div>
+                        </div>
                         <div id="layers-catalogue-list">
-                            <div v-for="l in catalogue" class="row layer-row">
+                            <div v-for="l in catalogue | filterBy search in searchAttrs" class="row layer-row" @mouseover="layer = l.olLayer || l">
                                 <div class="small-9">
                                     <div class="layer-title">{{ l.name }}</div>
                                     <div class="layer-id">{{ l.id }}</div>
@@ -63,15 +75,22 @@
                 </div>
             </div>
         </div>
-        <div class="row collapse">
-            <script id="layer-details-template" type="text/x-handlebars-template">
-            {% raw %}
-                <h4>{{ ol_layer.values_.name }}</h4>
-                <p>{{ catalogue_layer.abstract }}</p>
-            {% endraw %}
-            </script>
-            <div class="columns" id="layer-details"></div>
-        </div>
+        <div class="row collapse">{% raw %}
+            <div class="columns" v-if="layer.id">
+                <h4>{{ layer.name }}</h4>
+                Layer details/legend
+            </div>
+            <div class="columns" v-if="layer.get">
+                <h4>{{ layer.get('catalogueEntry').name }}</h4>
+                Layer details/legend
+                <div class="row">
+                    <div class="columns small-3"><label class="side-label">Opacity {{ sliderOpacity }}%: </label></div>
+                    <div class="columns small-9">
+                        <input type="range" min="1" max="100" step="1" value="{{layer.getOpacity() * 100}}" @change="layer.setOpacity(sliderOpacity / 100)" v-model="sliderOpacity">
+                    </div>
+                </div>
+            </div>
+        </div>{% endraw %}
     </div>
     {% endblock %}
 </div>

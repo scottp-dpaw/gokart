@@ -16,6 +16,7 @@ html, body {
   z-index: 100;
   padding: 2em;
   background-color: #424f5a;
+  max-width: 40%;
 }
 
 #info .content {
@@ -223,7 +224,8 @@ html, body {
 
 /* Set height of internal layers to allow for bottom details */
 #layers-tab-panels {
-    min-height: 60vh;
+    height: 60vh;
+    overflow-y: auto;
     border-bottom: 1px solid rgba(37,45,51,0.9);
 }
 
@@ -237,6 +239,7 @@ html, body {
     color: white;
     background-color: rgba(37,45,51,0.5);
     padding: 4px;
+    cursor: pointer;
 }
 
 .layer-row:nth-child(even), .feature-row:nth-child(even) {

@@ -77,9 +77,13 @@ window.gokart = (function(self) {
         ui.layers = new Vue({
             el: "#menu-tab-layers",
             data: {
+                sliderOpacity: 0,
+                layer: {},
                 olLayers: [],
                 catalogue: {},
-                swapBaseLayers: true
+                swapBaseLayers: true,
+                search: "",
+                searchAttrs: ["name", "id"],
             },
             methods: {
                 update: function() {
