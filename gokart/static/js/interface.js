@@ -98,6 +98,7 @@ window.gokart = (function(self) {
                 swapBaseLayers: true,
                 search: "",
                 searchAttrs: ["name", "id"],
+                timeIndex: 0
             },
             // parts of the template to be computed live
             computed: { 
@@ -109,10 +110,12 @@ window.gokart = (function(self) {
                 },
                 sliderTimeline: {
                     get: function() {
-                        return this.layer.olLayer.get("timeIndex");
+                        this.timeIndex = this.layer.olLayer.get("timeIndex");
+                        return this.timeIndex;
                     },
                     set: function(val) {
                         this.layer.olLayer.set("timeIndex", val);
+                        this.timeIndex = val;
                     }
                 },
                 sliderMax: {

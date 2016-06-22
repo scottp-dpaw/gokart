@@ -87,7 +87,7 @@ window.gokart = (function(self) {
     self.createTimelineLayer = function() {
         var options = this;
         options.params = $.extend({
-            FORMAT: "image/png",
+            FORMAT: "image/jpeg",
             SRS: "EPSG:4326",
         }, options.params || {});
         
@@ -95,7 +95,12 @@ window.gokart = (function(self) {
         // either the source URL or the layerID. which is good, because
         // we need to do that later on in a callback.
         var tileSource = new ol.source.TileWMS({
-            params: options.params
+            params: options.params,
+            tileGrid: new ol.tilegrid.TileGrid({
+                extent: [-180, -90, 180, 90],
+                resolutions: self.resolutions,
+                tileSize: [1024, 1024]
+            })
         });
     
         var tileLayer = new ol.layer.Tile({
