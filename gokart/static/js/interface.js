@@ -42,10 +42,10 @@ window.gokart = (function(self) {
         },
         // parts of the template to be computed live
         computed: {
-            // because the viewport size changes when the tabs open, don't cache the map width and height
+            // because the viewport size changes when the tab pane opens, don't cache the map width and height
             mapWidth: { cache: false, get: function() { return $("#map").width() }},
             mapHeight: { cache: false, get: function() { return $("#map").height() }},
-            // viewport should be positioned near the mouse in the quadrant furthest away from the viewport edges
+            // info panel should be positioned near the mouse in the quadrant furthest away from the viewport edges
             css: function() {
                 var css = {
                     "left": this.pixel[0] + this.offset + "px",
