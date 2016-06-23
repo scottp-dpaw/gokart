@@ -72,17 +72,18 @@
                                 <input id="historyToDate" type="text" placeholder="dd/mm/yyyy"></input>
                                 <input id="historyToTime" type="text" placeholder="24:00"></input>
                             </div>
-                            <div id="historyGo" class="small-2">
-                                <button class="button">Go</button>
+                            <div id="history-buttons" class="small-2">
+                                <button id="history-clear" class="button" @click="clearHistory">Clear</button>
+                                <button id="history-go" class="button">Go</button>
                             </div>
                         </div>
                     </div>
                     {% endraw %}
                     <div id="tracking-list">
-                        <div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row">
+                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" id="device-{{ f.deviceid }}">{% endraw %}
                         {% block infotemplates %}
                             <span v-if="toggleHistory">
-                                <input type="checkbox"/>
+                                {% raw %}<input type="checkbox" id="checkbox-{{ f.deviceid }}" value="{{ f.deviceid }}" v-model="selectedDevices" @change="selectedDeviceBackground"/>{% endraw %}
                             </span>
                             <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
                                 <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
@@ -106,13 +107,19 @@
         #tracking-list .feature-row:hover {
             border-right: 1px solid #fff;
         }
-        #historyGo {
+        #history-buttons {
             position: relative;
             text-align: center;
         }
-        #historyGo .button {
+        #history-clear {
             position: absolute;
-            bottom: 10%;
+            bottom: 53%;
+            left: 10%;
+            margin-bottom: 0px;
+        }
+        #history-go {
+            position: absolute;
+            bottom: 11%;
             left: 10%;
             margin-bottom: 0px;
         }
@@ -251,9 +258,10 @@ var trackingList = new Vue({
     data: {
         viewportOnly: true,
         toggleHistory: false,
+        selectedDevices: [],
         search: "",
         cql: "",
-        history: "1hour",
+        history: "",
         fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
         allFeatures: {},
         extentFeatures: {},
@@ -263,15 +271,6 @@ var trackingList = new Vue({
         stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; }
     },
     methods: {
-        setHistoryRange: function(history) {
-            currentDate = new moment();
-            $('input#historyToDate').val(currentDate.format('DD/MM/YYYY'));
-            $('input#historyToTime').val(currentDate.format('HH:mm'));
-            fromDate = currentDate.subtract(history, "milliseconds");
-            $('input#historyFromDate').val(fromDate.format('DD/MM/YYYY'));
-            $('input#historyFromTime').val(fromDate.format('HH:mm'));
-            console.log( history );
-        },
         setCQLFilter: function(cql) {
             gokart.catalogue.resource_tracking.cql_filter = cql;
             gokart.catalogue.resource_tracking.olLayer.getSource().clear();
@@ -280,6 +279,27 @@ var trackingList = new Vue({
             gokart.map.getView().setCenter(coords);
             if (gokart.getScale() > 250) {
                 gokart.setScale(50);
+            }
+        },
+        setHistoryRange: function(history) {
+            currentDate = new moment();
+            $('input#historyToDate').val(currentDate.format('DD/MM/YYYY'));
+            $('input#historyToTime').val(currentDate.format('HH:mm'));
+            fromDate = currentDate.subtract(history, "milliseconds");
+            $('input#historyFromDate').val(fromDate.format('DD/MM/YYYY'));
+            $('input#historyFromTime').val(fromDate.format('HH:mm'));
+        },
+        clearHistory: function() {
+            var list = trackingList.selectedDevices.slice();
+            for (i=0; i < list.length; i++) {
+                $('#checkbox-'+list[i]).click();
+            }
+        },
+        selectedDeviceBackground: function(event) {
+            if (event.target.checked == true) {
+                $("div#device-"+event.target.value).css("background-color","darkgreen");
+            } else {
+                $("div#device-"+event.target.value).css("background-color","");
             }
         }
     }
