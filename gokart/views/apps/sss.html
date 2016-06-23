@@ -80,10 +80,10 @@
                     </div>
                     {% endraw %}
                     <div id="tracking-list">
-                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1"><div class="row feature-row" :class="{'device-selected': (selectedDevices.indexOf(f.deviceid) != -1) }" id="device-{{ f.deviceid }}">{% endraw %}
+                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1"><div class="row feature-row" v-bind:class="{'device-selected': select(f) }">{% endraw %}
                         {% block infotemplates %}
                             <span v-if="toggleHistory">
-                                {% raw %}<input type="checkbox" value="{{ f.deviceid }}" v-model="selectedDevices" />{% endraw %}
+                                {% raw %}<input type="checkbox" v-model="f.olSelected" />{% endraw %}
                             </span>
                             <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
                                 <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
@@ -268,12 +268,27 @@ var trackingList = new Vue({
         fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
         allFeatures: {},
         extentFeatures: {},
+        fromDate: 0,
+        toDate: 0,
+        historyRange: 0
     },
     computed: {
         features: function() { if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; },
-        stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; }
+        selectedFeatures: function() { return this.features.filter(function(f) { return f.olSelected; }) },
+        stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; },
+        setHistoryRange: {
+            get: function() { return this.historyRange },
+            set: function(val) { this.historyRange = val; "set from and to dates" }
+        }
     },
     methods: {
+        select: function(f, val) {
+            if (val !== undefined) {
+                f.olSelected = val;
+            }
+            renderTracking();
+            return f.olSelected;
+        },
         setCQLFilter: function(cql) {
             gokart.catalogue.resource_tracking.cql_filter = cql;
             gokart.catalogue.resource_tracking.olLayer.getSource().clear();
