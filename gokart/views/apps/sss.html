@@ -62,24 +62,29 @@
                     </div>
                     <div id="history-panel" v-if="toggleHistory">
                         <div class="row collapse">
-                            <div class="small-6">
+                            <div class="small-5">
                                 <label for="historyFrom">From:</label>
                                 <input id="historyFromDate" type="text" placeholder="dd/mm/yyyy"></input>
                                 <input id="historyFromTime" type="text" placeholder="24:00"></input>
                             </div>
-                            <div class="small-6">
+                            <div class="small-5">
                                 <label for="historyTo">To:</label>
                                 <input id="historyToDate" type="text" placeholder="dd/mm/yyyy"></input>
                                 <input id="historyToTime" type="text" placeholder="24:00"></input>
+                            </div>
+                            <div id="historyGo" class="small-2">
+                                <button class="button">Go</button>
                             </div>
                         </div>
                     </div>
                     {% endraw %}
                     <div id="tracking-list">
-                        <div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" 
-                            @click="zoomTo(f.geometry.getCoordinates())">
+                        <div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row">
                         {% block infotemplates %}
-                            <div v-if="f.vueTemplate == 'resource_tracking'" class="small-12 columns">{% raw %}
+                            <span v-if="toggleHistory">
+                                <input type="checkbox"/>
+                            </span>
+                            <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
                                 <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
                                 <small>{{ f.time }}</small>
                             </div>{% endraw %}
@@ -101,6 +106,17 @@
         #tracking-list .feature-row:hover {
             border-right: 1px solid #fff;
         }
+        #historyGo {
+            position: relative;
+            text-align: center;
+        }
+        #historyGo .button {
+            position: absolute;
+            bottom: 10%;
+            left: 10%;
+            margin-bottom: 0px;
+        }
+
     </style>
 </div>
 {% endblock %}
