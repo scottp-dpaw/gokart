@@ -80,15 +80,15 @@
                     </div>
                     {% endraw %}
                     <div id="tracking-list">
-                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" id="device-{{ f.deviceid }}">{% endraw %}
+                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1"><div class="row feature-row" :class="{'device-selected': (selectedDevices.indexOf(f.deviceid) != -1) }" id="device-{{ f.deviceid }}">{% endraw %}
                         {% block infotemplates %}
                             <span v-if="toggleHistory">
-                                {% raw %}<input type="checkbox" id="checkbox-{{ f.deviceid }}" value="{{ f.deviceid }}" v-model="selectedDevices" @change="selectedDeviceBackground"/>{% endraw %}
+                                {% raw %}<input type="checkbox" value="{{ f.deviceid }}" v-model="selectedDevices" />{% endraw %}
                             </span>
                             <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
                                 <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
                                 <small>{{ f.time }}</small>
-                            </div>{% endraw %}
+                            </div></div>{% endraw %}
                         {% endblock %}
                         </div>
                     </div>
@@ -122,6 +122,9 @@
             bottom: 11%;
             left: 10%;
             margin-bottom: 0px;
+        }
+        .device-selected {
+            background-color: darkgreen;
         }
 
     </style>
@@ -290,18 +293,8 @@ var trackingList = new Vue({
             $('input#historyFromTime').val(fromDate.format('HH:mm'));
         },
         clearHistory: function() {
-            var list = trackingList.selectedDevices.slice();
-            for (i=0; i < list.length; i++) {
-                $('#checkbox-'+list[i]).click();
-            }
+            trackingList.selectedDevices = [];
         },
-        selectedDeviceBackground: function(event) {
-            if (event.target.checked == true) {
-                $("div#device-"+event.target.value).css("background-color","darkgreen");
-            } else {
-                $("div#device-"+event.target.value).css("background-color","");
-            }
-        }
     }
 });
 
