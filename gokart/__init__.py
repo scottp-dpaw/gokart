@@ -25,6 +25,7 @@ def index( app_name ):
 
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
+FIREWATCH_TZ = pytz.timezone('Australia/Perth')
 FIREWATCH_SERVICE = os.environ.get("FIREWATCH_SERVICE", "/mapproxy/firewatch/service")
 FIREWATCH_GETCAPS = os.environ.get("FIREWATCH_GETCAPS", FIREWATCH_SERVICE + "?service=wms&request=getcapabilities")
 @bottle.route("/hi8/<target>")
@@ -38,7 +39,7 @@ def himawari8(target):
     layernames = re.findall("\w+HI8\w+{}\.\w+".format(target), getcaps)
     layers = []
     for layer in layernames:
-        layers.append([datetime.strptime(re.findall("\w+_(\d+)_\w+", layer)[0], "%Y%m%d%H%M").isoformat(), layer])
+        layers.append([FIREWATCH_TZ.localize(datetime.strptime(re.findall("\w+_(\d+)_\w+", layer)[0], "%Y%m%d%H%M")).isoformat(), layer])
     result = {
         "servers": [FIREWATCH_SERVICE],
         "layers": layers

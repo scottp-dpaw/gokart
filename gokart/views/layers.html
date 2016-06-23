@@ -88,11 +88,11 @@
             <div class="columns">
                 <h4>{{ layer.name }}</h4>
                 <div class="tool-slice row" v-if="layer.olLayer">
-                    <div class="columns small-2"><label class="tool-label text-right">Opacity:</label></div>
+                    <div class="columns small-2"><label class="tool-label text-right">Opacity: {{ layerOpacity }}%</label></div>
                     <div class="columns small-10"><input type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
                 </div>
                 <div class="tool-slice row" v-if="layer.timeline">
-                    <div class="columns small-2"><label class="tool-label text-right">Timeline:</label></div>
+                    <div class="columns small-2"><label class="tool-label text-right">Timeline: {{ timelineTS }}</label></div>
                     <div class="columns small-10"><input type="range" v-bind:max="sliderMax" min="0" step="1" v-model="sliderTimeline"></div>
                 </div>
             </div>

@@ -118,6 +118,12 @@ window.gokart = (function(self) {
                         this.timeIndex = val;
                     }
                 },
+                timelineTS: {
+                    cache: false,
+                    get: function() {
+                        return this.layer.timeline[this.timeIndex][0];
+                    }
+                },
                 sliderMax: {
                     cache: false,
                     get: function() {
