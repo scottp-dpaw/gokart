@@ -162,9 +162,7 @@ window.gokart = (function(self) {
                 // change order of OL layers based on "Map Layers" list order
                 updateOrder: function(el) {
                     Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function(row) {
-                        console.log(row);
                         var layer = self.layerById(row.dataset.id);
-                        console.log(layer);
                         self.map.removeLayer(layer);
                         self.map.addLayer(layer);
                     });
