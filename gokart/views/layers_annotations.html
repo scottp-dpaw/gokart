@@ -5,7 +5,7 @@
 <div class="tabs-panel" id="menu-tab-annotations" v-cloak>{% raw %}
     <h3>Annotations (incomplete)</h3>
     <div class="tool-slice row collapse">
-        <div class="small-2"><label class="tool-label text-right">Tool ({{ mode }}):</label></div>
+        <div class="small-2"><label class="tool-label">Tool:<br/>({{ mode }})</label></div>
         <div class="small-10"><div class="expanded button-group">
             <a @click="setMode('pan')" v-bind:class="{'selected': mode == 'pan'}" class="button button-tool" title="Pan"><i class="fa fa-hand-paper-o" aria-hidden="true"></i></a>
             <a @click="setMode('select')" v-bind:class="{'selected': mode == 'select'}" class="button button-tool" title="Select"><i class="fa fa-mouse-pointer" aria-hidden="true"></i></a>
@@ -26,7 +26,7 @@
         </div></div>
     </div>
     <div v-if="advanced" class="tool-slice row collapse">
-        <div class="small-2"><label class="tool-label text-right">Size ({{ size }}):</label></div>
+        <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
         <div class="small-10"><div class="expanded button-group">
             <a @click="size = 8" v-bind:class="{'selected': size == 8}" class="button"><small>Small</small></a>
             <a @click="size = 12" v-bind:class="{'selected': size == 12}" class="button">Medium</a>
@@ -34,13 +34,13 @@
         </div></div>
     </div>
     <div v-if="advanced" class="tool-slice row collapse">
-        <div class="small-2"><label class="tool-label text-right">Colour:</label></div>
+        <div class="small-2"><label class="tool-label">Colour:</label></div>
         <div class="small-10"><div class="expanded button-group">
             <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}" v-bind:style="{ backgroundColor: c[1] }"></a>
         </div></div>
     </div>
     <div class="tool-slice row collapse">
-        <div class="small-2"><label class="tool-label text-right">Ops:</label></div>
+        <div class="small-2"><label class="tool-label">Ops:</label></div>
         <div class="small-10">
             <div class="small-12"><div class="expanded button-group">
                 <a id="tool-cut" class="button"><i class="fa fa-cut" aria-hidden="true"></i> Cut</a>
@@ -57,7 +57,7 @@
         </div>
     </div>
     <div class="tool-slice row collapse">
-        <div class="small-2"><label class="tool-label text-right">Export:</label></div>
+        <div class="small-2"><label class="tool-label">Export:</label></div>
         <div class="small-10"><div class="expanded button-group">
             <a class="button"><i class="fa fa-download" aria-hidden="true"></i> GeoJSON</a>
             <a class="button"><i class="fa fa-print" aria-hidden="true"></i> PDF</a>

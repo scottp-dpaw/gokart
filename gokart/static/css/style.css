@@ -152,8 +152,9 @@ html, body {
 
 /* fix tool labels/padding */
 .tool-label, .off-canvas label.tool-label { 
-    margin-right: 1em;
     font-size: 80%;
+    float: left;
+    width: 200px;
 }
 
 .tool-slice {
