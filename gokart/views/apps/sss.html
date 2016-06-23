@@ -49,7 +49,7 @@
                             </label>
                         </div>
                         <label for="resourceHistory" class="side-label small-4">Query history</label>
-                        <div class="small-5">
+                        <div class="small-5" v-if="toggleHistory">
                             <select name="select" v-model="history" @change="setHistoryRange(history)">
                                 <option value="" selected>Date range</option> 
                                 <option value="3600000">Last hour</option> 
@@ -60,7 +60,7 @@
                             </select>
                         </div>
                     </div>
-                    <div id="history-panel">
+                    <div id="history-panel" v-if="toggleHistory">
                         <div class="row collapse">
                             <div class="small-6">
                                 <label for="historyFrom">From:</label>
