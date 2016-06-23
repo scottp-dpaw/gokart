@@ -80,7 +80,7 @@ window.gokart = (function(self) {
                 // POST a generated JPG to the gokart server backend to convert to GeoPDF
                 blobToPDF: function(blob, name) {
                     var formData = new FormData();
-                    formData.append("extent", this.extent.join(" "));
+                    formData.append("extent", this.layout.extent.join(" "));
                     formData.append("jpg", blob, name + ".jpg");
                     formData.append("dpi", Math.round(this.layout.canvasPxPerMM * 25.4));
                     formData.append("title", this.title)
