@@ -75,7 +75,8 @@ window.gokart = (function(self) {
                 // generate legend block, scale ruler is 40mm wide
                 renderLegend: function() {
                     var blob = new Blob([$("#legendsvg").html()], {type: "image/svg+xml;charset=utf-8"});
-                    return URL.createObjectURL(blob);
+                    var qrcanvas = $("#qrcode").qrcode(String.prototype.split.call(location, location.pathname)[0] + location.pathname + $.param({bbox: this.mapLayout.extent.join(",")})).find("canvas").get(0);
+                    return [URL.createObjectURL(blob), qrcanvas];
                 },
                 // POST a generated JPG to the gokart server backend to convert to GeoPDF
                 blobToPDF: function(blob, name) {
@@ -107,16 +108,18 @@ window.gokart = (function(self) {
                         timer = setTimeout(function() {
                             // remove composing watcher
                             self.map.unByKey(composing);
-
-                            
                             var canvas = event.context.canvas;
                             var img = new Image();
-                            var url = vm.renderLegend();
+                            var legend = vm.renderLegend();
+                            var url = legend[0];
+                            var qrcanvas = legend[1];
                             // wait until legend is rendered
                             img.onload = function () {
                                 // legend is 12cm wide
                                 vm.layout.canvasPxPerMM = canvas.width / vm.layout.width
-                                canvas.getContext("2d").drawImage(img, 0, 0, 120 * vm.layout.canvasPxPerMM, 120 * vm.layout.canvasPxPerMM * img.height / img.width);
+                                var height = 120 * vm.layout.canvasPxPerMM * img.height / img.width;
+                                canvas.getContext("2d").drawImage(img, 0, 0, 120 * vm.layout.canvasPxPerMM, height);
+                                canvas.getContext("2d").drawImage(qrcanvas, 0, height);
                                 URL.revokeObjectURL(url);
                                 // generate a jpg copy of the canvas contents
                                 var filename = vm.title.replace(" ", "_");

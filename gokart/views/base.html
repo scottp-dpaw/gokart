@@ -41,6 +41,7 @@
                         <option value="{{ scale }}">{{ scaleString }}</option>
                         <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option></select>
                     <div class="hide" id="legendsvg"></div>
+                    <div class="hide" id="qrcode"></div>
                 </div>{% endraw %}
                 <div class="map" id="map">
                     <div id="info" v-bind:style="css" v-show="features" v-cloak>
@@ -66,6 +67,7 @@
     </div>
     <!-- jQuery, needed by just about everything -->
     <script src="//static.dpaw.wa.gov.au/static/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script src="//static.dpaw.wa.gov.au/static/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
     <!-- Foundation 6 CSS framework -->
     <script src="//static.dpaw.wa.gov.au/static/libs/foundation/6.2.3/foundation.min.js"></script>
     <!-- Drag and drop support -->
