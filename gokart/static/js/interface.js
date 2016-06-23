@@ -162,7 +162,9 @@ window.gokart = (function(self) {
                 // change order of OL layers based on "Map Layers" list order
                 updateOrder: function(el) {
                     Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function(row) {
+                        console.log(row);
                         var layer = self.layerById(row.dataset.id);
+                        console.log(layer);
                         self.map.removeLayer(layer);
                         self.map.addLayer(layer);
                     });
@@ -191,7 +193,9 @@ window.gokart = (function(self) {
                     }
                 }
             },
-            ready: function () { dragula([document.querySelector("#layers-active")]).on("dragend", this.updateOrder); }
+            ready: function () { 
+                dragula([document.querySelector("#layers-active-list")]).on("dragend", this.updateOrder); 
+            }
         });
         ui.layers.olLayers = self.map.getLayers().getArray();
         ui.layers.catalogue = self.catalogue;
