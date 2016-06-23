@@ -43,7 +43,7 @@
                     </div>
                     <div class="row">
                         <div class="switch tiny">
-                            <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory"/>
+                            <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory" @click="clearHistory"/>
                             <label class="switch-paddle" for="resourceHistory">
                                 <span class="show-for-sr">Query history tools</span>
                             </label>
