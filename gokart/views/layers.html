@@ -53,7 +53,7 @@
                                 <select name="select" v-model="search">
                                     <option value="" selected>All layers</option> 
                                     <option value="himawari">Himawari</option>
-                                    <option value="{{ search }}">Custom search:</option>
+                                    <option v-bind:value="search">Custom search:</option>
                                 </select>
                             </div>
                             <div class="small-6 columns">
