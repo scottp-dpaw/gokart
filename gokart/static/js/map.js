@@ -87,7 +87,7 @@ window.gokart = (function(self) {
     self.createTimelineLayer = function() {
         var options = this;
         options.params = $.extend({
-            FORMAT: "image/png",
+            FORMAT: "image/jpeg",
             SRS: "EPSG:4326",
         }, options.params || {});
         
@@ -95,12 +95,25 @@ window.gokart = (function(self) {
         // either the source URL or the layerID. which is good, because
         // we need to do that later on in a callback.
         var tileSource = new ol.source.TileWMS({
-            params: options.params
+            params: options.params,
+            tileGrid: new ol.tilegrid.TileGrid({
+                extent: [-180, -90, 180, 90],
+                resolutions: self.resolutions,
+                tileSize: [1024, 1024]
+            })
         });
     
         var tileLayer = new ol.layer.Tile({
             opacity: options.opacity || 1,
             source: tileSource
+        });
+
+        tileLayer.on("propertychange", function(event) {
+            if (event.key == "timeIndex") {
+                tileSource.updateParams({
+                    "layers": options.timeline[event.target.get(event.key)][1]
+                });
+            }
         });
        
         // helper function to update the time index
@@ -110,23 +123,12 @@ window.gokart = (function(self) {
                 tileLayer.set("updated", moment().toLocaleString());
                 tileSource.setUrls(data["servers"]);
                 options.timeline = data["layers"].reverse();
-                options.current_time_index = options.current_time_index || options.timeline.length-1;
-                tileSource.updateParams({
-                    "layers": options.timeline[options.current_time_index][1]
-                });
+                tileLayer.set("timeIndex", options.timeIndex || options.timeline.length-1);
                 self.ui.layers.update();
             });
         };
 
         options.updateTimeline();
-
-        options.setTimeIndex = function(index) {
-            options.current_time_index = index;
-            tileSource.updateParams({
-                "layers": options.timeline[options.current_time_index][1]
-            });
-        };
-
         // if the "refresh" option is set, set a timer
         // to update the source
         if (options.refresh) {
@@ -360,7 +362,8 @@ window.gokart = (function(self) {
             controls: [
                 new ol.control.Zoom(),
                 new ol.control.ScaleLine(),
-                new ol.control.FullScreen({source: $("body").get(0)})
+                new ol.control.FullScreen({source: $("body").get(0)}),
+                new ol.control.Control({element: $("#map-controls").get(0)})
             ]
         });
         // Create the graticule component

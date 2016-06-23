@@ -8,7 +8,7 @@
     <!-- Disable awful IE compatibility mode -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <!-- Force fit-to-viewport sizing on mobile -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <!-- Foundation 6 CSS framework -->
     <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/foundation/6.2.3/foundation-flex.min.css" type="text/css"/>
     <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/font-awesome/4.6.3/css/font-awesome.min.css" type="text/css"/>
@@ -25,6 +25,7 @@
     <div class="off-canvas-wrapper">
         <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
             <div class="off-canvas position-left" id="offCanvasLeft" data-off-canvas>
+                <a id="side-pane-close" class="button alert hide-for-medium">&#x2715;</a>
                 {% block offcanvas %}{% endblock %} 
             </div>
             <div class="off-canvas-content" data-off-canvas-content>

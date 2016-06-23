@@ -80,19 +80,59 @@ html, body {
     bottom: auto; 
 }
 
-/* hacks to widen the off-canvas area */
+
+/* for mobile screens, size the pane to fill the viewport */
 .off-canvas.position-left {
-    left: -400px;
-    width: 400px;
+    left: -100vw;
+    width: 100vw;
 }
 
+.position-left.reveal-responsive {
+    left: 0;
+    position: fixed;
+    z-index: 0;
+}
+
+.position-left.reveal-responsive ~ .off-canvas-content {
+    margin-left: 100vw; 
+}
+
+#side-pane-close {
+    display: none;
+}
+
+.position-left.reveal-responsive #side-pane-close {
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+/* for non-mobile screens, have a fixed 400px left pane */
 @media screen and (min-width: 40em) {
-    .position-left.reveal-for-medium {
-        left: 0;
+    /* widen the off canvas area*/
+    .off-canvas.position-left {
+        left: -400px;
+        width: 400px;
     }
-    .position-left.reveal-for-medium ~ .off-canvas-content {
+
+    .position-left.reveal-responsive {
+        left: 0;
+        position: fixed;
+        z-index: auto;
+    }
+    .position-left.reveal-responsive ~ .off-canvas-content {
         margin-left: 400px; 
     }
+
+    #side-pane-close {
+        display: none;
+    }
+
+    .position-left.reveal-responsive #side-pane-close {
+        display: none;
+    }
+
 }
 
 /* raise our widgets above the slippy map */
@@ -112,8 +152,9 @@ html, body {
 
 /* fix tool labels/padding */
 .tool-label, .off-canvas label.tool-label { 
-    margin-right: 1em;
     font-size: 80%;
+    float: left;
+    width: 200px;
 }
 
 .tool-slice {

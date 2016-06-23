@@ -16,17 +16,22 @@ window.gokart = (function(self) {
     };
 
     // bind menu side-tabs to reveal the side pane
-    var offCanvasLeft = $("#offCanvasLeft")
+    var offCanvasLeft = $("#offCanvasLeft");
     $("#menu-tabs").on("change.zf.tabs", function(ev) {
-        offCanvasLeft.addClass("reveal-for-medium");
+        offCanvasLeft.addClass("reveal-responsive");
         self.map.updateSize();
     }).on("click", ".tabs-title a[aria-selected=false]", function(ev) {
-        offCanvasLeft.addClass("reveal-for-medium");
+        offCanvasLeft.addClass("reveal-responsive");
         $(this).attr("aria-selected", true);
         self.map.updateSize();
     }).on("click", ".tabs-title a[aria-selected=true]", function(ev) {
-        offCanvasLeft.removeClass("reveal-for-medium");
+        offCanvasLeft.removeClass("reveal-responsive");
         $(this).attr("aria-selected", false);
+        self.map.updateSize();
+    });
+    $("#side-pane-close").on("click", function(ev) {
+        offCanvasLeft.removeClass("reveal-responsive");
+        $("#menu-tabs").find(".tabs-title a[aria-selected=true]").attr("aria-selected", false);
         self.map.updateSize();
     });
 
@@ -93,6 +98,7 @@ window.gokart = (function(self) {
                 swapBaseLayers: true,
                 search: "",
                 searchAttrs: ["name", "id"],
+                timeIndex: 0
             },
             // parts of the template to be computed live
             computed: { 
@@ -103,12 +109,19 @@ window.gokart = (function(self) {
                     }
                 },
                 sliderTimeline: {
-                    cache: false,
                     get: function() {
-                        return this.layer.current_time_index;
+                        this.timeIndex = this.layer.olLayer.get("timeIndex");
+                        return this.timeIndex;
                     },
                     set: function(val) {
-                        this.layer.setTimeIndex(val);
+                        this.layer.olLayer.set("timeIndex", val);
+                        this.timeIndex = val;
+                    }
+                },
+                timelineTS: {
+                    cache: false,
+                    get: function() {
+                        return this.layer.timeline[this.timeIndex][0];
                     }
                 },
                 sliderMax: {
@@ -116,7 +129,15 @@ window.gokart = (function(self) {
                     get: function() {
                         return this.layer.timeline.length-1;
                     }
-                }
+                },
+                layerOpacity: {
+                    get: function() {
+                        return Math.round(this.layer.olLayer.getOpacity() * 100);
+                    },
+                    set: function(val) {
+                        this.layer.olLayer.setOpacity(val / 100);
+                    }
+                }    
             },
             // methods callable from inside the template
             methods: {
@@ -170,7 +191,9 @@ window.gokart = (function(self) {
                     }
                 }
             },
-            ready: function () { dragula([document.querySelector("#layers-active")]).on("dragend", this.updateOrder); }
+            ready: function () { 
+                dragula([document.querySelector("#layers-active-list")]).on("dragend", this.updateOrder); 
+            }
         });
         ui.layers.olLayers = self.map.getLayers().getArray();
         ui.layers.catalogue = self.catalogue;
@@ -212,6 +235,11 @@ window.gokart = (function(self) {
         self.map.on('pointermove', ui.info.display);
         if (document.querySelector("#menu-tab-layers")) { gokart.initLayers() };
         if (document.querySelector("#menu-tab-annotations")) { gokart.initAnnotations() };
+
+        $.get("/static/images/legend.svg", function(tmpl) {
+            $("#legendsvg").html(tmpl);
+            self.initMapControls();
+        }, "text");
     });
 
     return self;

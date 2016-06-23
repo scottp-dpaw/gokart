@@ -137,7 +137,6 @@
 
 {% block loader_script %}
 <script>
-// load map
 var stylecache = {};
 var text_style = new ol.style.Text({
     offsetX: 12,
@@ -180,6 +179,7 @@ gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
 gokart.defaultWFSSrc = "{{ env.WFS_SRC }}";
 {% endif %}
 
+// load map
 gokart.catalogue = {
     "resource_tracking": {
         init: gokart.createWFSLayer,
