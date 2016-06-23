@@ -43,7 +43,7 @@
                     </div>
                     <div class="row">
                         <div class="switch tiny">
-                            <input class="switch-input" id="resourceHistory" type="checkbox" />
+                            <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory"/>
                             <label class="switch-paddle" for="resourceHistory">
                                 <span class="show-for-sr">Query history tools</span>
                             </label>
@@ -52,11 +52,11 @@
                         <div class="small-5">
                             <select name="select" v-model="history" @change="setHistoryRange(history)">
                                 <option value="" selected>Date range</option> 
-                                <option value="1hour">Last hour</option> 
-                                <option value="3hour">Last 3 hours</option> 
-                                <option value="day">Last day</option> 
-                                <option value="week">Last week</option> 
-                                <option value="month">Last month</option> 
+                                <option value="3600000">Last hour</option> 
+                                <option value="10800000">Last 3 hours</option> 
+                                <option value="86400000">Last day</option> 
+                                <option value="604800000">Last week</option> 
+                                <option value="2678400000">Last month</option> 
                             </select>
                         </div>
                     </div>
@@ -64,13 +64,13 @@
                         <div class="row collapse">
                             <div class="small-6">
                                 <label for="historyFrom">From:</label>
-                                <input type="text" placeholder="dd/mm/yyyy"></input>
-                                <input type="text" placeholder="24:00"></input>
+                                <input id="historyFromDate" type="text" placeholder="dd/mm/yyyy"></input>
+                                <input id="historyFromTime" type="text" placeholder="24:00"></input>
                             </div>
                             <div class="small-6">
                                 <label for="historyTo">To:</label>
-                                <input type="text" placeholder="dd/mm/yyyy"></input>
-                                <input type="text" placeholder="24:00"></input>
+                                <input id="historyToDate" type="text" placeholder="dd/mm/yyyy"></input>
+                                <input id="historyToTime" type="text" placeholder="24:00"></input>
                             </div>
                         </div>
                     </div>
@@ -234,8 +234,10 @@ var trackingList = new Vue({
     el: "#tracking-list-tab",
     data: {
         viewportOnly: true,
+        toggleHistory: false,
         search: "",
         cql: "",
+        history: "1hour",
         fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
         allFeatures: {},
         extentFeatures: {},
@@ -245,6 +247,15 @@ var trackingList = new Vue({
         stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; }
     },
     methods: {
+        setHistoryRange: function(history) {
+            currentDate = new moment();
+            $('input#historyToDate').val(currentDate.format('DD/MM/YYYY'));
+            $('input#historyToTime').val(currentDate.format('HH:mm'));
+            fromDate = currentDate.subtract(history, "milliseconds");
+            $('input#historyFromDate').val(fromDate.format('DD/MM/YYYY'));
+            $('input#historyFromTime').val(fromDate.format('HH:mm'));
+            console.log( history );
+        },
         setCQLFilter: function(cql) {
             gokart.catalogue.resource_tracking.cql_filter = cql;
             gokart.catalogue.resource_tracking.olLayer.getSource().clear();
