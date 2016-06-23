@@ -83,7 +83,7 @@
                         {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1"><div class="row feature-row" v-bind:class="{'device-selected': select(f) }">{% endraw %}
                         {% block infotemplates %}
                             <span v-if="toggleHistory">
-                                {% raw %}<input type="checkbox" v-model="f.olSelected" />{% endraw %}
+                                {% raw %}<input type="checkbox" @change="select(f, $event)" v-bind:checked="select(f)"/>{% endraw %}
                             </span>
                             <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
                                 <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
@@ -261,7 +261,7 @@ var trackingList = new Vue({
     data: {
         viewportOnly: true,
         toggleHistory: false,
-        selectedDevices: [],
+        selectedDevices: {},
         search: "",
         cql: "",
         history: "",
@@ -274,7 +274,6 @@ var trackingList = new Vue({
     },
     computed: {
         features: function() { if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; },
-        selectedFeatures: function() { return this.features.filter(function(f) { return f.olSelected; }) },
         stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; },
         setHistoryRange: {
             get: function() { return this.historyRange },
@@ -282,12 +281,12 @@ var trackingList = new Vue({
         }
     },
     methods: {
-        select: function(f, val) {
-            if (val !== undefined) {
-                f.olSelected = val;
-            }
-            renderTracking();
-            return f.olSelected;
+        select: function(f, event) {
+            // some logic to preserve selection over refreshes
+            if (event === undefined) { return f.olSelected || this.selectedDevices[f.deviceid] }
+            this.selectedDevices[f.deviceid] = f.olSelected = event.target.checked
+            var row = $(event.target).parents(".feature-row");
+            f.olSelected ? row.addClass("device-selected") : row.removeClass("device-selected");
         },
         setCQLFilter: function(cql) {
             gokart.catalogue.resource_tracking.cql_filter = cql;
