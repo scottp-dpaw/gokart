@@ -40,15 +40,55 @@
                         <div class="small-6 columns">
                             <input type="search" v-model="search" placeholder="Find a resource">
                         </div>
-                    </div>{% endraw %}
+                    </div>
+                    <div class="row">
+                        <div class="switch tiny">
+                            <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory" @click="clearHistory"/>
+                            <label class="switch-paddle" for="resourceHistory">
+                                <span class="show-for-sr">Query history tools</span>
+                            </label>
+                        </div>
+                        <label for="resourceHistory" class="side-label small-4">Query history</label>
+                        <div class="small-5" v-if="toggleHistory">
+                            <select name="select" v-model="history" @change="setHistoryRange(history)">
+                                <option value="" selected>Date range</option> 
+                                <option value="3600000">Last hour</option> 
+                                <option value="10800000">Last 3 hours</option> 
+                                <option value="86400000">Last day</option> 
+                                <option value="604800000">Last week</option> 
+                                <option value="2678400000">Last month</option> 
+                            </select>
+                        </div>
+                    </div>
+                    <div id="history-panel" v-if="toggleHistory">
+                        <div class="row collapse">
+                            <div class="small-5">
+                                <label for="historyFrom">From:</label>
+                                <input id="historyFromDate" type="text" placeholder="dd/mm/yyyy"></input>
+                                <input id="historyFromTime" type="text" placeholder="24:00"></input>
+                            </div>
+                            <div class="small-5">
+                                <label for="historyTo">To:</label>
+                                <input id="historyToDate" type="text" placeholder="dd/mm/yyyy"></input>
+                                <input id="historyToTime" type="text" placeholder="24:00"></input>
+                            </div>
+                            <div id="history-buttons" class="small-2">
+                                <button id="history-clear" class="button" @click="clearHistory">Clear</button>
+                                <button id="history-go" class="button">Go</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endraw %}
                     <div id="tracking-list">
-                        <div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" 
-                            @click="zoomTo(f.geometry.getCoordinates())">
+                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1"><div class="row feature-row" v-bind:class="{'device-selected': select(f) }">{% endraw %}
                         {% block infotemplates %}
-                            <div v-if="f.vueTemplate == 'resource_tracking'" class="small-12 columns">{% raw %}
+                            <span v-if="toggleHistory">
+                                {% raw %}<input type="checkbox" @change="select(f, $event)" v-bind:checked="select(f)"/>{% endraw %}
+                            </span>
+                            <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
                                 <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
                                 <small>{{ f.time }}</small>
-                            </div>{% endraw %}
+                            </div></div>{% endraw %}
                         {% endblock %}
                         </div>
                     </div>
@@ -67,6 +107,26 @@
         #tracking-list .feature-row:hover {
             border-right: 1px solid #fff;
         }
+        #history-buttons {
+            position: relative;
+            text-align: center;
+        }
+        #history-clear {
+            position: absolute;
+            bottom: 53%;
+            left: 10%;
+            margin-bottom: 0px;
+        }
+        #history-go {
+            position: absolute;
+            bottom: 11%;
+            left: 10%;
+            margin-bottom: 0px;
+        }
+        .device-selected {
+            background-color: darkgreen;
+        }
+
     </style>
 </div>
 {% endblock %}
@@ -203,17 +263,34 @@ var trackingList = new Vue({
     el: "#tracking-list-tab",
     data: {
         viewportOnly: true,
+        toggleHistory: false,
+        selectedDevices: {},
         search: "",
         cql: "",
+        history: "",
         fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
         allFeatures: {},
         extentFeatures: {},
+        fromDate: 0,
+        toDate: 0,
+        historyRange: 0
     },
     computed: {
         features: function() { if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; },
-        stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; }
+        stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; },
+        setHistoryRange: {
+            get: function() { return this.historyRange },
+            set: function(val) { this.historyRange = val; "set from and to dates" }
+        }
     },
     methods: {
+        select: function(f, event) {
+            // some logic to preserve selection over refreshes
+            if (event === undefined) { return f.olSelected || this.selectedDevices[f.deviceid] }
+            this.selectedDevices[f.deviceid] = f.olSelected = event.target.checked
+            var row = $(event.target).parents(".feature-row");
+            f.olSelected ? row.addClass("device-selected") : row.removeClass("device-selected");
+        },
         setCQLFilter: function(cql) {
             gokart.catalogue.resource_tracking.cql_filter = cql;
             gokart.catalogue.resource_tracking.olLayer.getSource().clear();
@@ -223,7 +300,18 @@ var trackingList = new Vue({
             if (gokart.getScale() > 250) {
                 gokart.setScale(50);
             }
-        }
+        },
+        setHistoryRange: function(history) {
+            currentDate = new moment();
+            $('input#historyToDate').val(currentDate.format('DD/MM/YYYY'));
+            $('input#historyToTime').val(currentDate.format('HH:mm'));
+            fromDate = currentDate.subtract(history, "milliseconds");
+            $('input#historyFromDate').val(fromDate.format('DD/MM/YYYY'));
+            $('input#historyFromTime').val(fromDate.format('HH:mm'));
+        },
+        clearHistory: function() {
+            trackingList.selectedDevices = [];
+        },
     }
 });
 
