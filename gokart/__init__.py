@@ -68,6 +68,8 @@ def gdal_pdf():
     ])
     output = open(path + ".pdf")
     shutil.rmtree(workdir)
+    bottle.response.set_header("Content-Type", "application/pdf")
+    bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(jpg.filename.replace("jpg", "pdf")))
     return output
     
 application = bottle.default_app()
