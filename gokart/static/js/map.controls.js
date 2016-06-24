@@ -76,8 +76,8 @@ window.gokart = (function(self) {
                 renderLegend: function() {
                     var blob = new Blob([$("#legendsvg").html()], {type: "image/svg+xml;charset=utf-8"});
                     var qrcanvas = kjua({
-                        text: "http://dpaw.io/sss?" + $.param({bbox: this.mapLayout.extent.join(",")}),
-                        render: 'canvas'
+                        text: "http://dpaw.io/sss?" + $.param({lonlat: self.map.getView().getCenter().join(","), scale: Math.round(self.getScale() * 1000)}),
+                        render: 'canvas', size: 100, label: "dpaw.io/sss"
                     });
                     return [URL.createObjectURL(blob), qrcanvas];
                 },
