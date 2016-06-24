@@ -145,7 +145,10 @@ window.gokart = (function(self) {
         tileLayer.set("catalogueEntry", this);
         return tileLayer;
     }
+
+
     
+    self.geojson = new ol.format.GeoJSON();
 
     // loader for vector layers with hover querying
     self.createWFSLayer = function() {
@@ -162,17 +165,19 @@ window.gokart = (function(self) {
         }, options.params || {})
 
         
-        var vectorSource = new ol.source.Vector({
-            format: new ol.format.GeoJSON(),
-            url: function() {
-                if (options.cql_filter) {
-                    options.params.cql_filter = options.cql_filter 
-                } else if (options.params.cql_filter) {
-                    delete options.params.cql_filter
-                }
-                return url + "?" + $.param(options.params);
+        var vectorSource = new ol.source.Vector();
+        vectorSource.loadSource = function() {
+            if (options.cql_filter) {
+                options.params.cql_filter = options.cql_filter 
+            } else if (options.params.cql_filter) {
+                delete options.params.cql_filter
             }
-        });
+            $.get(url + "?" + $.param(options.params), function(response) {
+                var features = self.geojson.readFeatures(response);
+                vectorSource.clear(true);
+                vectorSource.addFeatures(features);
+            }, "text");
+        }
 
         // bind vue template (specified in options) to update
         // whenever OL3 fires the "addfeature" event
@@ -194,9 +199,10 @@ window.gokart = (function(self) {
             vector.set("updated", moment().toLocaleString())
             vectorSource.refresh = setInterval(function() {
                 vector.set("updated", moment().toLocaleString());
-                vectorSource.clear();
+                vectorSource.loadSource();
             }, options.refresh * 1000)
         };
+        vectorSource.loadSource();
 
         vector.set("name", options.name);
         vector.set("id", options.id);

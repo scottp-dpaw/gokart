@@ -75,7 +75,10 @@ window.gokart = (function(self) {
                 // generate legend block, scale ruler is 40mm wide
                 renderLegend: function() {
                     var blob = new Blob([$("#legendsvg").html()], {type: "image/svg+xml;charset=utf-8"});
-                    var qrcanvas = $("#qrcode").qrcode(String.prototype.split.call(location, location.pathname)[0] + location.pathname + $.param({bbox: this.mapLayout.extent.join(",")})).find("canvas").get(0);
+                    var qrcanvas = kjua({
+                        text: "http://dpaw.io/sss?" + $.param({bbox: this.mapLayout.extent.join(",")}),
+                        render: 'canvas'
+                    });
                     return [URL.createObjectURL(blob), qrcanvas];
                 },
                 // POST a generated JPG to the gokart server backend to convert to GeoPDF
