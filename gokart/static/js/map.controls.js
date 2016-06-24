@@ -81,9 +81,8 @@ window.gokart = (function(self) {
                 },
                 // generate legend block, scale ruler is 40mm wide
                 renderLegend: function() {
-                    var blob = new Blob([$("#legendsvg").html()], {type: "image/svg+xml;charset=utf-8"});
                     var qrcanvas = kjua({text: "http://dpaw.io/sss?" + this.shortUrl, render: 'canvas', size: 100});
-                    return [URL.createObjectURL(blob), qrcanvas];
+                    return ["data:image/svg+xml;utf8," + encodeURIComponent($("#legendsvg").html()), qrcanvas];
                 },
                 // POST a generated JPG to the gokart server backend to convert to GeoPDF
                 blobToPDF: function(blob, name) {
@@ -96,9 +95,10 @@ window.gokart = (function(self) {
                     var req = new XMLHttpRequest();
                     req.open("POST", "/gdal/pdf");
                     req.responseType = "blob";
+                    var vm = this;
                     req.onload = function(event) {
                         saveAs(req.response, name + ".pdf");
-                        this.resetSize();
+                        vm.resetSize();
                     }
                     req.send(formData);
                 },
@@ -121,6 +121,9 @@ window.gokart = (function(self) {
                             var url = legend[0];
                             var qrcanvas = legend[1];
                             // wait until legend is rendered
+                            img.onerror = function(err) {
+                                alert(JSON.stringify(err));
+                            };
                             img.onload = function () {
                                 // legend is 12cm wide
                                 vm.layout.canvasPxPerMM = canvas.width / vm.layout.width
