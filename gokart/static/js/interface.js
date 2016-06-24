@@ -6,15 +6,6 @@ window.gokart = (function(self) {
     var $self = $(self)
     var ui = self.ui = {};
 
-    ui.sizes = {
-        "tool-size-small": 16,
-        "tool-size-medium": 32,
-        "tool-size-large": 64
-    };
-
-    ui.colours = {
-    };
-
     // bind menu side-tabs to reveal the side pane
     var offCanvasLeft = $("#offCanvasLeft");
     $("#menu-tabs").on("change.zf.tabs", function(ev) {
@@ -233,8 +224,8 @@ window.gokart = (function(self) {
                     'point': ui.pointTool
                 },
                 features: ui.features,
-                featureOverlay: ui.featureOverlay
-                /*size: 12,
+                featureOverlay: ui.featureOverlay,
+                size: 12,
                 colour: "#cc0000",
                 colours: [
                     ["red", "#cc0000"],
@@ -247,7 +238,7 @@ window.gokart = (function(self) {
                     ["grey", "#555753"],
                     ["black", "#000000"]
                 ],
-                advanced: false*/
+                advanced: false
             },
             methods: {
                 icon: function(t) {
@@ -267,11 +258,9 @@ window.gokart = (function(self) {
                     self.map.addInteraction(t);
                     if (t.get("name") == 'Pan') {
                         ui.infoEvent = self.map.on('pointermove', ui.info.display);
-                    } else {
-                        if (!self.catalogue.gokartAnnotations.toggled) {
-                            self.catalogue.gokartAnnotations.toggled = true;
-                            ui.layers.onLayerChange(self.catalogue.gokartAnnotations);
-                        }
+                    } else if (!self.catalogue.gokartAnnotations.toggled) {
+                        self.catalogue.gokartAnnotations.toggled = true;
+                        ui.layers.onLayerChange(self.catalogue.gokartAnnotations);
                     }
                     vm.tool = t;
                 }
@@ -282,7 +271,10 @@ window.gokart = (function(self) {
 
     $self.on("init_map", function() {
         // setup scale events
-        self.map.on("postrender", function() { if (self.mapControls) { self.mapControls.scale = self.getScale() }});
+        self.map.on("postrender", function() { if (self.mapControls) { 
+            self.mapControls.scale = self.getScale();
+            history.replaceState(null, null, location.pathname + "?" + self.mapControls.shortUrl);
+        }});
         // display hover popups
         ui.infoEvent = self.map.on('pointermove', ui.info.display);
         if (document.querySelector("#menu-tab-layers")) { self.initLayers() };

@@ -376,6 +376,12 @@ window.gokart = (function(self) {
                 pinchRotate: false
             })
         });
+        var params = {};
+        decodeURIComponent(location.search).slice(1).split("&").forEach(function(p) { var t = p.split("="); params[t[0]] = parseFloat(t[1]) });
+        if (params.scale) {
+            self.map.getView().setCenter([params.lon, params.lat]);
+            self.setScale(params.scale / 1000);
+        }
         self.map.getInteractions().forEach(function(i) {
             if(i instanceof ol.interaction.DragPan) {
                 self.dragPan = i;

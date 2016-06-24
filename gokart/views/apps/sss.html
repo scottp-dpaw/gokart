@@ -317,7 +317,7 @@ var trackingList = new Vue({
 
 var renderTracking = debounce(function() {
     var layer = gokart.catalogue.resource_tracking.olLayer;
-    if (layer.getSource().getFeatures().length == 0) { return };
+    if (!gokart.mapControls || layer.getSource().getFeatures().length == 0) { return };
     trackingList.extentFeatures = {};
     layer.getSource().getFeaturesInExtent(gokart.mapControls.mapLayout.extent).forEach(function(f) {
         trackingList.extentFeatures[f.get("deviceid")] = f.getProperties();

@@ -47,6 +47,13 @@ window.gokart = (function(self) {
                         title: this.title, author: whoami.email,
                         date: "Printed " + moment().toLocaleString()
                     }
+                },
+                shortUrl: {
+                    cache: false,
+                    get: function() {
+                        var lonlat = self.map.getView().getCenter();
+                        return $.param({ lon: lonlat[0], lat: lonlat[1], scale: Math.round(self.getScale() * 1000)})
+                    }
                 }
             },
             // methods callable from inside the template
@@ -75,10 +82,7 @@ window.gokart = (function(self) {
                 // generate legend block, scale ruler is 40mm wide
                 renderLegend: function() {
                     var blob = new Blob([$("#legendsvg").html()], {type: "image/svg+xml;charset=utf-8"});
-                    var qrcanvas = kjua({
-                        text: "http://dpaw.io/sss?" + $.param({lonlat: self.map.getView().getCenter().join(","), scale: Math.round(self.getScale() * 1000)}),
-                        render: 'canvas', size: 100, label: "dpaw.io/sss"
-                    });
+                    var qrcanvas = kjua({text: "http://dpaw.io/sss?" + this.shortUrl, render: 'canvas', size: 100});
                     return [URL.createObjectURL(blob), qrcanvas];
                 },
                 // POST a generated JPG to the gokart server backend to convert to GeoPDF
@@ -122,7 +126,7 @@ window.gokart = (function(self) {
                                 vm.layout.canvasPxPerMM = canvas.width / vm.layout.width
                                 var height = 120 * vm.layout.canvasPxPerMM * img.height / img.width;
                                 canvas.getContext("2d").drawImage(img, 0, 0, 120 * vm.layout.canvasPxPerMM, height);
-                                canvas.getContext("2d").drawImage(qrcanvas, 0, height);
+                                canvas.getContext("2d").drawImage(qrcanvas, 8, height);
                                 URL.revokeObjectURL(url);
                                 // generate a jpg copy of the canvas contents
                                 var filename = vm.title.replace(" ", "_");
