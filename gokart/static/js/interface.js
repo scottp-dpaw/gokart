@@ -168,7 +168,7 @@ window.gokart = (function(self) {
                     });
                 },
                 // toggle a layer in the Layer Catalogue
-                toggleLayer: function(layer) {
+                onLayerChange: function(layer) {
                     var vm = this;
                     if (layer.toggled) {
                         if (layer.base) {
@@ -199,12 +199,42 @@ window.gokart = (function(self) {
         ui.layers.catalogue = self.catalogue;
     }
 
+    ui.features = new ol.Collection();
+    ui.featureOverlay = new ol.layer.Vector({
+        source: new ol.source.Vector({ features: ui.features })
+    });
+    ui.featureOverlay.set("id", "annotations");
+    ui.featureOverlay.set("name", "My Annotations");
+
+    ui.pointTool = new ol.interaction.Draw({
+        type: "Point",
+        features: ui.features
+    });
+    ui.pointTool.set("name", "Point");
+    ui.pointTool.set("icon", "/static/images/iD-sprite.svg#icon-point");
+
     self.initAnnotations = function() {
+        self.catalogue.gokartAnnotations = {
+            init: function() {
+                this.olLayer = ui.featureOverlay;
+                this.toggled = true;
+                ui.featureOverlay.set("catalogueEntry", this);
+                return ui.featureOverlay;
+            },
+            id: "annotations",
+            name: "My Annotations"
+        }
         ui.annotations = new Vue({
             el: "#menu-tab-annotations",
             data: {
-                mode: "pan",
-                size: 12,
+                tool: self.dragPan,
+                tools: {
+                    'pan': self.dragPan,
+                    'point': ui.pointTool
+                },
+                features: ui.features,
+                featureOverlay: ui.featureOverlay
+                /*size: 12,
                 colour: "#cc0000",
                 colours: [
                     ["red", "#cc0000"],
@@ -217,11 +247,33 @@ window.gokart = (function(self) {
                     ["grey", "#555753"],
                     ["black", "#000000"]
                 ],
-                advanced: false
+                advanced: false*/
             },
             methods: {
-                setMode: function(mode) {
-                    this.mode = mode
+                icon: function(t) {
+                    var icon = t.get("icon");
+                    if (icon.startsWith("fa-")) {
+                        return '<i class="fa '+icon+'" aria-hidden="true"></i>';
+                    } else {
+                        return '<svg class="icon"><use xlink:href="'+icon+'"></use></svg>';
+                    }
+                },
+                setTool: function(t) {
+                    var vm = this;
+                    self.map.unByKey(ui.infoEvent);
+                    Object.keys(vm.tools).forEach(function(key) {
+                        self.map.removeInteraction(vm.tools[key]);
+                    });
+                    self.map.addInteraction(t);
+                    if (t.get("name") == 'Pan') {
+                        ui.infoEvent = self.map.on('pointermove', ui.info.display);
+                    } else {
+                        if (!self.catalogue.gokartAnnotations.toggled) {
+                            self.catalogue.gokartAnnotations.toggled = true;
+                            ui.layers.onLayerChange(self.catalogue.gokartAnnotations);
+                        }
+                    }
+                    vm.tool = t;
                 }
             }
         });
@@ -232,9 +284,9 @@ window.gokart = (function(self) {
         // setup scale events
         self.map.on("postrender", function() { if (self.mapControls) { self.mapControls.scale = self.getScale() }});
         // display hover popups
-        self.map.on('pointermove', ui.info.display);
-        if (document.querySelector("#menu-tab-layers")) { gokart.initLayers() };
-        if (document.querySelector("#menu-tab-annotations")) { gokart.initAnnotations() };
+        ui.infoEvent = self.map.on('pointermove', ui.info.display);
+        if (document.querySelector("#menu-tab-layers")) { self.initLayers() };
+        if (document.querySelector("#menu-tab-annotations")) { self.initAnnotations() };
 
         $.get("/static/images/legend.svg", function(tmpl) {
             $("#legendsvg").html(tmpl);

@@ -370,7 +370,18 @@ window.gokart = (function(self) {
                 new ol.control.ScaleLine(),
                 new ol.control.FullScreen({source: $("body").get(0)}),
                 new ol.control.Control({element: $("#map-controls").get(0)})
-            ]
+            ],
+            interactions: ol.interaction.defaults({
+                altShiftDragRotate: false,
+                pinchRotate: false
+            })
+        });
+        self.map.getInteractions().forEach(function(i) {
+            if(i instanceof ol.interaction.DragPan) {
+                self.dragPan = i;
+                self.dragPan.set("name", "Pan");
+                self.dragPan.set("icon", "fa-hand-paper-o");
+            }
         });
         // Create the graticule component
         self.graticule = new ol.LabelGraticule();

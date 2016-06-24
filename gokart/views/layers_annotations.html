@@ -5,25 +5,11 @@
 <div class="tabs-panel" id="menu-tab-annotations" v-cloak>{% raw %}
     <h3>Annotations (incomplete)</h3>
     <div class="tool-slice row collapse">
-        <div class="small-2"><label class="tool-label">Tool:<br/>({{ mode }})</label></div>
+        <div class="small-2"><label class="tool-label">Tool:</label></div>
         <div class="small-10"><div class="expanded button-group">
-            <a @click="setMode('pan')" v-bind:class="{'selected': mode == 'pan'}" class="button button-tool" title="Pan"><i class="fa fa-hand-paper-o" aria-hidden="true"></i></a>
-            <a @click="setMode('select')" v-bind:class="{'selected': mode == 'select'}" class="button button-tool" title="Select"><i class="fa fa-mouse-pointer" aria-hidden="true"></i></a>
-            <button class="button button-tool" type="button" data-toggle="mode-dropdown">Styles</button>
-            <div class="dropdown-pane" id="mode-dropdown" data-dropdown data-auto-focus="true">
-                <ul class="menu vertical">
-                    <li><a @click="setMode('point')" v-bind:class="{'selected': mode == 'point'}" class="button" title="Draw a point">
-                        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-point"></use></svg>
-                    </a></li>
-                    <li><a @click="setMode('line')" v-bind:class="{'selected': mode == 'line'}" class="button" title="Draw a line">
-                        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-line"></use></svg>
-                    </a></li>
-                    <li><a @click="setMode('polygon')" v-bind:class="{'selected': mode == 'polygon'}" class="button" title="Draw an area/polygon">
-                        <svg class="icon"><use xlink:href="/static/images/iD-sprite.svg#icon-area"></use></svg>
-                    </a></li>
-                </ul>
-            </div>
+            <a v-for="t in tools" class="button button-tool" v-bind:class="{'selected': t==tool}" @click="setTool(t)" v-bind:title="t.get('name')">{{{ icon(t) }}}</a>
         </div></div>
+        <div class="small-12" v-if="tool.get('name') == 'Pan'">Hi I'm PANNING</div>
     </div>
     <div v-if="advanced" class="tool-slice row collapse">
         <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>

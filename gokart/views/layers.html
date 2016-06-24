@@ -68,7 +68,7 @@
                                 </div>
                                 <div class="small-3"><div class="text-right">
                                      <div class="switch tiny">
-                                        <input class="switch-input" id="ctlgsw{{ $index }}" v-model="l.toggled" @change="toggleLayer(l)" type="checkbox"/>
+                                        <input class="switch-input" id="ctlgsw{{ $index }}" v-model="l.toggled" @change="onLayerChange(l)" type="checkbox"/>
                                         <label class="switch-paddle" for="ctlgsw{{ $index }}">
                                             <span class="show-for-sr">Toggle layer</span>
                                         </label>
