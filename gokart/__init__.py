@@ -71,5 +71,22 @@ def gdal_pdf():
     bottle.response.set_header("Content-Type", "application/pdf")
     bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(jpg.filename.replace("jpg", "pdf")))
     return output
-    
+
+# Form emailer, needs wkhtmltopdf 0.12.3+
+@bottle.route("/postbox", method="POST")
+def postbox():
+    workdir = tempfile.mkdtemp()
+    path = os.path.join(workdir, "email.html")
+    pdfpath = path.replace(".html", ".pdf")
+    emailhtml = bottle.jinja2_template('email.html', **{
+        "htmlclone": bottle.request.forms.get("htmlclone")
+    })
+    with open(path, "w") as htmlfile:
+        htmlfile.write(emailhtml)
+    subprocess.call(["wkhtmltopdf", path, pdfpath])
+    output = open(pdfpath)
+    shutil.rmtree(workdir)
+    bottle.response.set_header("Content-Type", "application/pdf")
+    return output
+
 application = bottle.default_app()
