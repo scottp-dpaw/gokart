@@ -11,6 +11,10 @@ import requests
 from datetime import datetime, timedelta
 from six.moves import urllib
 import re
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 
@@ -79,14 +83,28 @@ def postbox():
     path = os.path.join(workdir, "email.html")
     pdfpath = path.replace(".html", ".pdf")
     emailhtml = bottle.jinja2_template('email.html', **{
-        "htmlclone": bottle.request.forms.get("htmlclone")
+        "htmlclone": bottle.request.forms.get("_htmlclone")
     })
     with open(path, "w") as htmlfile:
         htmlfile.write(emailhtml)
-    subprocess.call(["wkhtmltopdf", path, pdfpath])
-    output = open(pdfpath)
+    subprocess.call(["wkhtmltopdf", "-q", path, pdfpath])
+    attachment = MIMEApplication(open(pdfpath).read())
     shutil.rmtree(workdir)
-    bottle.response.set_header("Content-Type", "application/pdf")
-    return output
+    attachment.add_header('Content-Disposition', 'attachment', filename=bottle.request.forms.get("_filename", "form.pdf"))
+    text = "Submitted form data:\n\n"
+    for key, value in bottle.request.forms.iteritems():
+        if key.startswith("_"): continue
+        text += '  {}: {}\n'.format(key, value)
+    msg = MIMEMultipart()
+    msg.attach(MIMEText(text, 'plain'))
+    msg["Subject"] = bottle.request.forms.get("_subject", "Form Email")
+    msg.attach(attachment)
+    mailer = smtplib.SMTP("smtp")
+    mailer.sendmail(bottle.request.forms.get("_replyto"), bottle.request.headers.get("X-Email"), msg.as_string())
+    mailer.close()
+    redirect = bottle.request.get("_next", False)
+    if redirect:
+        return bottle.redirect(redirect)
+    return "Email sent to {}".format(bottle.request.headers.get("X-Email"))
 
 application = bottle.default_app()
