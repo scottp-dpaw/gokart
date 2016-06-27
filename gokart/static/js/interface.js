@@ -207,6 +207,18 @@ window.gokart = (function(self) {
         features: ui.features
     });
 
+    // add new lines to annotations layer
+    ui.lineInter = new ol.interaction.Draw({
+        type: "LineString",
+        features: ui.features
+    });
+
+    // add new polygons to annotations layer
+    ui.polyInter = new ol.interaction.Draw({
+        type: "Polygon",
+        features: ui.features
+    });
+
     // next three interacts are bundled into the Select tool
     // allow modifying features by click+dragging
     ui.modifyInter = new ol.interaction.Modify({
@@ -248,13 +260,13 @@ window.gokart = (function(self) {
             el: "#menu-tab-annotations",
             data: {
                 tool: "Pan",
-                tools: {
-                    "pan": {
+                tools: [
+                    {
                         "name": "Pan",
                         "icon": "fa-hand-paper-o",
                         "interactions": [self.dragPanInter]
                     },
-                    "select": {
+                    {
                         "name": "Select",
                         "icon": "fa-mouse-pointer",
                         "interactions": [
@@ -263,12 +275,22 @@ window.gokart = (function(self) {
                             ui.modifyInter
                         ]
                     },
-                    "point": {
+                    {
                         "name": "Point",
                         "icon": "/static/images/iD-sprite.svg#icon-point",
                         "interactions": [ui.pointInter]
+                    },
+                    {
+                        "name": "Line",
+                        "icon": "/static/images/iD-sprite.svg#icon-line",
+                        "interactions": [ui.lineInter]
+                    },
+                    {
+                        "name": "Polygon",
+                        "icon": "/static/images/iD-sprite.svg#icon-area",
+                        "interactions": [ui.polyInter]
                     }
-                },
+                ],
                 features: ui.features,
                 featureOverlay: ui.featureOverlay,
                 size: 12,
@@ -297,14 +319,13 @@ window.gokart = (function(self) {
                 setTool: function(t) {
                     var vm = this;
                     self.map.unByKey(ui.infoEvent);
-                    Object.keys(vm.tools).forEach(function(key) {
-                        vm.tools[key].interactions.forEach(function (val) {
-                            console.log(val)
-                            self.map.removeInteraction(val);
+                    vm.tools.forEach(function(tool) {
+                        tool.interactions.forEach(function (inter) {
+                            self.map.removeInteraction(inter);
                         });
                     });
-                    t.interactions.forEach(function (val) {
-                        self.map.addInteraction(val);
+                    t.interactions.forEach(function (inter) {
+                        self.map.addInteraction(inter);
                     });
                     if (t.name == 'Pan') {
                         ui.infoEvent = self.map.on('pointermove', ui.info.display);
