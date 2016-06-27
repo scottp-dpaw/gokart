@@ -7,9 +7,8 @@
     <div class="tool-slice row collapse">
         <div class="small-2"><label class="tool-label">Tool:</label></div>
         <div class="small-10"><div class="expanded button-group">
-            <a v-for="t in tools" class="button button-tool" v-bind:class="{'selected': t==tool}" @click="setTool(t)" v-bind:title="t.get('name')">{{{ icon(t) }}}</a>
+            <a v-for="t in tools" class="button button-tool" v-bind:class="{'selected': t.name==tool}" @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
         </div></div>
-        <div class="small-12" v-if="tool.get('name') == 'Pan'">Hi I'm PANNING</div>
     </div>
     <div v-if="advanced" class="tool-slice row collapse">
         <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>

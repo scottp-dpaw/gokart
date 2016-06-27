@@ -190,19 +190,48 @@ window.gokart = (function(self) {
         ui.layers.catalogue = self.catalogue;
     }
 
+    // collection to store all annotation features
     ui.features = new ol.Collection();
+    // layer/source for modiftying annotation features
     ui.featureOverlay = new ol.layer.Vector({
         source: new ol.source.Vector({ features: ui.features })
     });
     ui.featureOverlay.set("id", "annotations");
     ui.featureOverlay.set("name", "My Annotations");
+    // collection for tracking selected features
+    ui.selectedFeatures = new ol.Collection();
 
-    ui.pointTool = new ol.interaction.Draw({
+    // add new points to annotations layer
+    ui.pointInter = new ol.interaction.Draw({
         type: "Point",
         features: ui.features
     });
-    ui.pointTool.set("name", "Point");
-    ui.pointTool.set("icon", "/static/images/iD-sprite.svg#icon-point");
+
+    // next three interacts are bundled into the Select tool
+    // allow modifying features by click+dragging
+    ui.modifyInter = new ol.interaction.Modify({
+        features: ui.features
+    });
+
+    // allow dragbox selection of features
+    ui.dragSelectInter = new ol.interaction.DragBox();
+    // modify selectedFeatures after dragging a box
+    ui.dragSelectInter.on("boxend", function() {
+        var extent = ui.dragSelectInter.getGeometry().getExtent();
+        ui.featureOverlay.getSource().forEachFeatureIntersectingExtent(extent, function(feature) {
+            ui.selectedFeatures.push(feature);
+        });
+    });
+    // clear selectedFeatures before dragging a box
+    ui.dragSelectInter.on("boxstart", function() {
+        ui.selectedFeatures.clear();
+    });
+    // allow selecting multiple features by clicking
+    ui.selectInter = new ol.interaction.Select({
+        layers: [ui.featureOverlay],
+        features: ui.selectedFeatures
+    });
+
 
     self.initAnnotations = function() {
         self.catalogue.gokartAnnotations = {
@@ -218,10 +247,27 @@ window.gokart = (function(self) {
         ui.annotations = new Vue({
             el: "#menu-tab-annotations",
             data: {
-                tool: self.dragPan,
+                tool: "Pan",
                 tools: {
-                    'pan': self.dragPan,
-                    'point': ui.pointTool
+                    "pan": {
+                        "name": "Pan",
+                        "icon": "fa-hand-paper-o",
+                        "interactions": [self.dragPanInter]
+                    },
+                    "select": {
+                        "name": "Select",
+                        "icon": "fa-mouse-pointer",
+                        "interactions": [
+                            ui.selectInter, 
+                            ui.dragSelectInter,
+                            ui.modifyInter
+                        ]
+                    },
+                    "point": {
+                        "name": "Point",
+                        "icon": "/static/images/iD-sprite.svg#icon-point",
+                        "interactions": [ui.pointInter]
+                    }
                 },
                 features: ui.features,
                 featureOverlay: ui.featureOverlay,
@@ -242,27 +288,31 @@ window.gokart = (function(self) {
             },
             methods: {
                 icon: function(t) {
-                    var icon = t.get("icon");
-                    if (icon.startsWith("fa-")) {
-                        return '<i class="fa '+icon+'" aria-hidden="true"></i>';
+                    if (t.icon.startsWith("fa-")) {
+                        return '<i class="fa '+t.icon+'" aria-hidden="true"></i>';
                     } else {
-                        return '<svg class="icon"><use xlink:href="'+icon+'"></use></svg>';
+                        return '<svg class="icon"><use xlink:href="'+t.icon+'"></use></svg>';
                     }
                 },
                 setTool: function(t) {
                     var vm = this;
                     self.map.unByKey(ui.infoEvent);
                     Object.keys(vm.tools).forEach(function(key) {
-                        self.map.removeInteraction(vm.tools[key]);
+                        vm.tools[key].interactions.forEach(function (val) {
+                            console.log(val)
+                            self.map.removeInteraction(val);
+                        });
                     });
-                    self.map.addInteraction(t);
-                    if (t.get("name") == 'Pan') {
+                    t.interactions.forEach(function (val) {
+                        self.map.addInteraction(val);
+                    });
+                    if (t.name == 'Pan') {
                         ui.infoEvent = self.map.on('pointermove', ui.info.display);
                     } else if (!self.catalogue.gokartAnnotations.toggled) {
                         self.catalogue.gokartAnnotations.toggled = true;
                         ui.layers.onLayerChange(self.catalogue.gokartAnnotations);
                     }
-                    vm.tool = t;
+                    vm.tool = t.name;
                 }
             }
         });

@@ -384,9 +384,7 @@ window.gokart = (function(self) {
         }
         self.map.getInteractions().forEach(function(i) {
             if(i instanceof ol.interaction.DragPan) {
-                self.dragPan = i;
-                self.dragPan.set("name", "Pan");
-                self.dragPan.set("icon", "fa-hand-paper-o");
+                self.dragPanInter = i;
             }
         });
         // Create the graticule component
