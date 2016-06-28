@@ -16,87 +16,104 @@
         <div class="row collapse" id="layers-tab-panels">
             <div class="columns">
                 <div class="tabs-content vertical" data-tabs-content="layers-tabs">
+                    
                     <div class="tabs-panel is-active" id="layers-active">
                     {% raw %}
-                        <div class="row">
-                            <div class="switch tiny">
-                                <input class="switch-input" id="toggleGraticule" type="checkbox" v-bind:checked="graticule" @change="toggleGraticule"/>
-                                <label class="switch-paddle" for="toggleGraticule">
-                                    <span class="show-for-sr">Display graticule</span>
-                                </label>
+                        <div class="layers-topframe scroller row"><div class="columns">
+                            <div class="row">
+                                <div class="switch tiny">
+                                    <input class="switch-input" id="toggleGraticule" type="checkbox" v-bind:checked="graticule" @change="toggleGraticule"/>
+                                    <label class="switch-paddle" for="toggleGraticule">
+                                        <span class="show-for-sr">Display graticule</span>
+                                    </label>
+                                </div>
+                                <label for="toggleGraticule" class="side-label">Display graticule</label>
                             </div>
-                            <label for="toggleGraticule" class="side-label">Display graticule</label>
-                        </div>
-                        <div id="layers-active-list"><div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = l.get('catalogueEntry')">
-                            <div class="small-9">    
-                                <div class="layer-title">{{ l.get("name") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
-                                <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
-                                <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
-                            </div>
-                            <div class="small-3"><div class="text-right">
-                                <a @click="removeLayer(l)" class="button alert">&#x2715;</a>
-                            </div></div>
-                        </div></div>
-                    </div>
-                    <div class="tabs-panel" id="layers-catalogue">
-                        <div class="row">
-                            <div class="switch tiny">
-                                <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers"/>
-                                <label class="switch-paddle" for="switchBaseLayers">
-                                    <span class="show-for-sr">Switch out base layers</span>
-                                </label>
-                            </div>
-                            <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
-                        </div>
-                        <div class="row collapse">
-                            <div class="small-6 columns">
-                                <select name="select" v-model="search">
-                                    <option value="" selected>All layers</option> 
-                                    <option value="himawari">Himawari</option>
-                                    <option v-bind:value="search">Custom search:</option>
-                                </select>
-                            </div>
-                            <div class="small-6 columns">
-                                <input type="search" v-model="search" placeholder="Find a layer">
-                            </div>
-                        </div>
-                        <div id="layers-catalogue-list">
-                            <div v-for="l in catalogue | filterBy search in searchAttrs" class="row layer-row" @mouseover="layer = l">
-                                <div class="small-9">
-                                    <div class="layer-title">{{ l.name }}</div>
-                                    <div class="layer-id">{{ l.id }}</div>
+                            <div id="layers-active-list"><div v-for="l in olLayers.slice().reverse()" class="row layer-row" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = l.get('catalogueEntry')">
+                                <div class="small-9">    
+                                    <div class="layer-title">{{ l.get("name") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
+                                    <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
+                                    <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
                                 </div>
                                 <div class="small-3"><div class="text-right">
-                                     <div class="switch tiny">
-                                        <input class="switch-input" id="ctlgsw{{ $index }}" v-model="l.toggled" @change="onLayerChange(l)" type="checkbox"/>
-                                        <label class="switch-paddle" for="ctlgsw{{ $index }}">
-                                            <span class="show-for-sr">Toggle layer</span>
-                                        </label>
-                                    </div> 
+                                    <a @click="removeLayer(l)" class="button alert">&#x2715;</a>
                                 </div></div>
+                            </div></div>
+                        </div></div>
+                        <div class="row collapse">
+                            <div class="columns">
+                                <h4>{{ layer.name }}</h4>
+                                <div class="tool-slice row" v-if="layer.olLayer">
+                                    <div class="columns small-2"><label class="tool-label">Opacity:<br/>{{ layerOpacity }}%</label></div>
+                                    <div class="columns small-10"><input type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
+                                </div>
+                                <div class="tool-slice row" v-if="layer.timeline">
+                                    <div class="columns small-2"><label class="tool-label">Timeline:<br/>{{ timelineTS }}</label></div>
+                                    <div class="columns small-10"><input type="range" v-bind:max="sliderMax" min="0" step="1" v-model="sliderTimeline"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="tabs-panel" id="layers-catalogue">
+                        <div class="layers-topframe scroller row"><div class="columns">
+                            <div class="row">
+                                <div class="switch tiny">
+                                    <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers"/>
+                                    <label class="switch-paddle" for="switchBaseLayers">
+                                        <span class="show-for-sr">Switch out base layers</span>
+                                    </label>
+                                </div>
+                                <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
+                            </div>
+                            <div class="row collapse">
+                                <div class="small-6 columns">
+                                    <select name="select" v-model="search">
+                                        <option value="" selected>All layers</option> 
+                                        <option value="himawari">Himawari</option>
+                                        <option v-bind:value="search">Custom search:</option>
+                                    </select>
+                                </div>
+                                <div class="small-6 columns">
+                                    <input type="search" v-model="search" placeholder="Find a layer">
+                                </div>
+                            </div>
+                            <div id="layers-catalogue-list">
+                                <div v-for="l in catalogue | filterBy search in searchAttrs" class="row layer-row" @mouseover="layer = l">
+                                    <div class="small-9">
+                                        <div class="layer-title">{{ l.name }}</div>
+                                        <div class="layer-id">{{ l.id }}</div>
+                                    </div>
+                                    <div class="small-3"><div class="text-right">
+                                        <div class="switch tiny">
+                                            <input class="switch-input" id="ctlgsw{{ $index }}" v-model="l.toggled" @change="onLayerChange(l)" type="checkbox"/>
+                                            <label class="switch-paddle" for="ctlgsw{{ $index }}">
+                                                <span class="show-for-sr">Toggle layer</span>
+                                            </label>
+                                        </div> 
+                                    </div></div>
+                                </div>
+                            </div>
+                        </div></div>
+                        <div class="row collapse">
+                            <div class="columns">
+                                <h4>{{ layer.name }}</h4>
+                                <p><b>Abstract:</b> The Bush Fire Service are responsible for all areas not covered by the Fire and Rescue Service. Councils have a legislative requirement to provide fire suppression facilities to their communities. Each Council is responsible for dividing its area into Bush Fire Service districts. Typically, there is one Bush Fire Service station per district, but some districts have more than one station. This dataset consists of polygon data showing Bush Fire Service districts.</p>
                             </div>
                         </div>
                     {% endraw %}
                     </div>
+                    
                     <div class="tabs-panel" id="layers-categories">
-                        browseable categories (jqtree?)
+                        <div class="row collapse">
+                            browseable categories (jqtree?)
+                        </div>
                     </div>
+
                 </div>
             </div>
-        </div>
-        <div class="row collapse">{% raw %}
-            <div class="columns">
-                <h4>{{ layer.name }}</h4>
-                <div class="tool-slice row" v-if="layer.olLayer">
-                    <div class="columns small-2"><label class="tool-label">Opacity:<br/>{{ layerOpacity }}%</label></div>
-                    <div class="columns small-10"><input type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
-                </div>
-                <div class="tool-slice row" v-if="layer.timeline">
-                    <div class="columns small-2"><label class="tool-label">Timeline:<br/>{{ timelineTS }}</label></div>
-                    <div class="columns small-10"><input type="range" v-bind:max="sliderMax" min="0" step="1" v-model="sliderTimeline"></div>
-                </div>
-            </div>
-        </div>{% endraw %}
+        </div> 
     </div>
     {% endblock %}
 </div>

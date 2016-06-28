@@ -112,8 +112,8 @@ html, body {
 @media screen and (min-width: 40em) {
     /* widen the off canvas area*/
     .off-canvas.position-left {
-        left: -400px;
-        width: 400px;
+        left: -424px;
+        width: 424px;
     }
 
     .position-left.reveal-responsive {
@@ -122,7 +122,7 @@ html, body {
         z-index: auto;
     }
     .position-left.reveal-responsive ~ .off-canvas-content {
-        margin-left: 400px; 
+        margin-left: 424px; 
     }
 
     #side-pane-close {
@@ -273,10 +273,13 @@ input[type="range"] {
 }
 
 /* Set height of internal layers to allow for bottom details */
-#layers-tab-panels {
+.layers-topframe {
     height: 60vh;
-    overflow-y: auto;
     border-bottom: 1px solid rgba(37,45,51,0.9);
+}
+
+.scroller {
+    overflow-y: auto;
 }
 
 /* remove extra padding for tab boxes inside other tab boxes */
