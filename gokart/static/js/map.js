@@ -385,6 +385,8 @@ window.gokart = (function(self) {
         self.map.getInteractions().forEach(function(i) {
             if(i instanceof ol.interaction.DragPan) {
                 self.dragPanInter = i;
+            } else if (i instanceof ol.interaction.DoubleClickZoom) {
+                self.doubleClickZoomInter = i;
             }
         });
         // Create the graticule component

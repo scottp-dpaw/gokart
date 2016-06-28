@@ -8,7 +8,7 @@ module          = gokart
 processes       = 4
 #master          = false
 max-requests    = 1000
-cache2          = name=default,bitmap=1,items=10000,blocksize=1000,blocks=200000,purge_lru=1
+cache2          = name=default,bitmap=1,items=10000,blocksize=1000,blocks=200000
 vacuum          = true
 memory-report   = true
 procname-prefix = %d

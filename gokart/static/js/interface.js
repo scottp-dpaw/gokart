@@ -264,7 +264,10 @@ window.gokart = (function(self) {
                     {
                         "name": "Pan",
                         "icon": "fa-hand-paper-o",
-                        "interactions": [self.dragPanInter]
+                        "interactions": [
+                            self.dragPanInter,
+                            self.doubleClickZoomInter
+                        ]
                     },
                     {
                         "name": "Select",
