@@ -150,6 +150,16 @@ window.gokart = (function(self) {
     
     self.geojson = new ol.format.GeoJSON();
 
+    self.createJSONLayer = function() {
+        var options = this;
+        var vectorSource = new ol.source.Vector();
+        vectorSource.loadSource = function() {
+            $.get(options.url, function(response) {
+                var features = self.geojson.readFeatures(response);
+            });
+        }
+    }
+
     // loader for vector layers with hover querying
     self.createWFSLayer = function() {
         var options = this;
