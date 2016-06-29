@@ -65,17 +65,17 @@
                         <div class="row collapse">
                             <div class="small-5">
                                 <label for="historyFrom">From:</label>
-                                <input type="text" v-model="historyFromDate" placeholder="dd/mm/yyyy"></input>
+                                <input type="text" v-model="historyFromDate" placeholder="yyyy-mm-dd"></input>
                                 <input type="text" v-model="historyFromTime" placeholder="24:00"></input>
                             </div>
                             <div class="small-5">
                                 <label for="historyTo">To:</label>
-                                <input type="text" v-model="historyToDate" placeholder="dd/mm/yyyy"></input>
+                                <input type="text" v-model="historyToDate" placeholder="yyyy-mm-dd"></input>
                                 <input type="text" v-model="historyToTime" placeholder="24:00"></input>
                             </div>
                             <div id="history-buttons" class="small-2">
                                 <button id="history-clear" class="button" @click="clearHistory">Clear</button>
-                                <button id="history-go" class="button">Go</button>
+                                <button id="history-go" class="button" @click="historyCQLFilter">Go</button>
                             </div>
                         </div>
                     </div>
@@ -291,10 +291,10 @@ var trackingList = new Vue({
             set: function(val) {
                 this.historyRangeMilliseconds = val;
                 currentDate = new moment();
-                this.historyToDate = currentDate.format('DD/MM/YYYY');
+                this.historyToDate = currentDate.format('YYYY-MM-DD');
                 this.historyToTime = currentDate.format('HH:mm');
                 fromDate = currentDate.subtract(val, "milliseconds");
-                this.historyFromDate = fromDate.format('DD/MM/YYYY');
+                this.historyFromDate = fromDate.format('YYYY-MM-DD');
                 this.historyFromTime = fromDate.format('HH:mm');
             }
         }
@@ -302,16 +302,27 @@ var trackingList = new Vue({
     methods: {
         select: function(f, event) {
             // some logic to preserve selection over refreshes
-            if (event === undefined) { return f.olSelected || this.selectedDevices[f.id] }
+            if (event === undefined) { return f.olSelected || this.selectedDevices[f.deviceid] }
             f.olSelected = event.target.checked
             // add to selectedDevices if checked, else remove
-            if (f.olSelected) { this.selectedDevices[f.id] = f.olSelected; } else { delete this.selectedDevices[f.id]; }
+            if (f.olSelected) { this.selectedDevices[f.deviceid] = f.olSelected; } else { delete this.selectedDevices[f.deviceid]; }
             var row = $(event.target).parents(".feature-row");
             f.olSelected ? row.addClass("device-selected") : row.removeClass("device-selected");
         },
         setCQLFilter: function(cql) {
             gokart.catalogue.resource_tracking.cql_filter = cql;
             gokart.catalogue.resource_tracking.olLayer.getSource().clear();
+        },
+        historyCQLFilter: function() {
+            var cql = "";
+            var deviceList = "(";
+            Object.keys(this.selectedDevices).forEach(function(item) { deviceList += "'" + item + "',"; });
+            deviceList += "'')";
+            cql = "deviceid in " + deviceList + " and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
+            console.log(cql);
+            gokart.catalogue["resource_tracking"].init(),
+            gokart.catalogue.tracking_history.cql_filter = cql;
+            gokart.catalogue.tracking_history.olLayer.getSource().clear();
         },
         zoomTo: function(coords) {
             gokart.map.getView().setCenter(coords);
