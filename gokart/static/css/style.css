@@ -12,20 +12,20 @@ html, body {
 }
 
 /* mousehover info pane, hide for mobile */
-#info {
-    display: none;
-}
-
-@media screen and (min-width: 40em) {
+@media screen and (max-width: 40em) {
     #info {
-        display: block;
-        position: absolute;
-        z-index: 100;
-        padding: 2em;
-        background-color: #424f5a;
-        max-width: 40%;
+        display: none;
     }
 }
+
+#info {
+    position: absolute;
+    z-index: 100;
+    padding: 2em;
+    background-color: #424f5a;
+    max-width: 40%;
+}
+
 
 #info .content {
     max-height: 40vh;

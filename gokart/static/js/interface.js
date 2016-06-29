@@ -192,6 +192,30 @@ window.gokart = (function(self) {
 
     // collection to store all annotation features
     ui.features = new ol.Collection();
+    ui.selectedFeatures = new ol.Collection();
+    ui.features.on("add", function(ev) {
+        var feature = ev.element;
+        if (feature.get("toolName")) {
+            var style = ui.annotations.tools.filter(function(t) { 
+                return t.name == feature.get("toolName"); 
+            })[0].style;
+        } else {
+            feature.set("toolName", ui.annotations.tool.name);
+            var style = ui.annotations.tool.style;
+        }
+        feature.setStyle(style || null);
+    });
+    // NASTYHACK: add/remove default style based on select status
+    ui.selectedFeatures.on("add", function(ev) {
+        var feature = ev.element;
+        feature.preSelectStyle = feature.getStyle();
+        feature.setStyle(null);
+    });
+    ui.selectedFeatures.on("remove", function(ev) {
+        var feature = ev.element;
+        feature.setStyle(feature.preSelectStyle);
+        delete feature.preSelectStyle;
+    });
     // layer/source for modiftying annotation features
     ui.featureOverlay = new ol.layer.Vector({
         source: new ol.source.Vector({ features: ui.features })
@@ -199,7 +223,6 @@ window.gokart = (function(self) {
     ui.featureOverlay.set("id", "annotations");
     ui.featureOverlay.set("name", "My Annotations");
     // collection for tracking selected features
-    ui.selectedFeatures = new ol.Collection();
 
     // add new points to annotations layer
     ui.pointInter = new ol.interaction.Draw({
@@ -256,42 +279,43 @@ window.gokart = (function(self) {
             id: "annotations",
             name: "My Annotations"
         }
+        var defaultTool = {
+            name: "Pan",
+            icon: "fa-hand-paper-o",
+            interactions: [
+                self.dragPanInter,
+                self.doubleClickZoomInter
+            ]
+        }
         ui.annotations = new Vue({
             el: "#menu-tab-annotations",
             data: {
-                tool: "Pan",
+                tool: defaultTool,
                 tools: [
+                    defaultTool,
                     {
-                        "name": "Pan",
-                        "icon": "fa-hand-paper-o",
-                        "interactions": [
-                            self.dragPanInter,
-                            self.doubleClickZoomInter
-                        ]
-                    },
-                    {
-                        "name": "Select",
-                        "icon": "fa-mouse-pointer",
-                        "interactions": [
+                        name: "Select",
+                        icon: "fa-mouse-pointer",
+                        interactions: [
                             ui.selectInter, 
                             ui.dragSelectInter,
                             ui.modifyInter
                         ]
                     },
                     {
-                        "name": "Point",
-                        "icon": "/static/images/iD-sprite.svg#icon-point",
-                        "interactions": [ui.pointInter]
+                        name: "Point",
+                        icon: "/static/images/iD-sprite.svg#icon-point",
+                        interactions: [ui.pointInter]
                     },
                     {
-                        "name": "Line",
-                        "icon": "/static/images/iD-sprite.svg#icon-line",
-                        "interactions": [ui.lineInter]
+                        name: "Line",
+                        icon: "/static/images/iD-sprite.svg#icon-line",
+                        interactions: [ui.lineInter]
                     },
                     {
-                        "name": "Polygon",
-                        "icon": "/static/images/iD-sprite.svg#icon-area",
-                        "interactions": [ui.polyInter]
+                        name: "Polygon",
+                        icon: "/static/images/iD-sprite.svg#icon-area",
+                        interactions: [ui.polyInter]
                     }
                 ],
                 features: ui.features,
@@ -336,7 +360,7 @@ window.gokart = (function(self) {
                         self.catalogue.gokartAnnotations.toggled = true;
                         ui.layers.onLayerChange(self.catalogue.gokartAnnotations);
                     }
-                    vm.tool = t.name;
+                    vm.tool = t;
                 }
             }
         });
