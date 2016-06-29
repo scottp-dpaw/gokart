@@ -198,6 +198,10 @@ gokart.catalogue = {
         init: gokart.createWFSLayer,
         name: "Resource Tracking History",
         id: 'dpaw:tracking_history_view',
+        vueTemplate: 'resource_tracking',
+        style: resource_tracking_style,
+        onadd: addResource,
+        cql_filter: false
     },
     "hotspots": {
         init: gokart.createTileLayer,
@@ -373,9 +377,9 @@ var trackingList = new Vue({
             deviceList += "'')";
             cql = "deviceid in " + deviceList + " and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
             console.log(cql);
-            gokart.catalogue["resource_tracking"].init(),
+            gokart.catalogue["tracking_history"].init();
             gokart.catalogue.tracking_history.cql_filter = cql;
-            gokart.catalogue.tracking_history.olLayer.getSource().clear();
+            gokart.catalogue.tracking_history.olLayer.getSource().loadSource();
         },
         zoomTo: function(coords) {
             gokart.map.getView().setCenter(coords);
