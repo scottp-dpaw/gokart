@@ -377,9 +377,9 @@ var trackingList = new Vue({
             deviceList += "'')";
             cql = "deviceid in " + deviceList + " and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
             console.log(cql);
-            gokart.catalogue["tracking_history"].init();
             gokart.catalogue.tracking_history.cql_filter = cql;
-            gokart.catalogue.tracking_history.olLayer.getSource().loadSource();
+            gokart.catalogue["tracking_history"].toggled = true;
+            gokart.ui.layers.onLayerChange(gokart.catalogue["tracking_history"]);
         },
         zoomTo: function(coords) {
             gokart.map.getView().setCenter(coords);
