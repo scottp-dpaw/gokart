@@ -50,8 +50,9 @@
                         </div>
                         <label for="resourceHistory" class="side-label small-4">Query history</label>
                         <div class="small-5" v-if="toggleHistory">
-                            <select name="select" v-model="history" @change="setHistoryRange(history)">
+                            <select name="select" v-model="history" @change="historyRange = history">
                                 <option value="" selected>Date range</option> 
+                                <!-- values in milliseconds -->
                                 <option value="3600000">Last hour</option> 
                                 <option value="10800000">Last 3 hours</option> 
                                 <option value="86400000">Last day</option> 
@@ -64,13 +65,13 @@
                         <div class="row collapse">
                             <div class="small-5">
                                 <label for="historyFrom">From:</label>
-                                <input id="historyFromDate" type="text" placeholder="dd/mm/yyyy"></input>
-                                <input id="historyFromTime" type="text" placeholder="24:00"></input>
+                                <input type="text" v-model="historyFromDate" placeholder="dd/mm/yyyy"></input>
+                                <input type="text" v-model="historyFromTime" placeholder="24:00"></input>
                             </div>
                             <div class="small-5">
                                 <label for="historyTo">To:</label>
-                                <input id="historyToDate" type="text" placeholder="dd/mm/yyyy"></input>
-                                <input id="historyToTime" type="text" placeholder="24:00"></input>
+                                <input type="text" v-model="historyToDate" placeholder="dd/mm/yyyy"></input>
+                                <input type="text" v-model="historyToTime" placeholder="24:00"></input>
                             </div>
                             <div id="history-buttons" class="small-2">
                                 <button id="history-clear" class="button" @click="clearHistory">Clear</button>
@@ -193,6 +194,11 @@ gokart.catalogue = {
         onadd: addResource,
         refresh: 30
     },
+    "tracking_history": {
+        init: gokart.createWFSLayer,
+        name: "Resource Tracking History",
+        id: 'dpaw:tracking_history_view',
+    },
     "hotspots": {
         init: gokart.createTileLayer,
         name: "Firewatch Hotspots 72hrs",
@@ -268,26 +274,38 @@ var trackingList = new Vue({
         search: "",
         cql: "",
         history: "",
-        fields: ["name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
+        fields: ["id", "name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
         allFeatures: {},
         extentFeatures: {},
-        fromDate: 0,
-        toDate: 0,
-        historyRange: 0
+        historyFromDate: "",
+        historyFromTime: "",
+        historyToDate: "",
+        historyToTime: "",
+        historyRangeMilliseconds: 0
     },
     computed: {
         features: function() { if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; },
         stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; },
-        setHistoryRange: {
-            get: function() { return this.historyRange },
-            set: function(val) { this.historyRange = val; "set from and to dates" }
+        historyRange: {
+            get: function() { return this.historyRangeMilliseconds },
+            set: function(val) {
+                this.historyRangeMilliseconds = val;
+                currentDate = new moment();
+                this.historyToDate = currentDate.format('DD/MM/YYYY');
+                this.historyToTime = currentDate.format('HH:mm');
+                fromDate = currentDate.subtract(val, "milliseconds");
+                this.historyFromDate = fromDate.format('DD/MM/YYYY');
+                this.historyFromTime = fromDate.format('HH:mm');
+            }
         }
     },
     methods: {
         select: function(f, event) {
             // some logic to preserve selection over refreshes
-            if (event === undefined) { return f.olSelected || this.selectedDevices[f.deviceid] }
-            this.selectedDevices[f.deviceid] = f.olSelected = event.target.checked
+            if (event === undefined) { return f.olSelected || this.selectedDevices[f.id] }
+            f.olSelected = event.target.checked
+            // add to selectedDevices if checked, else remove
+            if (f.olSelected) { this.selectedDevices[f.id] = f.olSelected; } else { delete this.selectedDevices[f.id]; }
             var row = $(event.target).parents(".feature-row");
             f.olSelected ? row.addClass("device-selected") : row.removeClass("device-selected");
         },
@@ -301,16 +319,8 @@ var trackingList = new Vue({
                 gokart.setScale(50);
             }
         },
-        setHistoryRange: function(history) {
-            currentDate = new moment();
-            $('input#historyToDate').val(currentDate.format('DD/MM/YYYY'));
-            $('input#historyToTime').val(currentDate.format('HH:mm'));
-            fromDate = currentDate.subtract(history, "milliseconds");
-            $('input#historyFromDate').val(fromDate.format('DD/MM/YYYY'));
-            $('input#historyFromTime').val(fromDate.format('HH:mm'));
-        },
         clearHistory: function() {
-            trackingList.selectedDevices = [];
+            trackingList.selectedDevices = {};
         },
     }
 });
@@ -320,11 +330,11 @@ var renderTracking = debounce(function() {
     if (!gokart.mapControls || layer.getSource().getFeatures().length == 0) { return };
     trackingList.extentFeatures = {};
     layer.getSource().getFeaturesInExtent(gokart.mapControls.mapLayout.extent).forEach(function(f) {
-        trackingList.extentFeatures[f.get("deviceid")] = f.getProperties();
+        trackingList.extentFeatures[f.get("id")] = f.getProperties();
     });
     trackingList.allFeatures = {};
     layer.getSource().getFeatures().forEach(function(f) {
-        trackingList.allFeatures[f.get("deviceid")] = f.getProperties();
+        trackingList.allFeatures[f.get("id")] = f.getProperties();
     });
 }, 100);
 
