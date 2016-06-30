@@ -83,6 +83,38 @@ window.gokart = (function(self) {
         });
     });
 
+    // reusable tile loader hook to update a loading indicator
+    var _tileLoaderHook = function(tileSource, tileLayer) {
+        // number of tiles currently in flight
+        var numLoadingTiles = 0;
+        // number of misses for the current set
+        var badTiles = 0;
+        var tileLoader = tileSource.getTileLoadFunction();
+        return function(tile, src) {
+            if (numLoadingTiles === 0) {
+                tileLayer.progress = "loading";
+                badTiles = 0;
+            }
+            numLoadingTiles++;
+            var image = tile.getImage();
+            image.onload = function() {
+                numLoadingTiles--;
+                if (numLoadingTiles === 0) {
+                    if (badTiles > 0) {
+                        tileLayer.progress = "error";
+                    } else {
+                        tileLayer.progress = "idle";
+                    }
+                }
+            };
+            image.onerror = function() {
+                badTiles++;
+                image.onload();
+            };
+            tileLoader(tile, src);
+        };
+    };
+
     // loader for layers with a "time" axis, e.g. live satellite imagery
     self.createTimelineLayer = function() {
         var options = this;
@@ -108,6 +140,11 @@ window.gokart = (function(self) {
             source: tileSource
         });
 
+        // hook the tile loading function to update progress indicator
+        tileLayer.progress = "";
+        tileSource.setTileLoadFunction(_tileLoaderHook(tileSource, tileLayer));
+
+        // hook to swap the tile layer when timeIndex changes
         tileLayer.on("propertychange", function(event) {
             if (event.key == "timeIndex") {
                 tileSource.updateParams({
@@ -244,29 +281,33 @@ window.gokart = (function(self) {
             return tileGrid.origGetZForResolution(resolution, -1);
         };
 
-        // helper function to create a tile source
-        var tileSource = function(url) {
-            return new ol.source.WMTS({
-                url: url,
-                layer: layer.id,
-                matrixSet: matrixSet.name,
-                format: layer.format,
-                projection: layer.projection,
-                wrapX: true,
-                tileGrid: tileGrid
-            });
-        }
+        // create a tile source
+        var tileSource = new ol.source.WMTS({
+            url: layer.wmts_url,
+            layer: layer.id,
+            matrixSet: matrixSet.name,
+            format: layer.format,
+            projection: layer.projection,
+            wrapX: true,
+            tileGrid: tileGrid
+        });
+
         var tileLayer = new ol.layer.Tile({
             opacity: layer.opacity || 1,
-            source: tileSource(layer.wmts_url)
+            source: tileSource
         });
+
+        // hook the tile loading function to update progress indicator
+        tileLayer.progress = "";
+        tileSource.setTileLoadFunction(_tileLoaderHook(tileSource, tileLayer));
+
         // if the "refresh" option is set, set a timer
         // to force a reload of the tile content
         if (layer.refresh) {
             tileLayer.set("updated", moment().toLocaleString());
             tileLayer.refresh = setInterval(function() {
                 tileLayer.set("updated", moment().toLocaleString());
-                tileLayer.setSource(tileSource(layer.wmts_url + "?time=" + moment.utc().unix()));
+                tileSource.setUrl(layer.wmts_url + "?time=" + moment.utc().unix());
             }, layer.refresh * 1000);
         };
         // set properties for use in layer selector
