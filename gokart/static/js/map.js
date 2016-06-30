@@ -184,7 +184,6 @@ window.gokart = (function(self) {
     }
 
 
-    
     self.geojson = new ol.format.GeoJSON();
 
     // loader for vector layers with hover querying
@@ -203,17 +202,33 @@ window.gokart = (function(self) {
 
         
         var vectorSource = new ol.source.Vector();
+        var vector = new ol.layer.Vector({
+            opacity: options.opacity || 1,
+            source: vectorSource,
+            style: options.style
+        });
+        vector.progress = "";
+
         vectorSource.loadSource = function() {
             if (options.cql_filter) {
-                options.params.cql_filter = options.cql_filter 
+                options.params.cql_filter = options.cql_filter;
             } else if (options.params.cql_filter) {
-                delete options.params.cql_filter
+                delete options.params.cql_filter;
             }
-            $.get(url + "?" + $.param(options.params), function(response) {
-                var features = self.geojson.readFeatures(response);
-                vectorSource.clear(true);
-                vectorSource.addFeatures(features);
-            }, "text");
+            vector.progress = "loading";
+            $.ajax({
+                url: url + "?" + $.param(options.params),
+                success: function(response, stat, xhr) {
+                    var features = self.geojson.readFeatures(response);
+                    vectorSource.clear(true);
+                    vectorSource.addFeatures(features);
+                    vector.progress = "idle";
+                }, 
+                error: function() {
+                    vector.progress = "error";
+                },
+                dataType: "json"
+            });
         }
 
         // bind vue template (specified in options) to update
@@ -224,12 +239,7 @@ window.gokart = (function(self) {
             if (options.onadd) { options.onadd(event.feature) };
         });
 
-        var vector = new ol.layer.Vector({
-            opacity: options.opacity || 1,
-            source: vectorSource,
-            style: options.style
-        });
-
+        
         // if the "refresh" option is set, set a timer
         // to update the source
         if (options.refresh) {
