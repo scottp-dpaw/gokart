@@ -81,17 +81,16 @@
                     </div>
                     {% endraw %}
                     <div id="tracking-list">
-                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1"><div class="row feature-row" v-bind:class="{'device-selected': select(f) }">{% endraw %}
+                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" v-bind:class="{'device-selected': select(f) }">{% endraw %}
                         {% block infotemplates %}
-                            <span v-if="toggleHistory">
+                            <div class="small-1 columns" v-if="toggleHistory">
                                 {% raw %}<input type="checkbox" @change="select(f, $event)" v-bind:checked="select(f)"/>{% endraw %}
-                            </span>
+                            </div>
                             <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
                                 <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
                                 <small>{{ f.time }}</small>
                             </div></div>{% endraw %}
                         {% endblock %}
-                        </div>
                     </div>
                 </div>
                 <div id="tracking-groups-tab" class="tabs-panel">
@@ -125,8 +124,12 @@
             margin-bottom: 0px;
         }
         .device-selected {
-            background-color: darkgreen;
+            background-color: #165016;
         }
+        .feature-row:nth-child(even).device-selected {
+            background-color: #185a18;
+        }
+
 
     </style>
 </div>
@@ -274,8 +277,8 @@ gokart.init([
 var fireLineStyle = new ol.style.Style({
     stroke: new ol.style.Stroke({
         width: 8.0,
-        lineDash: [20,10],
-        color: [0, 72, 0, 1.0],
+        lineDash: [20,20],
+        color: [0, 114, 0, 1.0],
         lineCap: "square",
         lineJoin: "bevel"
     })  
