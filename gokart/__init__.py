@@ -83,17 +83,17 @@ def postbox():
     path = os.path.join(workdir, "email.html")
     pdfpath = path.replace(".html", ".pdf")
     emailhtml = bottle.jinja2_template('email.html', **{
-        "htmlclone": bottle.request.forms.get("_htmlclone")
+        "htmlclone": bottle.request.forms.get("_htmlclone").decode("utf-8")
     })
     with open(path, "w") as htmlfile:
-        htmlfile.write(emailhtml)
+        htmlfile.write(emailhtml.encode("utf-8"))
     subprocess.call(["wkhtmltopdf", "-q", path, pdfpath])
     attachment = MIMEApplication(open(pdfpath).read())
     shutil.rmtree(workdir)
     attachment.add_header('Content-Disposition', 'attachment', filename=bottle.request.forms.get("_filename", "form.pdf"))
     text = "Submitted form data:\n\n"
     for key, value in bottle.request.forms.iteritems():
-        if key.startswith("_"): continue
+        if key.startswith("_") or not value or value == "0": continue
         text += '  {}: {}\n'.format(key, value)
     msg = MIMEMultipart()
     msg.attach(MIMEText(text, 'plain'))

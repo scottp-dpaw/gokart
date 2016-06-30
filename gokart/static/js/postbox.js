@@ -21,20 +21,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var form = new Vue({
             el: formel,
             data: data,
-            watch: {
-                fields: { 
-                    handler: function (val, oldVal) {
-                        var clone = this.$el.cloneNode(true);
-                        Array.prototype.forEach.call(clone.querySelectorAll(".hideforemail"), function(el) {
-                            el.parentNode.removeChild(el);
-                        });
-                        Array.prototype.forEach.call(clone.querySelectorAll("input"), function(input) {
-                            if (input.hidden || !input.value) { input.parentNode.removeChild(input); }
-                            if (input.parentNode) { input.outerHTML = input.value; }
-                        });
-                        htmlinput.value = clone.innerHTML;
-                    },
-                    deep: true
+            methods: {
+                update: function () {
+                    var clone = this.$el.cloneNode(true);
+                    Array.prototype.forEach.call(clone.querySelectorAll(".hideforemail"), function(el) {
+                        el.parentNode.removeChild(el);
+                    });
+                    Array.prototype.forEach.call(clone.querySelectorAll("input"), function(input) {
+                        if (input.hidden || !input.value) { input.parentNode.removeChild(input); }
+                        if (input.parentNode) { input.outerHTML = input.value; }
+                    });
+                    htmlinput.value = clone.innerHTML;
                 }
             }
         });
