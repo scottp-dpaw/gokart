@@ -39,10 +39,9 @@
                                 <label for="toggleHoverInfo" class="side-label">Display hovering feature info</label>
                             </div>
 
-                            <div id="layers-active-list"><div v-for="l in olLayers.slice().reverse()" class="row layer-row" v-bind:class="l.progress" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = l.get('catalogueEntry')">
+                            <div id="layers-active-list"><div v-for="l in olLayers.slice().reverse()" class="row layer-row" v-bind:class="l.progress" data-id="{{ l.get('id') }}" track-by="values_.id" @click="layer = getLayer(l.get('id'))">
                                 <div class="small-9">    
                                     <div class="layer-title">{{ l.get("name") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
-                                    <div class="layer-id">{{ l.get("catalogueEntry").id }}</div>
                                     <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
                                 </div>
                                 <div class="small-3"><div class="text-right">
@@ -53,7 +52,7 @@
                         <div class="row collapse">
                             <div class="columns">
                                 <h4>{{ layer.name }}</h4>
-                                <div class="tool-slice row" v-if="layer.olLayer">
+                                <div class="tool-slice row" v-if="layer.olLayer()">
                                     <div class="columns small-2"><label class="tool-label">Opacity:<br/>{{ layerOpacity }}%</label></div>
                                     <div class="columns small-10"><input type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
                                 </div>
@@ -90,14 +89,13 @@
                                 </div>
                             </div>
                             <div id="layers-catalogue-list">
-                                <div v-for="l in catalogue | filterBy search in searchAttrs" class="row layer-row" @mouseover="layer = l" @click="onToggle($index)">
+                                <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs" class="row layer-row" @mouseover="layer = l" @click="onToggle($index)">
                                     <div class="small-9">
                                         <div class="layer-title">{{ l.name }}</div>
-                                        <div class="layer-id">{{ l.id }}</div>
                                     </div>
                                     <div class="small-3"><div class="text-right">
                                         <div class="switch tiny" @click="$event.stopPropagation();">
-                                            <input class="switch-input" id="ctlgsw{{ $index }}" v-model="l.toggled" @change="onLayerChange(l)" type="checkbox"/>
+                                            <input class="switch-input" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="l.olLayer() !== undefined" type="checkbox"/>
                                             <label class="switch-paddle" for="ctlgsw{{ $index }}">
                                                 <span class="show-for-sr">Toggle layer</span>
                                             </label>

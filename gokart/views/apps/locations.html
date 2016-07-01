@@ -12,31 +12,41 @@ gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
 gokart.defaultWFSSrc = "{{ env.WFS_SRC }}";
 {% endif %}
 
-gokart.catalogue = {
-    "dpaw_offices": {
+var catalogue = [
+    {
         name: "P&W Offices",
         init: gokart.createTileLayer,
         id: "cddp:dpaw_offices",
         format: "image/png"
     },
-    "telstra_gcm_4g_3g": {
+    {
         name: "Telstra coverage",
         init: gokart.createTileLayer,
         id: "dpaw:telstra_gcm_4g_3g",
         opacity: 0.5,
         format: "image/png"
     },
-    "mapbox_outdoors": {
+    {
+        name: "Optus coverage",
+        init: gokart.createTileLayer,
+        id: "dpaw:optus_gcm_4g_3g",
+        opacity: 0.5,
+        format: "image/png"
+    },
+    {
+        name: "Vodafone coverage",
+        init: gokart.createTileLayer,
+        id: "dpaw:vodafone_gcm_4g_3g",
+        opacity: 0.5,
+        format: "image/png"
+    },
+    {
         name: "Mapbox Oudoors",
         init: gokart.createTileLayer,
         id: "dpaw:mapbox_outdoors"
     }
-};
+];
 
-gokart.init([
-    gokart.catalogue["dpaw_offices"].init(),
-    gokart.catalogue["telstra_gcm_4g_3g"].init(),
-    gokart.catalogue["mapbox_outdoors"].init()
-]);
+gokart.init(catalogue, ["cddp:dpaw_offices","dpaw:telstra_gcm_4g_3g","dpaw:mapbox_outdoors"]);
 </script>
 {% endblock %}

@@ -177,9 +177,6 @@ window.gokart = (function(self) {
         // set properties for use in layer selector
         tileLayer.set("name", options.name);
         tileLayer.set("id", options.id);
-        this.olLayer = tileLayer;
-        this.toggled = true;
-        tileLayer.set("catalogueEntry", this);
         return tileLayer;
     }
 
@@ -253,9 +250,6 @@ window.gokart = (function(self) {
 
         vector.set("name", options.name);
         vector.set("id", options.id);
-        this.olLayer = vector;
-        this.toggled = true;
-        vector.set("catalogueEntry", this);
         return vector;
     }
 
@@ -323,15 +317,18 @@ window.gokart = (function(self) {
         // set properties for use in layer selector
         tileLayer.set("name", layer.name);
         tileLayer.set("id", layer.id);
-        this.olLayer = tileLayer;
-        this.toggled = true;
-        tileLayer.set("catalogueEntry", this);
         return tileLayer;
     };
 
-    self.layerById = function(id) {
+    self.getMapLayer = function(id) {
         return self.map.getLayers().getArray().find(function(layer) {
             return layer.get("id") == id;
+        });
+    }
+
+    self.getLayer = function(id) {
+        return self.catalogue.getArray().find(function(layer) {
+            return layer.id == id;
         });
     }
 
@@ -401,14 +398,29 @@ window.gokart = (function(self) {
     }
 
     // initialise map
-    self.init = function(layers, options) {
+    self.init = function(catalogue, layers, options) {
+        self.catalogue = new ol.Collection();
         options = options || {};
+
+        var getMapLayer = function() {
+            return self.getMapLayer(this.id);
+        }
+
+        self.catalogue.on("add", function(event) {
+            event.element.olLayer = getMapLayer;
+        });
+
+        self.catalogue.extend(catalogue);
+
+        var initialLayers = layers.reverse().map(function(id) {
+            return self.getLayer(id).init();
+        });
 
         self.map = new ol.Map({
             logo: false,
             renderer: "canvas",
             target: "map",
-            layers: layers.reverse(),
+            layers: initialLayers,
             view: new ol.View({
                 projection: "EPSG:4326",
                 center: [123.75, -24.966],

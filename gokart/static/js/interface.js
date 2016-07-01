@@ -90,8 +90,8 @@ window.gokart = (function(self) {
             data: {
                 sliderOpacity: 0,
                 layer: {},
-                olLayers: [],
-                catalogue: {},
+                olLayers: self.map.getLayers().getArray(),
+                catalogue: self.catalogue,
                 hoverInfoCache: true,
                 swapBaseLayers: true,
                 search: "",
@@ -117,11 +117,11 @@ window.gokart = (function(self) {
                 },
                 sliderTimeline: {
                     get: function() {
-                        this.timeIndex = this.layer.olLayer.get("timeIndex");
+                        this.timeIndex = this.layer.olLayer().get("timeIndex");
                         return this.timeIndex;
                     },
                     set: function(val) {
-                        this.layer.olLayer.set("timeIndex", val);
+                        this.layer.olLayer().set("timeIndex", val);
                         this.timeIndex = val;
                     }
                 },
@@ -139,15 +139,16 @@ window.gokart = (function(self) {
                 },
                 layerOpacity: {
                     get: function() {
-                        return Math.round(this.layer.olLayer.getOpacity() * 100);
+                        return Math.round(this.layer.olLayer().getOpacity() * 100);
                     },
                     set: function(val) {
-                        this.layer.olLayer.setOpacity(val / 100);
+                        this.layer.olLayer().setOpacity(val / 100);
                     }
                 }    
             },
             // methods callable from inside the template
             methods: {
+                getLayer: self.getLayer,
                 toggleGraticule: function() {
                     if (this.graticule) {
                         self.graticule.setMap(null);
@@ -167,13 +168,12 @@ window.gokart = (function(self) {
                     });
                 },
                 removeLayer: function(olLayer) {
-                    olLayer.get("catalogueEntry").toggled = false;
                     self.map.removeLayer(olLayer);
                 },
                 // change order of OL layers based on "Map Layers" list order
                 updateOrder: function(el) {
                     Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function(row) {
-                        var layer = self.layerById(row.dataset.id);
+                        var layer = self.getMapLayer(row.dataset.id);
                         self.map.removeLayer(layer);
                         self.map.addLayer(layer);
                     });
@@ -183,15 +183,18 @@ window.gokart = (function(self) {
                     $("#ctlgsw"+index).click();
                 },
                 // toggle a layer in the Layer Catalogue
-                onLayerChange: function(layer) {
+                onLayerChange: function(layer, checked) {
                     var vm = this;
-                    if (layer.toggled) {
+                    // if layer matches state, return
+                    if (checked == (layer.olLayer() !== undefined)) { return }
+                    // make the layer match the state
+                    if (checked) {
                         if (layer.base) {
                             // "Switch out base layers automatically" is enabled, remove
                             // all other layers with the "base" option set.
                             if (vm.swapBaseLayers) {
                                 vm.olLayers.forEach(function(olLayer) {
-                                    if (olLayer.get("catalogueEntry").base) {
+                                    if (self.getLayer(olLayer.get("id")).base) {
                                         vm.removeLayer(olLayer);
                                     }
                                 });
@@ -202,7 +205,7 @@ window.gokart = (function(self) {
                             self.map.addLayer(layer.init());
                         }
                     } else {
-                        vm.removeLayer(layer.olLayer);
+                        vm.removeLayer(layer.olLayer());
                     }
                 }
             },
@@ -210,8 +213,6 @@ window.gokart = (function(self) {
                 dragula([document.querySelector("#layers-active-list")]).on("dragend", this.updateOrder); 
             }
         });
-        ui.layers.olLayers = self.map.getLayers().getArray();
-        ui.layers.catalogue = self.catalogue;
     }
 
     // hook for hover effects
@@ -299,16 +300,13 @@ window.gokart = (function(self) {
 
 
     self.initAnnotations = function() {
-        self.catalogue.gokartAnnotations = {
+        self.catalogue.push({
             init: function() {
-                this.olLayer = ui.featureOverlay;
-                this.toggled = true;
-                ui.featureOverlay.set("catalogueEntry", this);
                 return ui.featureOverlay;
             },
             id: "annotations",
             name: "My Annotations"
-        }
+        });
         var defaultTool = {
             name: "Pan",
             icon: "fa-hand-paper-o",
@@ -384,9 +382,8 @@ window.gokart = (function(self) {
                         self.map.addInteraction(inter);
                     });
                     ui.layers.hoverInfo = ((t.name == 'Pan') && (ui.layers.hoverInfoCache));
-                    if (!self.catalogue.gokartAnnotations.toggled) {
-                        self.catalogue.gokartAnnotations.toggled = true;
-                        ui.layers.onLayerChange(self.catalogue.gokartAnnotations);
+                    if (!self.getLayer("annotations").olLayer()) {
+                        ui.layers.onLayerChange(self.getLayer("annotations"), true);
                     }
                     vm.tool = t;
                 }
