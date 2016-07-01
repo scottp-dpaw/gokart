@@ -158,6 +158,10 @@ window.gokart = (function(self) {
                         self.map.addLayer(layer);
                     });
                 },
+                // helper function to simulate a <label> style click on a row
+                onToggle: function(index) {
+                    $("#ctlgsw"+index).click();
+                },
                 // toggle a layer in the Layer Catalogue
                 onLayerChange: function(layer) {
                     var vm = this;
