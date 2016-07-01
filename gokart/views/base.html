@@ -30,6 +30,7 @@
             </div>
             <div class="off-canvas-content" data-off-canvas-content>
                 {% block content %}
+                
                 <div id="map-controls" class="map-widget" v-cloak>{% raw %}
                     <div class="button-group tiny">
                         <a class="button" @click="print('jpg')"><i class="fa fa-download"></i> JPG</a>
@@ -42,6 +43,7 @@
                         <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option></select>
                     <div class="hide" id="legendsvg"></div>
                 </div>{% endraw %}
+
                 <div class="map" id="map">
                     <div id="info" v-bind:style="css" v-show="features" v-cloak>
                         <div class="row collapse">
@@ -60,6 +62,7 @@
                         </div>
                     </div>
                 </div>
+                
                 {% endblock %}
             </div>
         </div>

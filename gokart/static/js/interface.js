@@ -31,6 +31,7 @@ window.gokart = (function(self) {
         el: '#info',
         // variables
         data: {
+            enabled: true,
             features: false,
             coordinate: "",
             offset: 20,
@@ -72,6 +73,11 @@ window.gokart = (function(self) {
                     this.coordinate = ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3);
                     this.pixel = pixel;
                 }
+            },
+            onPointerMove: function(event) {
+                if (this.enabled) {
+                    this.display(event);
+                }
             }
         }
     });
@@ -86,6 +92,7 @@ window.gokart = (function(self) {
                 layer: {},
                 olLayers: [],
                 catalogue: {},
+                hoverInfoCache: true,
                 swapBaseLayers: true,
                 search: "",
                 searchAttrs: ["name", "id"],
@@ -96,7 +103,16 @@ window.gokart = (function(self) {
                 graticule: {
                     cache: false, 
                     get: function() { 
-                        return self.graticule.getMap() == self.map 
+                        return self.graticule.getMap() == self.map; 
+                    }
+                },
+                hoverInfo: {
+                    cache: false,
+                    get: function() {
+                        return ui.info.enabled;
+                    },
+                    set: function(val) {
+                        ui.info.enabled = val;
                     }
                 },
                 sliderTimeline: {
@@ -138,6 +154,10 @@ window.gokart = (function(self) {
                     } else {
                         self.graticule.setMap(self.map);
                     }
+                },
+                toggleHoverInfo: function(ev) {
+                    this.hoverInfoCache = ev.target.checked;
+                    this.hoverInfo = ev.target.checked;
                 },
                 update: function() {
                     var vm = this;
@@ -193,6 +213,12 @@ window.gokart = (function(self) {
         ui.layers.olLayers = self.map.getLayers().getArray();
         ui.layers.catalogue = self.catalogue;
     }
+
+    // hook for hover effects
+    ui.onMapHover = function() {
+
+    }
+
 
     // collection to store all annotation features
     ui.features = new ol.Collection();
@@ -349,7 +375,6 @@ window.gokart = (function(self) {
                 },
                 setTool: function(t) {
                     var vm = this;
-                    self.map.unByKey(ui.infoEvent);
                     vm.tools.forEach(function(tool) {
                         tool.interactions.forEach(function (inter) {
                             self.map.removeInteraction(inter);
@@ -358,9 +383,8 @@ window.gokart = (function(self) {
                     t.interactions.forEach(function (inter) {
                         self.map.addInteraction(inter);
                     });
-                    if (t.name == 'Pan') {
-                        ui.infoEvent = self.map.on('pointermove', ui.info.display);
-                    } else if (!self.catalogue.gokartAnnotations.toggled) {
+                    ui.layers.hoverInfo = ((t.name == 'Pan') && (ui.layers.hoverInfoCache));
+                    if (!self.catalogue.gokartAnnotations.toggled) {
                         self.catalogue.gokartAnnotations.toggled = true;
                         ui.layers.onLayerChange(self.catalogue.gokartAnnotations);
                     }
@@ -378,7 +402,7 @@ window.gokart = (function(self) {
             history.replaceState(null, null, location.pathname + "?" + self.mapControls.shortUrl);
         }});
         // display hover popups
-        ui.infoEvent = self.map.on('pointermove', ui.info.display);
+        self.map.on("pointermove", ui.info.onPointerMove);
         if (document.querySelector("#menu-tab-layers")) { self.initLayers() };
         if (document.querySelector("#menu-tab-annotations")) { self.initAnnotations() };
 
