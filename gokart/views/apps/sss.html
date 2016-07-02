@@ -270,6 +270,7 @@ var catalogue = [
 ];
 
 gokart.init(catalogue, ['dpaw:resource_tracking', 'cddp:smb_250K'])
+gokart.loadRemoteCatalogue('{{ env.CATALOGUE_SRC }}?format=json&application__name=sss');
 
 var fireLineStyle = new ol.style.Style({
     stroke: new ol.style.Stroke({

@@ -256,11 +256,14 @@ window.gokart = (function(self) {
     // loader to create a WMTS layer from a kmi datasource
     self.createTileLayer = function() {
         var layer = this;
+        if (layer.base) {
+            layer.format = "image/jpeg";
+        }
         layer = $.extend({
             opacity: 1,
             name: "Mapbox Outdoors",
             id: "dpaw:mapbox_outdoors",
-            format: "image/jpeg",
+            format: "image/png",
             tileSize: 1024,
             projection: "EPSG:4326",
             wmts_url: self.defaultWMTSSrc,
@@ -376,26 +379,19 @@ window.gokart = (function(self) {
         return "1:" + (Math.round(scale * 100) / 100).toLocaleString() + "K";
     };
 
-    // helper to populate the catalogue from a CSW service
-    self.loadCatalogue = function(options) {
-        options = options || {};
-        options.url = options.url || "/catalogue/";
-        options.params = $.extend({
-            request: "GetRecords",
-            service: "CSW",
-            version: "2.0.2",
-            ElementSetName: "full",
-            typeNames: "csw:Record",
-            outputFormat: "application/json",
-            resultType: "results"
-        }, options.params || {});
+    // helper to populate the catalogue from a remote service
+    self.loadRemoteCatalogue = function(url) {
         var req = new XMLHttpRequest();
+        req.withCredentials = true;
         req.onload = function() {
-            self.cswCatalogue = JSON.parse(this.responseText);
+            JSON.parse(this.responseText).forEach(function(l) {
+                self.catalogue.push(l);
+            });
+
         };
-        req.open("GET", options.url + "?" + $.param(options.params));
+        req.open("GET", url);
         req.send();
-    }
+    };
 
     // initialise map
     self.init = function(catalogue, layers, options) {
@@ -407,7 +403,11 @@ window.gokart = (function(self) {
         }
 
         self.catalogue.on("add", function(event) {
-            event.element.olLayer = getMapLayer;
+            var l = event.element;
+            l.olLayer = getMapLayer;
+            l.id = l.id || l.identifier;
+            l.name = l.name || l.title;
+            l.init = l.init || self.createTileLayer; // override based on layer type
         });
 
         self.catalogue.extend(catalogue);
