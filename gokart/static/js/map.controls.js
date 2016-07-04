@@ -35,7 +35,7 @@ window.gokart = (function(self) {
         });
 
         self.mapExportControls = new Vue({
-            el: "#map-export-controls",
+            el: "#layers-export",
             // variables
             data: {
                 minDPI: 100,
@@ -66,7 +66,7 @@ window.gokart = (function(self) {
                 legendInfo: function() {
                     var whoami = self.whoami || {email: ""};
                     return {
-                        km: (Math.round(self.mapScaleControl.getScale() * 40) / 1000).toLocaleString(),
+                        km: (Math.round(self.getScale() * 40) / 1000).toLocaleString(),
                         scale: "ISO " + this.paperSize + " " + self.mapScaleControl.scaleString,
                         title: this.title, author: whoami.email,
                         date: "Printed " + moment().toLocaleString()
@@ -89,13 +89,13 @@ window.gokart = (function(self) {
                     self.dpmm = this.minDPI / self.mmPerInch;
                     self.map.setSize([self.dpmm * this.layout.width, self.dpmm * this.layout.height]);
                     self.map.getView().fit(this.layout.extent, self.map.getSize());
-                    this.setScale(self.getFixedScale());
+                    self.setScale(self.getFixedScale());
                 },
                 // restore map to viewport dimensions
                 resetSize: function() {
                     self.map.setSize(this.layout.size); self.dpmm = this.layout.dpmm;
                     self.map.getView().fit(this.layout.extent, self.map.getSize());
-                    this.setScale(this.layout.scale);
+                    self.setScale(this.layout.scale);
                     $("body").css("cursor", "default");
                 },       
                 // generate legend block, scale ruler is 40mm wide
@@ -170,7 +170,6 @@ window.gokart = (function(self) {
                 }
             }
         });
-        console.log(self.mapExportControls);
     }
 
     return self;

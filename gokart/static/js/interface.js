@@ -85,17 +85,13 @@ window.gokart = (function(self) {
     // update "Map Layers" pane
     self.initLayers = function() {
         ui.layers = new Vue({
-            el: "#menu-tab-layers",
+            el: "#layers-active",
             // variables            
             data: {
                 sliderOpacity: 0,
                 layer: {},
                 olLayers: self.map.getLayers().getArray(),
-                catalogue: self.catalogue,
                 hoverInfoCache: true,
-                swapBaseLayers: true,
-                search: "",
-                searchAttrs: ["name", "id"],
                 timeIndex: 0
             },
             // parts of the template to be computed live
@@ -178,13 +174,27 @@ window.gokart = (function(self) {
                         self.map.addLayer(layer);
                     });
                 },
+            },
+            ready: function () { 
+                dragula([document.querySelector("#layers-active-list")]).on("dragend", this.updateOrder); 
+            }
+        });
+        ui.catalogue = new Vue({
+            el: "#layers-catalogue",
+            data: {
+                layer: {},
+                catalogue: self.catalogue,
+                swapBaseLayers: true,
+                search: "",
+                searchAttrs: ["name", "id"]
+            },
+            methods: {
                 // helper function to simulate a <label> style click on a row
                 onToggle: function(index) {
                     $("#ctlgsw"+index).click();
                 },
                 // toggle a layer in the Layer Catalogue
                 onLayerChange: function(layer, checked) {
-                    var vm = this;
                     // if layer matches state, return
                     if (checked == (layer.olLayer() !== undefined)) { return }
                     // make the layer match the state
@@ -192,10 +202,10 @@ window.gokart = (function(self) {
                         if (layer.base) {
                             // "Switch out base layers automatically" is enabled, remove
                             // all other layers with the "base" option set.
-                            if (vm.swapBaseLayers) {
-                                vm.olLayers.forEach(function(olLayer) {
+                            if (this.swapBaseLayers) {
+                                ui.layers.olLayers.forEach(function(olLayer) {
                                     if (self.getLayer(olLayer.get("id")).base) {
-                                        vm.removeLayer(olLayer);
+                                        ui.layers.removeLayer(olLayer);
                                     }
                                 });
                             } 
@@ -205,12 +215,9 @@ window.gokart = (function(self) {
                             self.map.addLayer(layer.init());
                         }
                     } else {
-                        vm.removeLayer(layer.olLayer());
+                        ui.layers.removeLayer(layer.olLayer());
                     }
                 }
-            },
-            ready: function () { 
-                dragula([document.querySelector("#layers-active-list")]).on("dragend", this.updateOrder); 
             }
         });
     }

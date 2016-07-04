@@ -3,7 +3,7 @@
 {% block offcanvas %}
 <div class="tabs-content vertical" data-tabs-content="menu-tabs">
     {% block tab_panels %}
-    <div class="tabs-panel" id="menu-tab-layers" v-cloak>
+    <div class="tabs-panel" id="menu-tab-layers">
         <div class="row collapse">
             <div class="columns shrink">
                 <ul class="tabs" data-tabs id="layers-tabs">
@@ -17,7 +17,7 @@
             <div class="columns">
                 <div class="tabs-content vertical" data-tabs-content="layers-tabs">
                     
-                    <div class="tabs-panel is-active" id="layers-active">
+                    <div class="tabs-panel is-active" id="layers-active" v-cloak>
                     {% raw %}
                         <div class="layers-topframe scroller row"><div class="columns">
 
@@ -65,7 +65,7 @@
                         </div>
                     </div>
 
-                    <div class="tabs-panel" id="layers-catalogue">
+                    <div class="tabs-panel" id="layers-catalogue" v-cloak>
                         <div class="layers-topframe scroller row"><div class="columns">
                             <div class="row">
                                 <div class="switch tiny">
@@ -112,8 +112,8 @@
                         </div>
                     </div>
                     
-                    <div class="tabs-panel" id="layers-export">
-                        <div id="map-export-controls" v-cloak>
+                    <div class="tabs-panel" id="layers-export" v-cloak>
+                        <div id="map-export-controls">
                             <div class="button-group">
                                 <a class="button" @click="print('jpg')"><i class="fa fa-download"></i> JPG</a>
                                 <a class="button" @click="print('pdf')"><i class="fa fa-print"></i> PDF</a>
@@ -121,6 +121,7 @@
                             <select v-model="paperSize">
                                 <option v-for="size in paperSizes">{{ $key }}</option>
                             </select>
+                                <div class="hide" id="legendsvg"></div>            
                         </div>
                     {% endraw %}
                     </div>
