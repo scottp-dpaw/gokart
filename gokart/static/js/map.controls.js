@@ -5,22 +5,50 @@ window.gokart = (function(self) {
     var layout = self.layout = {};
 
     self.initMapControls = function() {
-        self.mapControls = new Vue({
-            el: "#map-controls",
+        self.mapScaleControl = new Vue({
+            el: "#menu-scale",
+            // variables
+            data: {
+                fixedScales: self.fixedScales,
+                scale: 0
+            },
+            // parts of the template to be computed live
+            computed: {
+                // scale string for the current map zoom level
+                scaleString: function() {
+                    return self.getScaleString(this.scale);
+                }
+            },
+            // methods callable from inside the template
+            methods: {
+                // wrappers for scale methods
+                setScale: function(ev) { 
+                    var scale = ev.target.value;
+                    self.setScale(scale); 
+                    this.scale = scale; 
+                    ev.target.selectedIndex = 0;
+                },
+                getScaleString: function(scale) { 
+                    return self.getScaleString(scale); 
+                },
+            }
+        });
+
+        self.mapExportControls = new Vue({
+            el: "#map-export-controls",
             // variables
             data: {
                 minDPI: 100,
                 paperSizes: {
-                  A0: [1189, 841],
-                  A1: [841, 594],
-                  A3: [420, 297],
-                  A4: [297, 210]
+                    A0: [1189, 841],
+                    A1: [841, 594],
+                    A2: [594, 420],
+                    A3: [420, 297],
+                    A4: [297, 210]
                 },
                 paperSize: "A3",
                 layout: {},
                 title: "Quick Print",
-                fixedScales: self.fixedScales,
-                scale: 0,
             },
             // parts of the template to be computed live
             computed: {
@@ -31,19 +59,15 @@ window.gokart = (function(self) {
                     return {
                         width: dims[0], height: dims[1], size: size,
                         extent: self.map.getView().calculateExtent(size),
-                        scale: this.scale, dpmm: self.dpmm
+                        scale: self.mapScaleControl.scale, dpmm: self.dpmm
                     }
-                },
-                // scale string for the current map zoom level
-                scaleString: function() {
-                    return self.getScaleString(this.scale);
                 },
                 // info for the legend block on the print raster
                 legendInfo: function() {
                     var whoami = self.whoami || {email: ""};
                     return {
-                        km: (Math.round(self.getScale() * 40) / 1000).toLocaleString(),
-                        scale: "ISO " + this.paperSize + " " + this.scaleString,
+                        km: (Math.round(self.mapScaleControl.getScale() * 40) / 1000).toLocaleString(),
+                        scale: "ISO " + this.paperSize + " " + self.mapScaleControl.scaleString,
                         title: this.title, author: whoami.email,
                         date: "Printed " + moment().toLocaleString()
                     }
@@ -58,13 +82,9 @@ window.gokart = (function(self) {
             },
             // methods callable from inside the template
             methods: {
-                // wrappers for scale methods
-                setScale: function(scale) { self.setScale(scale); this.scale = scale; },
-                getScaleString: function(scale) { return self.getScaleString(scale); },
                 // resize map to page dimensions (in mm) for printing, save layout
                 setSize: function() {
                     $("body").css("cursor", "progress");
-                    $("#map-controls").addClass("hide");
                     this.layout = this.mapLayout;
                     self.dpmm = this.minDPI / self.mmPerInch;
                     self.map.setSize([self.dpmm * this.layout.width, self.dpmm * this.layout.height]);
@@ -77,8 +97,7 @@ window.gokart = (function(self) {
                     self.map.getView().fit(this.layout.extent, self.map.getSize());
                     this.setScale(this.layout.scale);
                     $("body").css("cursor", "default");
-                    $("#map-controls").removeClass("hide");
-                },
+                },       
                 // generate legend block, scale ruler is 40mm wide
                 renderLegend: function() {
                     var qrcanvas = kjua({text: "http://dpaw.io/sss?" + this.shortUrl, render: 'canvas', size: 100});
@@ -108,7 +127,8 @@ window.gokart = (function(self) {
                     if (!this.title) { return };
                     // rig the viewport to have printing dimensions
                     this.setSize();
-                    var timer; var vm = this;
+                    var timer; 
+                    var vm = this;
                     // wait until map is rendered before continuing
                     var composing = self.map.on("postcompose", function(event) {
                         timer && clearTimeout(timer);
@@ -150,6 +170,7 @@ window.gokart = (function(self) {
                 }
             }
         });
+        console.log(self.mapExportControls);
     }
 
     return self;

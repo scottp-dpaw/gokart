@@ -224,7 +224,10 @@ window.gokart = (function(self) {
                 error: function() {
                     vector.progress = "error";
                 },
-                dataType: "json"
+                dataType: "json",
+                xhrFields: {
+                    withCredentials: true
+                }
             });
         }
 
@@ -370,9 +373,9 @@ window.gokart = (function(self) {
 
     // generate a human-readable scale string
     self.getScaleString = function(scale) {
-        if (scale < 1.0) {
+        if (Math.round(scale * 100)/100 < 1.0) {
             return "1:" + (Math.round(scale * 100000)/100).toLocaleString();
-        } else if (scale >= 1000.0) {
+        } else if (Math.round(scale * 100)/100 >= 1000.0) {
             return "1:" + (Math.round(scale/10)/100).toLocaleString() + "M";
         }
         
@@ -436,7 +439,7 @@ window.gokart = (function(self) {
                     label: $("<i/>", {class: "fa fa-expand"})[0]
                 }),
                 new ol.control.Control({
-                    element: $("#map-controls").get(0)
+                    element: $("#menu-scale").get(0)
                 })
             ],
             interactions: ol.interaction.defaults({

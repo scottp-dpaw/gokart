@@ -31,18 +31,13 @@
             <div class="off-canvas-content" data-off-canvas-content>
                 {% block content %}
                 
-                <div id="map-controls" class="map-widget" v-cloak>{% raw %}
-                    <div class="button-group tiny">
-                        <a class="button" @click="print('jpg')"><i class="fa fa-download"></i> JPG</a>
-                        <a class="button" @click="print('pdf')"><i class="fa fa-print"></i> PDF</a>
-                    </div>
-                    <select class="select-button" v-model="paperSize">
-                        <option v-for="size in paperSizes">{{ $key }}</option></select>
-                    <select class="select-button" v-model="scale" @change="setScale(scale)" id="menu-scale">
-                        <option value="{{ scale }}">{{ scaleString }}</option>
-                        <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option></select>
-                    <div class="hide" id="legendsvg"></div>
-                </div>{% endraw %}
+                {% raw %}    
+                <select @change="setScale" id="menu-scale" v-cloak>
+                    <option value="{{ scale }}" selected>{{ scaleString }}</option>
+                    <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
+                </select>
+                <div class="hide" id="legendsvg"></div>
+                {% endraw %}
 
                 <div class="map" id="map">
                     <div id="info" v-bind:style="css" v-show="features" v-cloak>

@@ -395,9 +395,9 @@ var trackingList = new Vue({
 
 var renderTracking = debounce(function() {
     var layer = gokart.getMapLayer("dpaw:resource_tracking");
-    if (!layer || !gokart.mapControls || layer.getSource().getFeatures().length == 0) { return };
+    if (!layer || !gokart.mapExportControls || layer.getSource().getFeatures().length == 0) { return };
     trackingList.extentFeatures = {};
-    layer.getSource().getFeaturesInExtent(gokart.mapControls.mapLayout.extent).forEach(function(f) {
+    layer.getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent).forEach(function(f) {
         trackingList.extentFeatures[f.get("id")] = f.getProperties();
     });
     trackingList.allFeatures = {};

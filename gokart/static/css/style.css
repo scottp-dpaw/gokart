@@ -73,21 +73,39 @@ html, body {
     position: relative;
 }
 
-/* abs positioning shifts for OpenLayers widgets */
+/* position fixes for top-right OpenLayers map widgets */
 .ol-scale-line { 
-    top: 4.5em; 
+    top: 16px; 
     left: auto; 
-    right: 3em; 
-    bottom: auto; 
+    right: 48px; 
+    bottom: auto;
+    border: 1px solid transparent;
+}
+
+.ol-full-screen {
+    top: 16px;
+    right: 16px;
+    padding: 0;
 }
 
 .ol-zoom { 
-    top: 2.5em; 
+    top: 48px; 
     left: auto; 
-    right: .5em; 
+    right: 16px; 
     bottom: auto; 
+    padding: 0;
 }
 
+#menu-scale {
+    position: absolute;
+    top: 48px;
+    right: 48px;
+    width: 10em;
+    cursor: pointer;
+    font-size: 0.6rem;
+    border: 0;
+    color: white;
+}
 
 /* for mobile screens, size the pane to fill the viewport */
 .off-canvas.position-left {
@@ -206,36 +224,6 @@ input[type="range"] {
     font-weight: bold;
 }
 
-#menu-scale {
-    width: 7.15em;
-}
-
-.select-button {
-    width: auto;
-    background-image: none;
-	color: #eee;
-	cursor: pointer;
-    font-size: .6rem;
-    border: none;
-    margin-right: -.3em;
-    padding: 0.7em;
-    height: auto;
-}
-
-#map-controls {
-    top: .7em;
-    right: 3em;
-}
-
-#map-controls a, #map-controls .select-button, .ol-scale-line {
-	background-color: rgba(73,115,170,0.7);
-}
-
-#map-controls a:focus, #map-controls a:hover,
-#map-controls .select-button:focus, #map-controls .select-button:hover {
-	background-color: rgba(37,88,153,0.82);
-}
-
 
 /* styling for tabs used in the side-pane */
 .off-canvas .tabs {
@@ -259,6 +247,9 @@ input[type="range"] {
     background-color: rgba(128,128,128,0.46);
     border: 1px solid rgba(37,45,51,0.9);
 }
+
+
+
 
 /* styling for switch widgets used in the side pane */
 .off-canvas .switch-paddle {
@@ -372,6 +363,20 @@ input[type="range"] {
 .side-button > a[aria-selected="true"] {
     background-color: rgba(37,45,51,0.8);
     border-left: 3px solid rgb(237, 177, 0);
+}
+
+
+/* colouring changes to OpenLayers widgets to match side buttons*/
+.ol-control, .ol-control:hover {
+    background-color: transparent;
+}
+
+.ol-control button, .ol-control button:focus, .ol-scale-line, #menu-scale {
+    background-color: rgba(37,45,51,0.7);
+}
+
+.ol-control button:hover {
+    background-color: rgba(37,45,51,0.9);
 }
 
 /* fix absurdly large margins on button groups */

@@ -314,7 +314,7 @@ window.gokart = (function(self) {
                 self.dragPanInter,
                 self.doubleClickZoomInter
             ]
-        }
+        };
         ui.annotations = new Vue({
             el: "#menu-tab-annotations",
             data: {
@@ -394,10 +394,14 @@ window.gokart = (function(self) {
 
     $self.on("init_map", function() {
         // setup scale events
-        self.map.on("postrender", function() { if (self.mapControls) { 
-            self.mapControls.scale = self.getScale();
-            history.replaceState(null, null, location.pathname + "?" + self.mapControls.shortUrl);
-        }});
+        self.map.on("postrender", function() { 
+            if (self.mapScaleControl) { 
+                self.mapScaleControl.scale = self.getScale();
+            }
+            if (self.mapExportControls) {
+                history.replaceState(null, null, location.pathname + "?" + self.mapExportControls.shortUrl);
+            }
+        });
         // display hover popups
         self.map.on("pointermove", ui.info.onPointerMove);
         if (document.querySelector("#menu-tab-layers")) { self.initLayers() };
