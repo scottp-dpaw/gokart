@@ -191,7 +191,7 @@ window.gokart = (function(self) {
             methods: {
                 // helper function to simulate a <label> style click on a row
                 onToggle: function(index) {
-                    $("#ctlgsw"+index).click();
+                    $(this.$el).find("#ctlgsw"+index).trigger("click");
                 },
                 // toggle a layer in the Layer Catalogue
                 onLayerChange: function(layer, checked) {
@@ -220,12 +220,7 @@ window.gokart = (function(self) {
                 }
             }
         });
-    }
-
-    // hook for hover effects
-    ui.onMapHover = function() {
-
-    }
+    };
 
 
     // collection to store all annotation features
