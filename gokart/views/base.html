@@ -36,26 +36,24 @@
                     <option value="{{ scale }}" selected>{{ scaleString }}</option>
                     <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
                 </select>
-                {% endraw %}
 
                 <div class="map" id="map">
                     <div id="info" v-bind:style="css" v-show="features" v-cloak>
                         <div class="row collapse">
-                            <div class="columns title"><h5>{% raw %}{{ featuresLength }} {{ featuresLength | pluralize 'feature' }} <small>{{ coordinate }}{% endraw %}</small></h5></div>
+                            <div class="columns title"><h5>{{ featuresLength }} {{ featuresLength | pluralize 'feature' }} <small>{{ coordinate }}</small></h5></div>
                             <button class="close-button float-right" aria-label="Dismiss info" type="button" v-on:click="features = false"><span aria-hidden="true">&times;</span></button>
                         </div>
                         <div class="row">
-                            <div class="columns content">{% raw %}
-                                <div v-for="f in features" class="row feature-row" data-feature-id="{{ f.id }}">
-                                    <div v-if="f.vueTemplate == 'default'" class="small-12">
-                                        <div class="feature-title">{{ f.id }}</div>
-                                    </div>{% endraw %}
-                                    {% block infotemplates %}{% endblock %}
+                            <div class="columns content">
+                                <div v-for="f in features" class="row feature-row">
+                                    <partial v-bind:name="f.get('partialId') || 'featureInfo'"></partial>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="hide" id="featureInfo">{{ f.getId() }}</div>
+                {% endraw %}
                 
                 {% endblock %}
             </div>
