@@ -390,7 +390,7 @@ window.gokart = (function(self) {
                     });
                     ui.layers.hoverInfo = ((t.name == 'Pan') && (ui.layers.hoverInfoCache));
                     if (!self.getLayer("annotations").olLayer()) {
-                        ui.layers.onLayerChange(self.getLayer("annotations"), true);
+                        ui.catalogue.onLayerChange(self.getLayer("annotations"), true);
                     }
                     vm.tool = t;
                 }
