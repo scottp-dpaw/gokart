@@ -43,7 +43,7 @@
                     </div>
                     <div class="row">
                         <div class="switch tiny">
-                            <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory" @click="clearHistory"/>
+                            <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory"/>
                             <label class="switch-paddle" for="resourceHistory">
                                 <span class="show-for-sr">Query history tools</span>
                             </label>
@@ -80,7 +80,7 @@
                         </div>
                     </div>
                     <div id="tracking-list">
-                        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected[$key] }" @click="select($key)" v-bind:data-selectid="$key">
+                        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)">
                             <partial name="resourceInfo"></partial>
                         </div>
                     </div>
@@ -335,13 +335,12 @@ var trackingList = new Vue({
     data: {
         viewportOnly: true,
         toggleHistory: false,
-        selected: gokart.ui.info.selected,
         search: "",
         cql: "",
         history: "",
         fields: ["id", "name", "callsign", "make", "model", "rego", "category", "deviceid", "symbol"],
-        allFeatures: {},
-        extentFeatures: {},
+        allFeatures: [],
+        extentFeatures: [],
         historyFromDate: "",
         historyFromTime: "",
         historyToDate: "",
@@ -367,7 +366,8 @@ var trackingList = new Vue({
         }
     },
     methods: {
-        select: gokart.ui.info.select,
+        select: function(f) { gokart.ui.info.select(f) },
+        selected: function(f) { return gokart.ui.info.selected(f) },
         setCQLFilter: function(cql) {
             gokart.getLayer("dpaw:resource_tracking").cql_filter = cql;
             gokart.getMapLayer("dpaw:resource_tracking").getSource().clear();
@@ -375,15 +375,12 @@ var trackingList = new Vue({
         historyCQLFilter: function() {
             var cql = "";
             var deviceList = "(";
-            Object.keys(this.selectedDevices).forEach(function(item) { deviceList += "'" + item + "',"; });
+            gokart.ui.info.sel.forEach(function(id) { deviceList += "'" + id + "',"; });
             deviceList += "'')";
             cql = "deviceid in " + deviceList + " and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
             console.log(cql);
             gokart.getLayer("dpaw:tracking_history_view").cql_filter = cql;
-            gokart.ui.layers.onLayerChange(gokart.getLayer("dpaw:tracking_history_view"), true);
-        },
-        clearHistory: function() {
-            trackingList.selectedDevices = {};
+            // actually draw history
         },
     }
 });
@@ -392,14 +389,8 @@ var trackingList = new Vue({
 var renderTracking = debounce(function() {
     var layer = gokart.getMapLayer("dpaw:resource_tracking");
     if (!layer || !gokart.mapExportControls || layer.getSource().getFeatures().length == 0) { return };
-    trackingList.extentFeatures = {};
-    layer.getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent).forEach(function(f) {
-        trackingList.extentFeatures[f.get("id")] = f;
-    });
-    trackingList.allFeatures = {};
-    layer.getSource().getFeatures().forEach(function(f) {
-        trackingList.allFeatures[f.get("id")] = f;
-    });
+    trackingList.extentFeatures = layer.getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent);
+    trackingList.allFeatures = layer.getSource().getFeatures();
 }, 100);
 
 gokart.map.getLayerGroup().on("change", renderTracking);

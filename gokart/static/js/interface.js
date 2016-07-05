@@ -33,9 +33,9 @@ window.gokart = (function(self) {
         // variables
         data: {
             enabled: true,
-            features: false,
+            features: [],
             coordinate: "",
-            selected: {},
+            sel: [],
             offset: 20,
             pixel: [0, 0],
         },
@@ -66,9 +66,9 @@ window.gokart = (function(self) {
             display: function(event) {
                 if (event.dragging) { return };
                 var pixel = self.map.getEventPixel(event.originalEvent);
-                var features = {}
+                var features = [];
                 var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
-                    features[f.getGeometry().getExtent().join(" ")] = f;
+                    features.push(f);
                 });
                 if (Object.keys(features).length > 0) {
                     this.features = features;
@@ -81,17 +81,17 @@ window.gokart = (function(self) {
                     this.display(event);
                 }
             },
-            getPartial: function(f) {
-                window.featureTest = f;
-                console.log(f);
+            selected: function(f) {
+                var id = f.get("id") || f.getId();
+                return this.sel.indexOf(id) > -1;
             },
-            select: function(key) {
-                var selected = this.selected;
-                selected[key] = !selected[key];
-                this.selected = {};
-                this.$nextTick(function() {
-                    this.selected = selected;
-                });
+            select: function(f) {
+                var id = f.get("id") || f.getId();
+                if (this.sel.indexOf(id) > -1) {
+                    this.sel.$remove(id);
+                } else {
+                    this.sel.push(id);
+                }
             }
         }
     });
