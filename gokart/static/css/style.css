@@ -233,6 +233,8 @@ input[type="range"] {
 .off-canvas .tabs a {
     color: white;
     border: 1px solid transparent;
+    text-align: center;
+    padding: 16px 4px;
 }
 
 .off-canvas .tabs a:hover {
@@ -248,8 +250,19 @@ input[type="range"] {
     border: 1px solid rgba(37,45,51,0.9);
 }
 
+/* rig the tabs to use flexbox for full-width */
+.off-canvas .tabs {
+    display: flex;
+    width: 100%;
+}
 
+.off-canvas .tabs .tabs-title {
+    flex: 1 1 0px;
+}
 
+.off-canvas .tabs a {
+    height: 100%;    
+}
 
 /* styling for switch widgets used in the side pane */
 .off-canvas .switch-paddle {

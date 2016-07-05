@@ -5,7 +5,7 @@
     {% block tab_panels %}
     <div class="tabs-panel" id="menu-tab-layers">
         <div class="row collapse">
-            <div class="columns shrink">
+            <div class="columns">
                 <ul class="tabs" data-tabs id="layers-tabs">
                     <li class="tabs-title is-active"><a href="#layers-active" aria-selected="true">Active</a></li>
                     <li class="tabs-title"><a href="#layers-catalogue" aria-selected="true">Browse Layers</a></li>
@@ -113,15 +113,17 @@
                     </div>
                     
                     <div class="tabs-panel" id="layers-export" v-cloak>
-                        <div id="map-export-controls">
-                            <div class="button-group">
-                                <a class="button" @click="print('jpg')"><i class="fa fa-download"></i> JPG</a>
-                                <a class="button" @click="print('pdf')"><i class="fa fa-print"></i> PDF</a>
-                            </div>
-                            <select v-model="paperSize">
-                                <option v-for="size in paperSizes">{{ $key }}</option>
-                            </select>
+                        <div id="map-export-controls" class="row collapse">
+                            <div class="columns">
+                                <select v-model="paperSize">
+                                    <option v-for="size in paperSizes">{{ $key }}</option>
+                                </select>
+                                <div class="button-group">
+                                    <a class="button" @click="print('jpg')"><i class="fa fa-file-image-o"></i> JPG</a>
+                                    <a class="button" @click="print('pdf')"><i class="fa fa-print"></i> PDF</a>
+                                </div>
                                 <div class="hide" id="legendsvg"></div>            
+                            </div>
                         </div>
                     {% endraw %}
                     </div>
