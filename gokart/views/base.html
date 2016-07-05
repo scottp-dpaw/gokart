@@ -45,7 +45,7 @@
                         </div>
                         <div class="row">
                             <div class="columns content">
-                                <div v-for="f in features" class="row feature-row">
+                                <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': f.olSelected }" @click="select(f)">
                                     <partial v-bind:name="f.get('partialId') || 'featureInfo'"></partial>
                                 </div>
                             </div>

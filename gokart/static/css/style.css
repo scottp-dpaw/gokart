@@ -28,7 +28,7 @@ html, body {
 
 
 #info .content {
-    max-height: 40vh;
+    max-height: 30vh;
     overflow: auto;
 }
 
@@ -107,7 +107,7 @@ html, body {
     right: 72px;
     width: 96px;
     cursor: pointer;
-    font-size: 0.6rem;
+    font-size: 0.8rem;
     border: 0;
     margin: 1px;
     color: white;

@@ -35,6 +35,7 @@ window.gokart = (function(self) {
             enabled: true,
             features: false,
             coordinate: "",
+            selected: {},
             offset: 20,
             pixel: [0, 0],
         },
@@ -83,6 +84,14 @@ window.gokart = (function(self) {
             getPartial: function(f) {
                 window.featureTest = f;
                 console.log(f);
+            },
+            select: function(key) {
+                var selected = this.selected;
+                selected[key] = !selected[key];
+                this.selected = {};
+                this.$nextTick(function() {
+                    this.selected = selected;
+                });
             }
         }
     });

@@ -80,7 +80,7 @@
                         </div>
                     </div>
                     <div id="tracking-list">
-                        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': select(f, null) }" @click="toggleSelect($index)">
+                        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected[$key] }" @click="select($key)" v-bind:data-selectid="$key">
                             <partial name="resourceInfo"></partial>
                         </div>
                     </div>
@@ -95,7 +95,6 @@
     {% raw %}
     <div id="resourceInfo" class="hide">
         <div class="columns">
-            <input class="hide" type="checkbox" @change="select(f, $event)" v-bind:checked="select(f, null)" id="selectdevice{{ $index }}"/>
             <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <small>({{ f.get('deviceid') }})</small></div>
             <small>{{ f.get('time') }}</small>
         </div>
@@ -336,7 +335,7 @@ var trackingList = new Vue({
     data: {
         viewportOnly: true,
         toggleHistory: false,
-        selectedDevices: {},
+        selected: gokart.ui.info.selected,
         search: "",
         cql: "",
         history: "",
@@ -350,7 +349,9 @@ var trackingList = new Vue({
         historyRangeMilliseconds: 0
     },
     computed: {
-        features: function() { if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; },
+        features: function() {
+            if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; 
+        },
         stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; },
         historyRange: {
             get: function() { return this.historyRangeMilliseconds },
@@ -366,18 +367,7 @@ var trackingList = new Vue({
         }
     },
     methods: {
-        select: function(f, event) {
-            // some logic to preserve selection over refreshes
-            if (!event) { return f.olSelected || this.selectedDevices[f.deviceid] }
-            f.olSelected = event.target.checked
-            // add to selectedDevices if checked, else remove
-            if (f.olSelected) { this.selectedDevices[f.deviceid] = f.olSelected; } else { delete this.selectedDevices[f.deviceid]; }
-            var row = $(event.target).parents(".feature-row");
-            f.olSelected ? row.addClass("device-selected") : row.removeClass("device-selected");
-        },
-        toggleSelect: function(index) {
-            $(this.$el).find("#selectdevice" + index).trigger("click");
-        },
+        select: gokart.ui.info.select,
         setCQLFilter: function(cql) {
             gokart.getLayer("dpaw:resource_tracking").cql_filter = cql;
             gokart.getMapLayer("dpaw:resource_tracking").getSource().clear();
@@ -397,6 +387,7 @@ var trackingList = new Vue({
         },
     }
 });
+
 
 var renderTracking = debounce(function() {
     var layer = gokart.getMapLayer("dpaw:resource_tracking");
