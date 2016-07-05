@@ -113,17 +113,39 @@
                     </div>
                     
                     <div class="tabs-panel" id="layers-export" v-cloak>
-                        <div id="map-export-controls" class="row collapse">
-                            <div class="columns">
-                                <select v-model="paperSize">
-                                    <option v-for="size in paperSizes">{{ $key }}</option>
-                                </select>
-                                <div class="button-group">
-                                    <a class="button" @click="print('jpg')"><i class="fa fa-file-image-o"></i> JPG</a>
-                                    <a class="button" @click="print('pdf')"><i class="fa fa-print"></i> PDF</a>
+                        <div id="map-export-controls">
+                            <div class="tool-slice row collapse">
+                                <div class="small-4">
+                                    <label class="tool-label">Name:</label>
                                 </div>
-                                <div class="hide" id="legendsvg"></div>            
+                                <div class="small-8">
+                                    <input id="export-name" type="text" v-model="title"/>
+                                </div>
                             </div>
+                            <div class="tool-slice row collapse">
+                                <div class="small-4">
+                                    <label class="tool-label">Paper size:</label>
+                                </div>
+                                <div class="small-8">
+                                    <select v-model="paperSize">
+                                        <option v-for="size in paperSizes" v-bind:value="$key">{{ $key }} ({{ size[0] }}mm &times; {{ size[1] }}mm)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="tool-slice row collapse">
+                                <div class="small-4">
+                                    <label class="tool-label">Download:</label>
+                                </div>
+                                <div class="small-8">
+                                    <div class="expanded button-group">
+                                        <a class="button" @click="print('jpg')"><i class="fa fa-file-image-o"></i> JPG</a>
+                                        <a class="button" @click="print('pdf')"><i class="fa fa-print"></i> PDF</a>
+                                    </div>            
+                                </div>
+                            </div>
+                            
+                            <div class="hide" id="legendsvg"></div>            
+                            
                         </div>
                     {% endraw %}
                     </div>

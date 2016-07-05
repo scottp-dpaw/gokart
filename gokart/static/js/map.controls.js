@@ -123,8 +123,6 @@ window.gokart = (function(self) {
                 },
                 // make a printable raster from the map
                 print: function(format) {
-                    this.title = window.prompt("Title for printout?", "Quick Print");
-                    if (!this.title) { return };
                     // rig the viewport to have printing dimensions
                     this.setSize();
                     var timer; 
