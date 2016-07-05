@@ -27,6 +27,7 @@ window.gokart = (function(self) {
     });
 
     // hovering layer information panel
+    Vue.partial('featureInfo', document.querySelectorAll("#featureInfo")[0].innerHTML);
     ui.info = new Vue({
         el: '#info',
         // variables
@@ -66,7 +67,7 @@ window.gokart = (function(self) {
                 var pixel = self.map.getEventPixel(event.originalEvent);
                 var features = {}
                 var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
-                    features[f.getGeometry().getExtent().join(" ")] = f.getProperties();
+                    features[f.getGeometry().getExtent().join(" ")] = f;
                 });
                 if (Object.keys(features).length > 0) {
                     this.features = features;
@@ -78,6 +79,10 @@ window.gokart = (function(self) {
                 if (this.enabled) {
                     this.display(event);
                 }
+            },
+            getPartial: function(f) {
+                window.featureTest = f;
+                console.log(f);
             }
         }
     });

@@ -79,19 +79,12 @@
                             </div>
                         </div>
                     </div>
-                    {% endraw %}
                     <div id="tracking-list">
-                        {% raw %}<div v-for="f in features | filterBy search in fields | orderBy 'seen' -1" class="row feature-row" v-bind:class="{'device-selected': select(f) }">{% endraw %}
-                        {% block infotemplates %}
-                            <div class="small-1 columns" v-if="toggleHistory">
-                                {% raw %}<input type="checkbox" @change="select(f, $event)" v-bind:checked="select(f)"/>{% endraw %}
-                            </div>
-                            <div v-if="f.vueTemplate == 'resource_tracking'" class="small-11 columns" @click="zoomTo(f.geometry.getCoordinates())">{% raw %}
-                                <div class="feature-title"><img v-bind:src="f.icon" /> {{ f.label }} <small>({{ f.deviceid }})</small></div>
-                                <small>{{ f.time }}</small>
-                            </div></div>{% endraw %}
-                        {% endblock %}
+                        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': select(f, null) }" @click="toggleSelect($index)">
+                            <partial name="resourceInfo"></partial>
+                        </div>
                     </div>
+                    {% endraw %}
                 </div>
                 <div id="tracking-groups-tab" class="tabs-panel">
                     Group search shortcuts here
@@ -99,6 +92,15 @@
             </div>
         </div>
     </div>
+    {% raw %}
+    <div id="resourceInfo" class="hide">
+        <div class="columns">
+            <input class="hide" type="checkbox" @change="select(f, $event)" v-bind:checked="select(f, null)" id="selectdevice{{ $index }}"/>
+            <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <small>({{ f.get('deviceid') }})</small></div>
+            <small>{{ f.get('time') }}</small>
+        </div>
+    </div>
+    {% endraw %}
     <style type="text/css">
         #tracking-list .feature-row {
             cursor: pointer;
@@ -160,6 +162,7 @@ var initStyle = function(icon) {
     stylecache[icon] = style
     return style;
 };
+Vue.partial("resourceInfo", document.querySelectorAll("#resourceInfo")[0].innerHTML);
 var addResource = function(f) {
     var color = "_red";
     if (f.get("age") < 24) { color = "_orange" };
@@ -168,6 +171,8 @@ var addResource = function(f) {
     f.set("icon", "/static/symbols/device/" + f.get("symbolid") + color + ".svg");
     f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
     f.set("time", moment(f.get("seen")).toLocaleString());
+    // Set a different vue template for rendering
+    f.set("partialId", "resourceInfo");
 }
 var resource_tracking_style = function(f, res) {
     var style = stylecache[f.get('icon')] || initStyle(f.get('icon'))
@@ -193,7 +198,6 @@ var catalogue = [
         name: "Resource Tracking",
         id: 'dpaw:resource_tracking',
         style: resource_tracking_style,
-        vueTemplate: 'resource_tracking',
         onadd: addResource,
         refresh: 30
     },
@@ -201,7 +205,6 @@ var catalogue = [
         init: gokart.createWFSLayer,
         name: "Resource Tracking History",
         id: 'dpaw:tracking_history_view',
-        vueTemplate: 'resource_tracking',
         style: resource_tracking_style,
         onadd: addResource,
         cql_filter: false
@@ -360,12 +363,15 @@ var trackingList = new Vue({
     methods: {
         select: function(f, event) {
             // some logic to preserve selection over refreshes
-            if (event === undefined) { return f.olSelected || this.selectedDevices[f.deviceid] }
+            if (!event) { return f.olSelected || this.selectedDevices[f.deviceid] }
             f.olSelected = event.target.checked
             // add to selectedDevices if checked, else remove
             if (f.olSelected) { this.selectedDevices[f.deviceid] = f.olSelected; } else { delete this.selectedDevices[f.deviceid]; }
             var row = $(event.target).parents(".feature-row");
             f.olSelected ? row.addClass("device-selected") : row.removeClass("device-selected");
+        },
+        toggleSelect: function(index) {
+            $(this.$el).find("#selectdevice" + index).trigger("click");
         },
         setCQLFilter: function(cql) {
             gokart.getLayer("dpaw:resource_tracking").cql_filter = cql;
@@ -381,12 +387,6 @@ var trackingList = new Vue({
             gokart.getLayer("dpaw:tracking_history_view").cql_filter = cql;
             gokart.ui.layers.onLayerChange(gokart.getLayer("dpaw:tracking_history_view"), true);
         },
-        zoomTo: function(coords) {
-            gokart.map.getView().setCenter(coords);
-            if (gokart.getScale() > 250) {
-                gokart.setScale(50);
-            }
-        },
         clearHistory: function() {
             trackingList.selectedDevices = {};
         },
@@ -398,11 +398,11 @@ var renderTracking = debounce(function() {
     if (!layer || !gokart.mapExportControls || layer.getSource().getFeatures().length == 0) { return };
     trackingList.extentFeatures = {};
     layer.getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent).forEach(function(f) {
-        trackingList.extentFeatures[f.get("id")] = f.getProperties();
+        trackingList.extentFeatures[f.get("id")] = f;
     });
     trackingList.allFeatures = {};
     layer.getSource().getFeatures().forEach(function(f) {
-        trackingList.allFeatures[f.get("id")] = f.getProperties();
+        trackingList.allFeatures[f.get("id")] = f;
     });
 }, 100);
 

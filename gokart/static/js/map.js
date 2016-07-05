@@ -231,13 +231,11 @@ window.gokart = (function(self) {
             });
         }
 
-        // bind vue template (specified in options) to update
-        // whenever OL3 fires the "addfeature" event
-        var vueTemplate = options.vueTemplate || 'default';
-        vectorSource.on("addfeature", function(event) {
-            event.feature.set("vueTemplate", vueTemplate);
-            if (options.onadd) { options.onadd(event.feature) };
-        });
+        if (options.onadd) { 
+            vectorSource.on("addfeature", function(event) {
+                options.onadd(event.feature);
+            });
+        }
 
         
         // if the "refresh" option is set, set a timer
