@@ -75,9 +75,9 @@ html, body {
 
 /* position fixes for top-right OpenLayers map widgets */
 .ol-scale-line { 
-    top: 16px; 
+    top: 72px; 
     left: auto; 
-    right: 48px; 
+    right: 72px; 
     bottom: auto;
     border: 1px solid transparent;
 }
@@ -89,22 +89,29 @@ html, body {
 }
 
 .ol-zoom { 
-    top: 48px; 
+    top: 72px; 
     left: auto; 
     right: 16px; 
     bottom: auto; 
     padding: 0;
 }
 
+.ol-zoom button, .ol-full-screen button {
+    width: 48px;
+    height: 48px;
+}
+
 #menu-scale {
     position: absolute;
-    top: 48px;
-    right: 48px;
-    width: 10em;
+    top: 16px;
+    right: 72px;
+    width: 96px;
     cursor: pointer;
     font-size: 0.6rem;
     border: 0;
+    margin: 1px;
     color: white;
+    height: 48px;
 }
 
 /* for mobile screens, size the pane to fill the viewport */
@@ -388,7 +395,7 @@ input[type="range"] {
     background-color: rgba(37,45,51,0.7);
 }
 
-.ol-control button:hover {
+.ol-control button:hover, .ol-scale-line:hover, #menu-scale:hover {
     background-color: rgba(37,45,51,0.9);
 }
 
