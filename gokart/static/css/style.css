@@ -375,7 +375,7 @@ input[type="range"] {
 }
 .side-button > a[aria-selected="true"] {
     background-color: rgba(37,45,51,0.8);
-    border-left: 3px solid rgb(237, 177, 0);
+    border-left: 3px solid #2199e8;
 }
 
 
