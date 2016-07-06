@@ -27,74 +27,77 @@ window.gokart = (function(self) {
     });
 
     // hovering layer information panel
-    Vue.partial('featureInfo', document.querySelectorAll("#featureInfo")[0].innerHTML);
-    ui.info = new Vue({
-        el: '#info',
-        // variables
-        data: {
-            enabled: true,
-            features: [],
-            coordinate: "",
-            sel: [],
-            offset: 20,
-            pixel: [0, 0],
-        },
-        // parts of the template to be computed live
-        computed: {
-            // because the viewport size changes when the tab pane opens, don't cache the map width and height
-            mapWidth: { cache: false, get: function() { return $("#map").width() }},
-            mapHeight: { cache: false, get: function() { return $("#map").height() }},
-            featuresLength: function() {
-                return Object.keys(this.features).length;
+    self.initInfo = function() {
+        ui.info = new Vue({
+            el: '#info',
+            // variables
+            data: {
+                enabled: true,
+                features: [],
+                coordinate: "",
+                sel: [],
+                offset: 20,
+                pixel: [0, 0],
             },
-            // info panel should be positioned near the mouse in the quadrant furthest away from the viewport edges
-            css: function() {
-                var css = {
-                    "left": this.pixel[0] + this.offset + "px",
-                    "top": this.pixel[1] + this.offset + "px",
-                    "bottom": this.mapHeight - this.pixel[1] + this.offset + "px",
-                    "right": this.mapWidth - this.pixel[0] + this.offset + "px"
+            // parts of the template to be computed live
+            computed: {
+                // because the viewport size changes when the tab pane opens, don't cache the map width and height
+                mapWidth: { cache: false, get: function() { return self.map.getTargetElement().clientWidth }},
+                mapHeight: { cache: false, get: function() { return self.map.getTargetElement().clientHeight }},
+                featuresLength: function() {
+                    return Object.keys(this.features).length;
+                },
+                // info panel should be positioned near the mouse in the quadrant furthest away from the viewport edges
+                css: function() {
+                    var css = {
+                        "left": this.pixel[0] + this.offset + "px",
+                        "top": this.pixel[1] + this.offset + "px",
+                        "bottom": this.mapHeight - this.pixel[1] + this.offset + "px",
+                        "right": this.mapWidth - this.pixel[0] + this.offset + "px",
+                        "display": "none"
+                    }
+                    if (this.pixel[0] < this.mapWidth / 2) { delete css.right } else { delete css.left };
+                    if (this.pixel[1] < this.mapHeight / 2) { delete css.bottom } else { delete css.top };
+                    if (this.pixel[0] > 0 && this.enabled) { delete css.display };
+                    return css;
                 }
-                if (this.pixel[0] < this.mapWidth / 2) { delete css.right } else { delete css.left };
-                if (this.pixel[1] < this.mapHeight / 2) { delete css.bottom } else { delete css.top };
-                return css;
+            },
+            // methods callable from inside the template
+            methods: {
+                // update the panel content
+                onPointerMove: function(event) {
+                    if (event.dragging || !this.enabled) { return };
+                    var pixel = self.map.getEventPixel(event.originalEvent);
+                    var features = [];
+                    self.map.forEachFeatureAtPixel(pixel, function(f) { features.push(f) });
+                    if (features.length > 0) {
+                        this.features = features;
+                        this.coordinate = ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3);
+                        this.pixel = pixel;
+                    }
+                },
+                selected: function(f) {
+                    var id = f.get("id") || f.getId();
+                    return this.sel.indexOf(id) > -1;
+                },
+                select: function(f) {
+                    var id = f.get("id") || f.getId();
+                    if (this.sel.indexOf(id) > -1) {
+                        this.sel.$remove(id);
+                    } else {
+                        this.sel.push(id);
+                    }
+                }
+            },
+            beforeCompile: function() {
+                Vue.partial('featureInfo', document.querySelectorAll("#featureInfo")[0].innerHTML);
+            },
+            ready: function() {
+                // display hover popups
+                self.map.on("pointermove", this.onPointerMove);
             }
-        },
-        // methods callable from inside the template
-        methods: {
-            // update the panel content
-            display: function(event) {
-                if (event.dragging) { return };
-                var pixel = self.map.getEventPixel(event.originalEvent);
-                var features = [];
-                var featureFound = self.map.forEachFeatureAtPixel(pixel, function(f) {
-                    features.push(f);
-                });
-                if (Object.keys(features).length > 0) {
-                    this.features = features;
-                    this.coordinate = ol.coordinate.toStringXY(self.map.getCoordinateFromPixel(pixel), 3);
-                    this.pixel = pixel;
-                }
-            },
-            onPointerMove: function(event) {
-                if (this.enabled) {
-                    this.display(event);
-                }
-            },
-            selected: function(f) {
-                var id = f.get("id") || f.getId();
-                return this.sel.indexOf(id) > -1;
-            },
-            select: function(f) {
-                var id = f.get("id") || f.getId();
-                if (this.sel.indexOf(id) > -1) {
-                    this.sel.$remove(id);
-                } else {
-                    this.sel.push(id);
-                }
-            }
-        }
-    });
+        });
+    }
 
     // update "Map Layers" pane
     self.initLayers = function() {
@@ -103,7 +106,7 @@ window.gokart = (function(self) {
             // variables            
             data: {
                 sliderOpacity: 0,
-                layer: {},
+                layer: { olLayer: function() {}},
                 olLayers: self.map.getLayers().getArray(),
                 hoverInfoCache: true,
                 timeIndex: 0
@@ -112,18 +115,12 @@ window.gokart = (function(self) {
             computed: { 
                 graticule: {
                     cache: false, 
-                    get: function() { 
-                        return self.graticule.getMap() == self.map; 
-                    }
+                    get: function() { return self.graticule.getMap() == self.map }
                 },
                 hoverInfo: {
                     cache: false,
-                    get: function() {
-                        return ui.info.enabled;
-                    },
-                    set: function(val) {
-                        ui.info.enabled = val;
-                    }
+                    get: function() { return ui.info.enabled },
+                    set: function(val) { ui.info.enabled = val }
                 },
                 sliderTimeline: {
                     get: function() {
@@ -135,18 +132,8 @@ window.gokart = (function(self) {
                         this.timeIndex = val;
                     }
                 },
-                timelineTS: {
-                    cache: false,
-                    get: function() {
-                        return this.layer.timeline[this.timeIndex][0];
-                    }
-                },
-                sliderMax: {
-                    cache: false,
-                    get: function() {
-                        return this.layer.timeline.length-1;
-                    }
-                },
+                timelineTS: function() { return this.layer.timeline[this.timeIndex][0] },
+                sliderMax: function() { return this.layer.timeline.length - 1 },
                 layerOpacity: {
                     get: function() {
                         return Math.round(this.layer.olLayer().getOpacity() * 100);
@@ -418,8 +405,7 @@ window.gokart = (function(self) {
                 history.replaceState(null, null, location.pathname + "?" + self.mapExportControls.shortUrl);
             }
         });
-        // display hover popups
-        self.map.on("pointermove", ui.info.onPointerMove);
+        if (document.querySelector("#info")) { self.initInfo() };
         if (document.querySelector("#menu-tab-layers")) { self.initLayers() };
         if (document.querySelector("#menu-tab-annotations")) { self.initAnnotations() };
 
