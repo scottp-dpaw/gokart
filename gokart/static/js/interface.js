@@ -83,7 +83,6 @@ window.gokart = (function(self) {
             },
             getPartial: function(f) {
                 window.featureTest = f;
-                console.log(f);
             },
             select: function(key) {
                 var selected = this.selected;
@@ -315,6 +314,45 @@ window.gokart = (function(self) {
     });
 
 
+    ui.defaultPan = {
+        name: "Pan",
+        icon: "fa-hand-paper-o",
+        interactions: [
+            self.dragPanInter,
+            self.doubleClickZoomInter
+        ]
+    };
+    ui.defaultSelect = {
+        name: "Select",
+        icon: "fa-mouse-pointer",
+        interactions: [
+            ui.selectInter, 
+            ui.dragSelectInter,
+            ui.modifyInter
+        ]
+    };
+    ui.defaultPoint = {
+        name: "Point",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [ui.pointInter]
+    };
+    ui.defaultLine = {
+        name: "Line",
+        icon: "/static/images/iD-sprite.svg#icon-line",
+        interactions: [ui.lineInter]
+    };
+    ui.defaultPolygon = {
+        name: "Polygon",
+        icon: "/static/images/iD-sprite.svg#icon-area",
+        interactions: [ui.polyInter]
+    };
+
+    Vue.filter('filterIf', function(list, prop, value) {
+        return list.filter(function(val) {
+            return val[prop] == value;
+        });
+    });
+
     self.initAnnotations = function() {
         self.catalogue.push({
             init: function() {
@@ -323,44 +361,13 @@ window.gokart = (function(self) {
             id: "annotations",
             name: "My Annotations"
         });
-        var defaultTool = {
-            name: "Pan",
-            icon: "fa-hand-paper-o",
-            interactions: [
-                self.dragPanInter,
-                self.doubleClickZoomInter
-            ]
-        };
         ui.annotations = new Vue({
             el: "#menu-tab-annotations",
             data: {
-                tool: defaultTool,
+                tool: ui.defaultPan,
                 tools: [
-                    defaultTool,
-                    {
-                        name: "Select",
-                        icon: "fa-mouse-pointer",
-                        interactions: [
-                            ui.selectInter, 
-                            ui.dragSelectInter,
-                            ui.modifyInter
-                        ]
-                    },
-                    {
-                        name: "Point",
-                        icon: "/static/images/iD-sprite.svg#icon-point",
-                        interactions: [ui.pointInter]
-                    },
-                    {
-                        name: "Line",
-                        icon: "/static/images/iD-sprite.svg#icon-line",
-                        interactions: [ui.lineInter]
-                    },
-                    {
-                        name: "Polygon",
-                        icon: "/static/images/iD-sprite.svg#icon-area",
-                        interactions: [ui.polyInter]
-                    }
+                    ui.defaultPan,
+                    ui.defaultSelect
                 ],
                 features: ui.features,
                 featureOverlay: ui.featureOverlay,

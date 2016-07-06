@@ -290,7 +290,8 @@ var fireLineStyle = new ol.style.Style({
 
 var fireLineDraw = new ol.interaction.Draw({
     type: "LineString",
-    features: gokart.ui.features
+    features: gokart.ui.features,
+    style: fireLineStyle
 });
 
 
@@ -306,21 +307,48 @@ var fireBoundaryStyle = new ol.style.Style({
 
 var fireBoundaryDraw = new ol.interaction.Draw({
     type: "Polygon",
-    features: gokart.ui.features
+    features: gokart.ui.features,
+    style: fireBoundaryStyle
 });
 
 var sssTools = [
     {
+        name: "Hot Spot",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [],
+        showName: true
+    },
+    {
+        name: "Spot Fire",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [],
+        showName: true
+    },
+    {
+        name: "Division",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [],
+        showName: true
+    },
+    {
+        name: "Sector",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [],
+        showName: true
+    },
+    {
         name: "Fire Line Constructed",
-        icon: "fa-birthday-cake",
+        icon: "/static/images/iD-sprite.svg#icon-line",
         style: fireLineStyle,
-        interactions: [fireLineDraw]
+        interactions: [fireLineDraw],
+        showName: true
     },
     {
         name: "Fire Boundary",
-        icon: "fa-cube",
+        icon: "/static/images/iD-sprite.svg#icon-area",
         style: fireBoundaryStyle,
-        interactions: [fireBoundaryDraw]
+        interactions: [fireBoundaryDraw],
+        showName: true
     }
 ];
 

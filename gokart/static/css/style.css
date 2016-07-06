@@ -41,9 +41,12 @@ html, body {
     background-color: #424f5a;
     color: #fbfbfb;
 }
+
+/* SVG icons for buttons (include margin for aligning to text) */
 .icon {
     width: 20px;
     height: 20px;
+    margin-bottom: -5px;
 }
 
 .off-canvas-content { 
