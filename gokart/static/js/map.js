@@ -97,6 +97,8 @@ window.gokart = (function(self) {
             }
             numLoadingTiles++;
             var image = tile.getImage();
+            // to hell with you, cross origin policy!
+            image.crossOrigin = "anonymous";
             image.onload = function() {
                 numLoadingTiles--;
                 if (numLoadingTiles === 0) {
