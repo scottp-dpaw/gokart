@@ -49,33 +49,39 @@
                             </label>
                         </div>
                         <label for="resourceHistory" class="side-label small-4">Query history</label>
-                        <div class="small-5" v-if="toggleHistory">
-                            <select name="select" v-model="history" @change="historyRange = history">
-                                <option value="" selected>Date range</option> 
-                                <!-- values in milliseconds -->
-                                <option value="3600000">Last hour</option> 
-                                <option value="10800000">Last 3 hours</option> 
-                                <option value="86400000">Last day</option> 
-                                <option value="604800000">Last week</option> 
-                                <option value="2678400000">Last month</option> 
-                            </select>
-                        </div>
                     </div>
                     <div id="history-panel" v-if="toggleHistory">
-                        <div class="row collapse">
-                            <div class="small-5">
+                        <div class="row collapse tool-slice">
+                            <div class="small-2">
                                 <label for="historyFrom">From:</label>
+                            </div><div class="small-4">
                                 <input type="text" v-model="historyFromDate" placeholder="yyyy-mm-dd"></input>
+                            </div><div class="small-2">
                                 <input type="text" v-model="historyFromTime" placeholder="24:00"></input>
                             </div>
-                            <div class="small-5">
+                            <div class="small-4">
+                                <select name="select" v-model="history" @change="historyRange = history">
+                                    <option value="" selected>Date range</option> 
+                                    <!-- values in milliseconds -->
+                                    <option value="3600000">Last hour</option> 
+                                    <option value="10800000">Last 3 hours</option> 
+                                    <option value="86400000">Last day</option> 
+                                    <option value="604800000">Last week</option> 
+                                    <option value="2678400000">Last month</option> 
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row collapse tool-slice">
+                            <div class="small-2">
                                 <label for="historyTo">To:</label>
+                            </div><div class="small-4">
                                 <input type="text" v-model="historyToDate" placeholder="yyyy-mm-dd"></input>
+                            </div><div class="small-2">
                                 <input type="text" v-model="historyToTime" placeholder="24:00"></input>
                             </div>
-                            <div id="history-buttons" class="small-2">
-                                <button id="history-clear" class="button" @click="clearHistory">Clear</button>
-                                <button id="history-go" class="button" @click="historyCQLFilter">Go</button>
+                            <div class="small-2"></div>
+                            <div class="small-2">
+                                <button class="button" @click="historyCQLFilter">Go</button>
                             </div>
                         </div>
                     </div>
@@ -107,22 +113,6 @@
         }
         #tracking-list .feature-row:hover {
             border-right: 1px solid #fff;
-        }
-        #history-buttons {
-            position: relative;
-            text-align: center;
-        }
-        #history-clear {
-            position: absolute;
-            bottom: 53%;
-            left: 10%;
-            margin-bottom: 0px;
-        }
-        #history-go {
-            position: absolute;
-            bottom: 11%;
-            left: 10%;
-            margin-bottom: 0px;
         }
         .device-selected {
             background-color: #165016;
@@ -172,6 +162,8 @@ var addResource = function(f) {
     f.set("time", moment(f.get("seen")).toLocaleString());
     // Set a different vue template for rendering
     f.set("partialId", "resourceInfo");
+    // Set id for select tools
+    f.set("selectId", f.get("deviceid"));
 }
 var resource_tracking_style = function(f, res) {
     var style = stylecache[f.get('icon')] || initStyle(f.get('icon'))
@@ -276,6 +268,8 @@ var catalogue = [
 gokart.init(catalogue, ['dpaw:resource_tracking', 'cddp:smb_250K'])
 gokart.loadRemoteCatalogue('{{ env.CATALOGUE_SRC }}?format=json&application__name=sss');
 
+var historyLayer = gokart.getLayer("dpaw:tracking_history_view");
+var trackingLayer = gokart.getLayer("dpaw:resource_tracking");
 
 // load custom annotation tools
 var fireLineStyle = new ol.style.Style({
@@ -369,18 +363,12 @@ var trackingList = new Vue({
         select: function(f) { gokart.ui.info.select(f) },
         selected: function(f) { return gokart.ui.info.selected(f) },
         setCQLFilter: function(cql) {
-            gokart.getLayer("dpaw:resource_tracking").cql_filter = cql;
-            gokart.getMapLayer("dpaw:resource_tracking").getSource().clear();
+            trackingLayer.cql_filter = cql;
+            trackingLayer.getSource().clear();
         },
         historyCQLFilter: function() {
-            var cql = "";
-            var deviceList = "(";
-            gokart.ui.info.sel.forEach(function(id) { deviceList += "'" + id + "',"; });
-            deviceList += "'')";
-            cql = "deviceid in " + deviceList + " and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
-            console.log(cql);
-            gokart.getLayer("dpaw:tracking_history_view").cql_filter = cql;
-            // actually draw history
+            historyLayer.cql_filter = "deviceid in (" + gokart.ui.info.sel.join(",") + ") and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
+            gokart.ui.catalogue.onLayerChange(historyLayer, true);
         },
     }
 });

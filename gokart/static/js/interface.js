@@ -77,11 +77,11 @@ window.gokart = (function(self) {
                     }
                 },
                 selected: function(f) {
-                    var id = f.get("id") || f.getId();
+                    var id = f.get("selectId") || f.getId();
                     return this.sel.indexOf(id) > -1;
                 },
                 select: function(f) {
-                    var id = f.get("id") || f.getId();
+                    var id = f.get("selectId") || f.getId();
                     if (this.sel.indexOf(id) > -1) {
                         this.sel.$remove(id);
                     } else {

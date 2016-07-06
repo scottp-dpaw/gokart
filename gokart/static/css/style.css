@@ -193,6 +193,9 @@ html, body {
 .tool-slice {
     margin-bottom: 4px;
 }
+.tool-slice input, .tool-slice select, .tool-slice button {
+    margin: 0px;
+}
 .tool-slice .button.selected {
     border: 2px dotted #ffffff;
 };
