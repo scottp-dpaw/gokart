@@ -478,7 +478,7 @@ var trackingList = new Vue({
 
 
 var renderTracking = debounce(function() {
-    if (!trackingLayer.olLayer || trackingLayer.olLayer().getSource().getFeatures().length == 0) { return };
+    if (!trackingLayer.olLayer || (trackingLayer.olLayer().getSource().getFeatures().length == 0) || !gokart.mapExportControls) { return }
     trackingList.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent);
     trackingList.allFeatures = trackingLayer.olLayer().getSource().getFeatures();
 }, 100);
