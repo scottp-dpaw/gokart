@@ -467,7 +467,7 @@ var trackingList = new Vue({
         selected: function(f) { return gokart.ui.info.selected(f) },
         setCQLFilter: function(cql) {
             trackingLayer.cql_filter = cql;
-            trackingLayer.olLayer().getSource().clear();
+            trackingLayer.olLayer().getSource().loadSource();
         },
         historyCQLFilter: function() {
             historyLayer.cql_filter = "deviceid in (" + gokart.ui.info.sel.join(",") + ") and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
