@@ -272,6 +272,69 @@ var historyLayer = gokart.getLayer("dpaw:tracking_history_view");
 var trackingLayer = gokart.getLayer("dpaw:resource_tracking");
 
 // load custom annotation tools
+var hotSpotStyle = new ol.style.Style({
+    image: new ol.style.Circle({
+        fill: new ol.style.Fill({
+            color: "#b43232"
+        }),
+        radius: 8
+    })
+});
+
+var hotSpotDraw = new ol.interaction.Draw({
+    type: "Point",
+    features: gokart.ui.features,
+    style: hotSpotStyle
+});
+
+var spotFireStyle = new ol.style.Style({
+    image: new ol.style.Icon({
+        anchor: [0.5, 0.5],
+        anchorXUnits: "fraction",
+        anchorYUnits: "fraction",
+        src: "/static/symbols/svgs/sss/spotfire.svg"
+    })
+});
+
+var spotFireDraw = new ol.interaction.Draw({
+    type: "Point",
+    features: gokart.ui.features,
+    style: spotFireStyle
+});
+
+
+var divisionStyle = new ol.style.Style({
+    image: new ol.style.Icon({
+        anchor: [0.5, 0.5],
+        anchorXUnits: "fraction",
+        anchorYUnits: "fraction",
+        src: "/static/symbols/svgs/sss/division.svg"
+    })
+});
+
+var divisionDraw = new ol.interaction.Draw({
+    type: "Point",
+    features: gokart.ui.features,
+    style: divisionStyle
+});
+
+
+var sectorStyle = new ol.style.Style({
+    image: new ol.style.Icon({
+        anchor: [0.5, 0.5],
+        anchorXUnits: "fraction",
+        anchorYUnits: "fraction",
+        src: "/static/symbols/svgs/sss/sector.svg"
+    })
+});
+
+var sectorDraw = new ol.interaction.Draw({
+    type: "Point",
+    features: gokart.ui.features,
+    style: sectorStyle
+});
+
+
 var fireLineStyle = new ol.style.Style({
     stroke: new ol.style.Stroke({
         width: 8.0,
@@ -284,7 +347,8 @@ var fireLineStyle = new ol.style.Style({
 
 var fireLineDraw = new ol.interaction.Draw({
     type: "LineString",
-    features: gokart.ui.features
+    features: gokart.ui.features,
+    style: fireLineStyle
 });
 
 
@@ -300,21 +364,60 @@ var fireBoundaryStyle = new ol.style.Style({
 
 var fireBoundaryDraw = new ol.interaction.Draw({
     type: "Polygon",
-    features: gokart.ui.features
+    features: gokart.ui.features,
+    style: fireBoundaryStyle
+});
+
+
+var snapToLines = new ol.interaction.Snap({
+    features: gokart.ui.features,
+    edge: true,
+    vertex: false,
+    pixelTolerance: 16
 });
 
 var sssTools = [
     {
+        name: "Hot Spot",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [hotSpotDraw],
+        style: hotSpotStyle,
+        showName: true
+    },
+    {
+        name: "Spot Fire",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [spotFireDraw],
+        style: spotFireStyle,
+        showName: true
+    },
+    {
+        name: "Division",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [divisionDraw, snapToLines],
+        style: divisionStyle,
+        showName: true
+    },
+    {
+        name: "Sector",
+        icon: "/static/images/iD-sprite.svg#icon-point",
+        interactions: [sectorDraw, snapToLines],
+        style: sectorStyle,
+        showName: true
+    },
+    {
         name: "Fire Line Constructed",
-        icon: "fa-birthday-cake",
+        icon: "/static/images/iD-sprite.svg#icon-line",
         style: fireLineStyle,
-        interactions: [fireLineDraw]
+        interactions: [fireLineDraw],
+        showName: true
     },
     {
         name: "Fire Boundary",
-        icon: "fa-cube",
+        icon: "/static/images/iD-sprite.svg#icon-area",
         style: fireBoundaryStyle,
-        interactions: [fireBoundaryDraw]
+        interactions: [fireBoundaryDraw],
+        showName: true
     }
 ];
 

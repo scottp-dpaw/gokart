@@ -302,15 +302,15 @@ window.gokart = (function(self) {
     });
 
 
-    self.initAnnotations = function() {
-        self.catalogue.push({
-            init: function() {
-                return ui.featureOverlay;
-            },
-            id: "annotations",
-            name: "My Annotations"
+    Vue.filter('filterIf', function(list, prop, value) {
+        return list.filter(function(val) {
+            return val[prop] == value;
         });
-        var defaultTool = {
+    });
+
+    self.initAnnotations = function() {
+        // load default tools
+        ui.defaultPan = {
             name: "Pan",
             icon: "fa-hand-paper-o",
             interactions: [
@@ -318,36 +318,48 @@ window.gokart = (function(self) {
                 self.doubleClickZoomInter
             ]
         };
+        ui.defaultSelect = {
+            name: "Select",
+            icon: "fa-mouse-pointer",
+            interactions: [
+                ui.selectInter, 
+                ui.dragSelectInter,
+                ui.modifyInter
+            ]
+        };
+        ui.defaultPoint = {
+            name: "Point",
+            icon: "/static/images/iD-sprite.svg#icon-point",
+            interactions: [ui.pointInter]
+        };
+        ui.defaultLine = {
+            name: "Line",
+            icon: "/static/images/iD-sprite.svg#icon-line",
+            interactions: [ui.lineInter]
+        };
+        ui.defaultPolygon = {
+            name: "Polygon",
+            icon: "/static/images/iD-sprite.svg#icon-area",
+            interactions: [ui.polyInter]
+        };
+        
+        // add annotations layer to catalogue list
+        self.catalogue.push({
+            init: function() {
+                return ui.featureOverlay;
+            },
+            id: "annotations",
+            name: "My Annotations"
+        });
+
+        // load annotations panel template
         ui.annotations = new Vue({
             el: "#menu-tab-annotations",
             data: {
-                tool: defaultTool,
+                tool: ui.defaultPan,
                 tools: [
-                    defaultTool,
-                    {
-                        name: "Select",
-                        icon: "fa-mouse-pointer",
-                        interactions: [
-                            ui.selectInter, 
-                            ui.dragSelectInter,
-                            ui.modifyInter
-                        ]
-                    },
-                    {
-                        name: "Point",
-                        icon: "/static/images/iD-sprite.svg#icon-point",
-                        interactions: [ui.pointInter]
-                    },
-                    {
-                        name: "Line",
-                        icon: "/static/images/iD-sprite.svg#icon-line",
-                        interactions: [ui.lineInter]
-                    },
-                    {
-                        name: "Polygon",
-                        icon: "/static/images/iD-sprite.svg#icon-area",
-                        interactions: [ui.polyInter]
-                    }
+                    ui.defaultPan,
+                    ui.defaultSelect
                 ],
                 features: ui.features,
                 featureOverlay: ui.featureOverlay,
@@ -376,15 +388,22 @@ window.gokart = (function(self) {
                 },
                 setTool: function(t) {
                     var vm = this;
+                    // remove all custom tool interactions from map
                     vm.tools.forEach(function(tool) {
                         tool.interactions.forEach(function (inter) {
                             self.map.removeInteraction(inter);
                         });
                     });
+
+                    // add interactions for this tool
                     t.interactions.forEach(function (inter) {
                         self.map.addInteraction(inter);
                     });
+                    
+                    // auto-disable hover info, but remember the user's choice
                     ui.layers.hoverInfo = ((t.name == 'Pan') && (ui.layers.hoverInfoCache));
+
+                    // enable annotations layer, if disabled
                     if (!self.getLayer("annotations").olLayer()) {
                         ui.catalogue.onLayerChange(self.getLayer("annotations"), true);
                     }

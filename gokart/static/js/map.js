@@ -97,6 +97,8 @@ window.gokart = (function(self) {
             }
             numLoadingTiles++;
             var image = tile.getImage();
+            // to hell with you, cross origin policy!
+            image.crossOrigin = "anonymous";
             image.onload = function() {
                 numLoadingTiles--;
                 if (numLoadingTiles === 0) {
@@ -266,6 +268,7 @@ window.gokart = (function(self) {
             id: "dpaw:mapbox_outdoors",
             format: "image/png",
             tileSize: 1024,
+            style: "",
             projection: "EPSG:4326",
             wmts_url: self.defaultWMTSSrc,
         }, layer);
@@ -295,6 +298,7 @@ window.gokart = (function(self) {
             layer: layer.id,
             matrixSet: matrixSet.name,
             format: layer.format,
+            style: layer.style,
             projection: layer.projection,
             wrapX: true,
             tileGrid: tileGrid
@@ -442,7 +446,9 @@ window.gokart = (function(self) {
             ],
             interactions: ol.interaction.defaults({
                 altShiftDragRotate: false,
-                pinchRotate: false
+                pinchRotate: false,
+                dragPan: false,
+                doubleClickZoom: false
             })
         });
         var params = {};
@@ -451,13 +457,12 @@ window.gokart = (function(self) {
             self.map.getView().setCenter([params.lon, params.lat]);
             self.setScale(params.scale / 1000);
         }
-        self.map.getInteractions().forEach(function(i) {
-            if(i instanceof ol.interaction.DragPan) {
-                self.dragPanInter = i;
-            } else if (i instanceof ol.interaction.DoubleClickZoom) {
-                self.doubleClickZoomInter = i;
-            }
-        });
+        // add some default interactions
+        self.dragPanInter = new ol.interaction.DragPan();
+        self.map.addInteraction(self.dragPanInter);
+        self.doubleClickZoomInter = new ol.interaction.DoubleClickZoom();
+        self.map.addInteraction(self.doubleClickZoomInter);
+        
         // Create the graticule component
         self.graticule = new ol.LabelGraticule();
         self.graticule.setMap(self.map);
