@@ -364,7 +364,7 @@ var trackingList = new Vue({
         selected: function(f) { return gokart.ui.info.selected(f) },
         setCQLFilter: function(cql) {
             trackingLayer.cql_filter = cql;
-            trackingLayer.getSource().clear();
+            trackingLayer.olLayer().getSource().clear();
         },
         historyCQLFilter: function() {
             historyLayer.cql_filter = "deviceid in (" + gokart.ui.info.sel.join(",") + ") and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
@@ -375,10 +375,9 @@ var trackingList = new Vue({
 
 
 var renderTracking = debounce(function() {
-    var layer = gokart.getMapLayer("dpaw:resource_tracking");
-    if (!layer || !gokart.mapExportControls || layer.getSource().getFeatures().length == 0) { return };
-    trackingList.extentFeatures = layer.getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent);
-    trackingList.allFeatures = layer.getSource().getFeatures();
+    if (!trackingLayer.olLayer || trackingLayer.olLayer().getSource().getFeatures().length == 0) { return };
+    trackingList.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent);
+    trackingList.allFeatures = trackingLayer.olLayer().getSource().getFeatures();
 }, 100);
 
 gokart.map.getLayerGroup().on("change", renderTracking);
