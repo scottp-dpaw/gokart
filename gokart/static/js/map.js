@@ -268,6 +268,7 @@ window.gokart = (function(self) {
             id: "dpaw:mapbox_outdoors",
             format: "image/png",
             tileSize: 1024,
+            style: "",
             projection: "EPSG:4326",
             wmts_url: self.defaultWMTSSrc,
         }, layer);
@@ -297,6 +298,7 @@ window.gokart = (function(self) {
             layer: layer.id,
             matrixSet: matrixSet.name,
             format: layer.format,
+            style: layer.style,
             projection: layer.projection,
             wrapX: true,
             tileGrid: tileGrid
