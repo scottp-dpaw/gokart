@@ -400,6 +400,9 @@ window.gokart = (function(self) {
                         self.map.addInteraction(inter);
                     });
                     
+                    // remove selections
+                    ui.selectedFeatures.clear();
+
                     // auto-disable hover info, but remember the user's choice
                     ui.layers.hoverInfo = ((t.name == 'Pan') && (ui.layers.hoverInfoCache));
 
