@@ -442,7 +442,8 @@ window.gokart = (function(self) {
                 }),
                 new ol.control.Control({
                     element: $("#menu-scale").get(0)
-                })
+                }),
+                new ol.control.Attribution()
             ],
             interactions: ol.interaction.defaults({
                 altShiftDragRotate: false,
