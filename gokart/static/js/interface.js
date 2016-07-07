@@ -33,7 +33,7 @@ window.gokart = (function(self) {
             // variables
             data: {
                 enabled: true,
-                features: [],
+                features: false,
                 coordinate: "",
                 sel: [],
                 offset: 20,
