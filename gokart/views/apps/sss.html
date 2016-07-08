@@ -42,13 +42,25 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="switch tiny">
-                            <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory"/>
-                            <label class="switch-paddle" for="resourceHistory">
-                                <span class="show-for-sr">Query history tools</span>
-                            </label>
+                        <div class="small-5">
+                            <div class="switch tiny">
+                                <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory"/>
+                                <label class="switch-paddle" for="resourceHistory">
+                                    <span class="show-for-sr">Query history tools</span>
+                                </label>
+                            </div>
+                            <label for="resourceHistory" class="side-label">Query history</label>
+                        </div><div class="small-5">
+                            <div class="switch tiny">
+                                <input class="switch-input" id="selectedOnly" type="checkbox" v-model="selectedOnly"/>
+                                <label class="switch-paddle" for="selectedOnly">
+                                    <span class="show-for-sr">Selected only</span>
+                                </label>
+                            </div>
+                            <label for="selectedOnly" class="side-label">Selected</label>
+                        </div><div class="small-2">
+                            <a class="button tiny" @click="zoomToSelected()">Z</a>
                         </div>
-                        <label for="resourceHistory" class="side-label small-4">Query history</label>
                     </div>
                     <div id="history-panel" v-if="toggleHistory">
                         <div class="row collapse tool-slice">
@@ -86,7 +98,7 @@
                         </div>
                     </div>
                     <div id="tracking-list">
-                        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)">
+                        <div v-for="f in features | filterBy resourceFilter | orderBy resourceOrder" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)">
                             <partial name="resourceInfo"></partial>
                         </div>
                     </div>
@@ -425,13 +437,13 @@ sssTools.forEach(function(tool) {
     gokart.ui.annotations.tools.push(tool);
 });
 
-
 // template for the tracking tab
 var trackingList = new Vue({
     el: "#tracking-list-tab",
     data: {
         viewportOnly: true,
         toggleHistory: false,
+        selectedOnly: false,
         search: "",
         cql: "",
         history: "",
@@ -447,6 +459,9 @@ var trackingList = new Vue({
     computed: {
         features: function() {
             if (this.viewportOnly) { return this.extentFeatures } else { return this.allFeatures }; 
+        },
+        selectedFeatures: function() {
+            return this.features.filter(this.selected);
         },
         stats: function() { return Object.keys(this.extentFeatures).length + "/" + Object.keys(this.allFeatures).length; },
         historyRange: {
@@ -473,6 +488,24 @@ var trackingList = new Vue({
             historyLayer.cql_filter = "deviceid in (" + gokart.ui.info.sel.join(",") + ") and seen between '" + this.historyFromDate + " " + this.historyFromTime + ":00' and '" + this.historyToDate + " " + this.historyToTime + ":00'";
             gokart.ui.catalogue.onLayerChange(historyLayer, true);
         },
+        resourceFilter: function(f) {
+            var search = ('' + this.search).toLowerCase();
+            var found = !search || this.fields.some(function(key) {
+                return ('' + f.get(key)).toLowerCase().indexOf(search) > -1;
+            });
+            if (this.selectedOnly) { return this.selected(f) && found };
+            return found;
+        },
+        resourceOrder: function(f1, f2) {
+            return f1.get("age") > f2.get("age");
+        },
+        zoomToSelected: function() {
+            var extent = ol.extent.createEmpty();
+            this.selectedFeatures.forEach(function(f) {
+                ol.extent.extend(extent, f.getGeometry().getExtent());
+            });
+            gokart.map.getView().fit(extent, gokart.map.getSize());
+        }
     }
 });
 
