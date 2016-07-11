@@ -449,7 +449,8 @@ window.gokart = (function(self) {
                 altShiftDragRotate: false,
                 pinchRotate: false,
                 dragPan: false,
-                doubleClickZoom: false
+                doubleClickZoom: false,
+                keyboard: false
             })
         });
         var params = {};
@@ -460,9 +461,13 @@ window.gokart = (function(self) {
         }
         // add some default interactions
         self.dragPanInter = new ol.interaction.DragPan();
-        self.map.addInteraction(self.dragPanInter);
         self.doubleClickZoomInter = new ol.interaction.DoubleClickZoom();
+        self.keyboardPanInter = new ol.interaction.KeyboardPan();
+        self.keyboardZoomInter = new ol.interaction.KeyboardZoom();
+        self.map.addInteraction(self.dragPanInter);
         self.map.addInteraction(self.doubleClickZoomInter);
+        self.map.addInteraction(self.keyboardPanInter);
+        self.map.addInteraction(self.keyboardZoomInter);
         
         // Create the graticule component
         self.graticule = new ol.LabelGraticule();

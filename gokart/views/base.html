@@ -40,7 +40,7 @@
                     <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
                 </select>
 
-                <div class="map" id="map">
+                <div class="map" id="map" tabindex="0">
                     <div id="info" v-bind:style="css" v-show="features" v-cloak>
                         <div class="row collapse">
                             <div class="columns title"><h5>{{ featuresLength }} {{ featuresLength | pluralize 'feature' }} <small>{{ coordinate }}</small></h5></div>

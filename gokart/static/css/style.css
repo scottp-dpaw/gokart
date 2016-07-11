@@ -74,6 +74,7 @@ html, body {
     background: url('/static/images/bg.png') repeat; 
     background-position: center;  
     position: relative;
+    outline: 0;
 }
 
 /* position fixes for top-right OpenLayers map widgets */

@@ -301,6 +301,24 @@ window.gokart = (function(self) {
         features: ui.selectedFeatures
     });
 
+    // OpenLayers3 hook for keyboard input
+    ui.keyboardInter = new ol.interaction.Interaction({
+        handleEvent: function(mapBrowserEvent) {
+            var stopEvent = false;
+            if (mapBrowserEvent.type == ol.events.EventType.KEYDOWN) {
+                var keyEvent = mapBrowserEvent.originalEvent;
+                switch (keyEvent.keyCode) {
+                    case 46: // Delete
+                        ui.annotations.deleteSelected();
+                        break;
+                    default:
+                        break;
+                }
+                console.log(keyEvent);
+            }
+            return !stopEvent;
+        }
+    });
 
     Vue.filter('filterIf', function(list, prop, value) {
         return list.filter(function(val) {
@@ -315,13 +333,16 @@ window.gokart = (function(self) {
             icon: "fa-hand-paper-o",
             interactions: [
                 self.dragPanInter,
-                self.doubleClickZoomInter
+                self.doubleClickZoomInter,
+                self.keyboardPanInter,
+                self.keyboardZoomInter
             ]
         };
         ui.defaultSelect = {
             name: "Select",
             icon: "fa-mouse-pointer",
             interactions: [
+                ui.keyboardInter,
                 ui.selectInter, 
                 ui.dragSelectInter,
                 ui.modifyInter
@@ -411,6 +432,12 @@ window.gokart = (function(self) {
                         ui.catalogue.onLayerChange(self.getLayer("annotations"), true);
                     }
                     vm.tool = t;
+                },
+                deleteSelected: function() {
+                    ui.selectedFeatures.forEach(function(feature) {
+                        ui.features.remove(feature);
+                    });
+                    ui.selectedFeatures.clear();
                 }
             }
         });
