@@ -42,24 +42,27 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="small-5">
-                            <div class="switch tiny">
-                                <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory"/>
-                                <label class="switch-paddle" for="resourceHistory">
-                                    <span class="show-for-sr">Query history tools</span>
-                                </label>
-                            </div>
-                            <label for="resourceHistory" class="side-label">Query history</label>
-                        </div><div class="small-5">
-                            <div class="switch tiny">
-                                <input class="switch-input" id="selectedOnly" type="checkbox" v-model="selectedOnly"/>
-                                <label class="switch-paddle" for="selectedOnly">
-                                    <span class="show-for-sr">Selected only</span>
-                                </label>
-                            </div>
-                            <label for="selectedOnly" class="side-label">Selected</label>
+                        <div class="small-10">
+                            <div class="columns"><div class="row">
+                                <div class="switch tiny">
+                                    <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory"/>
+                                    <label class="switch-paddle" for="resourceHistory">
+                                        <span class="show-for-sr">Query history</span>
+                                    </label>
+                                </div>
+                                <label for="resourceHistory" class="side-label">Query history</label>
+                            </div></div>
+                            <div class="columns"><div class="row">
+                                <div class="switch tiny">
+                                    <input class="switch-input" id="selectedOnly" type="checkbox" v-model="selectedOnly"/>
+                                    <label class="switch-paddle" for="selectedOnly">
+                                        <span class="show-for-sr">Show selected only</span>
+                                    </label>
+                                </div>
+                                <label for="selectedOnly" class="side-label">Show selected only</label>
+                            </div></div>
                         </div><div class="small-2">
-                            <a class="button tiny" @click="zoomToSelected()">Z</a>
+                            <a class="button" @click="zoomToSelected()" style="float: right"><i class="fa fa-search"></i></a>
                         </div>
                     </div>
                     <div id="history-panel" v-if="toggleHistory">
