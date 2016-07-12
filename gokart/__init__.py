@@ -1,15 +1,13 @@
-import bottle 
+import bottle
 import dotenv
 import os
 import pytz
-import random
 import shutil
 import subprocess
-import tempfile 
+import tempfile
 import uwsgi
 import requests
-from datetime import datetime, timedelta
-from six.moves import urllib
+from datetime import datetime
 import re
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -21,24 +19,26 @@ dotenv.load_dotenv(dotenv.find_dotenv())
 bottle.TEMPLATE_PATH.append('./gokart/views')
 bottle.debug(True)
 
+
 # serve up map apps
 @bottle.route('/<app_name>')
-def index( app_name ):
-    return bottle.jinja2_template('apps/{}.html'.format( app_name ), env=os.environ)
-
+def index(app_name):
+    return bottle.jinja2_template('apps/{}.html'.format(app_name), env=os.environ)
 
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
 FIREWATCH_TZ = pytz.timezone('Australia/Perth')
 FIREWATCH_SERVICE = os.environ.get("FIREWATCH_SERVICE", "/mapproxy/firewatch/service")
 FIREWATCH_GETCAPS = os.environ.get("FIREWATCH_GETCAPS", FIREWATCH_SERVICE + "?service=wms&request=getcapabilities")
+
+
 @bottle.route("/hi8/<target>")
 def himawari8(target):
     if uwsgi.cache_exists("himawari8"):
         getcaps = uwsgi.cache_get("himawari8")
     else:
         getcaps = requests.get(FIREWATCH_GETCAPS).content
-        uwsgi.cache_set("himawari8", getcaps, 60*10) # cache for 10 mins
+        uwsgi.cache_set("himawari8", getcaps, 60*10)  # cache for 10 mins
     getcaps = getcaps.decode("utf-8")
     layernames = re.findall("\w+HI8\w+{}\.\w+".format(target), getcaps)
     layers = []
@@ -50,31 +50,38 @@ def himawari8(target):
     }
     return result
 
+
 # PDF renderer, accepts a JPG
-@bottle.route("/gdal/pdf", method="POST")
-def gdal_pdf():
+@bottle.route("/gdal/<fmt>", method="POST")
+def gdal(fmt):
     # needs gdal 1.10+
     extent = bottle.request.forms.get("extent").split(" ")
     jpg = bottle.request.files.get("jpg")
-    pagesize = bottle.request.forms.get("pagesize", "A3")
     workdir = tempfile.mkdtemp()
     path = os.path.join(workdir, jpg.filename)
     jpg.save(workdir)
+    if fmt == "tif":
+        of = "GTiff"
+        ct = "image/tiff"
+    elif fmt == "pdf":
+        of = "PDF"
+        ct = "application/pdf"
     subprocess.check_call([
-        "gdal_translate", "-of", "PDF", "-a_ullr", extent[0], extent[3], extent[2], extent[1], 
+        "gdal_translate", "-of", of, "-a_ullr", extent[0], extent[3], extent[2], extent[1],
         "-a_srs", "EPSG:4326", "-co", "DPI={}".format(bottle.request.forms.get("dpi", 150)),
         "-co", "TITLE={}".format(bottle.request.forms.get("title", "Quick Print")),
         "-co", "AUTHOR={}".format(bottle.request.forms.get("author", "Anonymous")),
         "-co", "PRODUCER={}".format(subprocess.check_output(["gdalinfo", "--version"])),
         "-co", "SUBJECT={}".format(bottle.request.headers.get('Referer', "gokart")),
         "-co", "CREATION_DATE={}".format(datetime.strftime(datetime.utcnow(), "%Y%m%d%H%M%SZ'00'")),
-        path, path + ".pdf"
+        path, path + "." + fmt
     ])
-    output = open(path + ".pdf")
+    output = open(path + "." + fmt)
     shutil.rmtree(workdir)
-    bottle.response.set_header("Content-Type", "application/pdf")
-    bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(jpg.filename.replace("jpg", "pdf")))
+    bottle.response.set_header("Content-Type", ct)
+    bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(jpg.filename.replace("jpg", fmt)))
     return output
+
 
 # Form emailer, needs wkhtmltopdf 0.12.3+
 @bottle.route("/postbox", method="POST")
@@ -93,7 +100,8 @@ def postbox():
     attachment.add_header('Content-Disposition', 'attachment', filename=bottle.request.forms.get("_filename", "form.pdf"))
     text = "Submitted form data:\n\n"
     for key, value in bottle.request.forms.iteritems():
-        if key.startswith("_") or not value or value == "0": continue
+        if key.startswith("_") or not value or value == "0":
+            continue
         text += '  {}: {}\n'.format(key, value)
     msg = MIMEMultipart()
     msg.attach(MIMEText(text, 'plain'))

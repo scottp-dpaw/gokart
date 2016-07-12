@@ -104,7 +104,7 @@ window.gokart = (function(self) {
                     return ["data:image/svg+xml;utf8," + encodeURIComponent($("#legendsvg").html()), qrcanvas];
                 },
                 // POST a generated JPG to the gokart server backend to convert to GeoPDF
-                blobToPDF: function(blob, name) {
+                blobGDAL: function(blob, name, format) {
                     var formData = new FormData();
                     formData.append("extent", this.layout.extent.join(" "));
                     formData.append("jpg", blob, name + ".jpg");
@@ -112,11 +112,11 @@ window.gokart = (function(self) {
                     formData.append("title", this.title)
                     formData.append("author", this.legendInfo.author)
                     var req = new XMLHttpRequest();
-                    req.open("POST", "/gdal/pdf");
+                    req.open("POST", "/gdal/" + format);
                     req.responseType = "blob";
                     var vm = this;
                     req.onload = function(event) {
-                        saveAs(req.response, name + ".pdf");
+                        saveAs(req.response, name + "." + format);
                         vm.resetSize();
                     }
                     req.send(formData);
@@ -155,8 +155,8 @@ window.gokart = (function(self) {
                                     if (format == "jpg") {
                                         saveAs(blob, filename + ".jpg");
                                         vm.resetSize();
-                                    } else if (format == "pdf") {
-                                        vm.blobToPDF(blob, filename);
+                                    } else {
+                                        vm.blobGDAL(blob, filename, format);
                                     }
                                 }, 'image/jpeg', 0.9)
                             }
