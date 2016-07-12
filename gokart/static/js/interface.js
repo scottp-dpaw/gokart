@@ -187,9 +187,28 @@ window.gokart = (function(self) {
                 catalogue: self.catalogue,
                 swapBaseLayers: true,
                 search: "",
-                searchAttrs: ["name", "id"]
+                searchAttrs: ["name", "id"],
+                overview: false
             },
             methods: {
+                preview: function(layer) {
+                    if (this.layer == layer) { return }
+                    if (!layer && this.layer.preview) {
+                        this.layer.preview.setMap(null);
+                        if (!layer) { 
+                            this.layer = {}
+                            return
+                        }
+                    }
+                    layer.preview = new ol.control.OverviewMap({
+                        layers: [layer.init()], 
+                        collapsed: false, 
+                        collapsible: false, 
+                        view: new ol.View({projection: "EPSG:4326"}) 
+                    });
+                    layer.preview.setMap(self.map);
+                    this.layer = layer;
+                },
                 // helper function to simulate a <label> style click on a row
                 onToggle: function(index) {
                     $(this.$el).find("#ctlgsw"+index).trigger("click");

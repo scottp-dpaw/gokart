@@ -89,7 +89,7 @@
                                 </div>
                             </div>
                             <div id="layers-catalogue-list">
-                                <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="layer = l" @click="onToggle($index)">
+                                <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @mouseleave="preview(false)" @click="onToggle($index)">
                                     <div class="small-9">
                                         <div class="layer-title">{{ l.name || l.id }}</div>
                                     </div>
