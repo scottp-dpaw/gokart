@@ -54,9 +54,15 @@ window.gokart = (function(self) {
     $("#dpi").remove();
 
     // get user info
-    $.get("/auth", function(data) {
-        self.whoami = JSON.parse(data);
-    });
+    (function() {
+        var req = new XMLHttpRequest();
+        req.withCredentials = true;
+        req.onload = function() {
+            self.whoami = JSON.parse(this.responseText);
+        };
+        req.open("GET", "https://oim.dpaw.wa.gov.au/api/whoami");
+        req.send();
+    })();
 
     // default matrix from KMI
     self.resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16];
