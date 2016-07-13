@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+    <!-- Cordova CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'">
     <!-- Unicode is great -->
-    <meta charset="utf-8"/>
+    <meta charset="utf-8" />
     <!-- Page title -->
     <title>{% block title %}{% endblock %}</title>
     <!-- Disable awful IE compatibility mode -->
@@ -10,31 +13,27 @@
     <!-- Force fit-to-viewport sizing on mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <!-- Foundation 6 CSS framework -->
-    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/foundation/6.2.3/foundation-flex.min.css" type="text/css"/>
-    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/font-awesome/4.6.3/css/font-awesome.min.css" type="text/css"/>
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/foundation/6.2.3/foundation-flex.min.css" type="text/css" />
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/font-awesome/4.6.3/css/font-awesome.min.css" type="text/css" />
     <!-- OpenLayers 3 map widget CSS -->
-    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/ol3/3.17.1/ol.css" type="text/css"/>
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/ol3/3.17.1/ol.css" type="text/css" />
     <!-- Drag and drop CSS -->
-    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/dragula/3.7.1/dragula.css" type="text/css"/>
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/dragula/3.7.1/dragula.css" type="text/css" />
     <!-- Map CSS -->
-    <link rel="stylesheet" href="/static/css/style.css" type="text/css"/>
+    <link rel="stylesheet" href="static/css/style.css" type="text/css" />
     <!-- favicon -->
-    <link rel="icon" href="/static/images/favicon.svg" sizes="any" type="image/svg+xml"/>
-    <link rel="icon" href="/static/images/favicon-256.png" sizes="16x16 32x32 64x64 128x128 256x256" type="image/png"/>
-    {% block extra_css %}
-    {% endblock %}
+    <link rel="icon" href="static/images/favicon.svg" sizes="any" type="image/svg+xml" />
+    <link rel="icon" href="static/images/favicon-256.png" sizes="16x16 32x32 64x64 128x128 256x256" type="image/png" /> {% block extra_css %} {% endblock %}
 </head>
+
 <body>
     <div class="off-canvas-wrapper">
         <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
             <div class="off-canvas position-left" id="offCanvasLeft" data-off-canvas>
-                <a id="side-pane-close" class="button alert hide-for-medium">&#x2715;</a>
-                {% block offcanvas %}{% endblock %} 
+                <a id="side-pane-close" class="button alert hide-for-medium">&#x2715;</a> {% block offcanvas %}{% endblock %}
             </div>
             <div class="off-canvas-content" data-off-canvas-content>
-                {% block content %}
-                
-                {% raw %}    
+                {% block content %} {% raw %}
                 <select @change="setScale" id="menu-scale" v-cloak>
                     <option value="{{ scale }}" selected>{{ scaleString }}</option>
                     <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
@@ -43,7 +42,8 @@
                 <div class="map" id="map" tabindex="0">
                     <div id="info" v-bind:style="css" v-show="features" v-cloak>
                         <div class="row collapse">
-                            <div class="columns title"><h5>{{ featuresLength }} {{ featuresLength | pluralize 'feature' }} <small>{{ coordinate }}</small></h5></div>
+                            <div class="columns title">
+                                <h5>{{ featuresLength }} {{ featuresLength | pluralize 'feature' }} <small>{{ coordinate }}</small></h5></div>
                             <button class="close-button float-right" aria-label="Dismiss info" type="button" v-on:click="features = false"><span aria-hidden="true">&times;</span></button>
                         </div>
                         <div class="row">
@@ -56,9 +56,7 @@
                     </div>
                 </div>
                 <div class="hide" id="featureInfo">{{ f.getId() }}</div>
-                {% endraw %}
-                
-                {% endblock %}
+                {% endraw %} {% endblock %}
             </div>
         </div>
     </div>
@@ -82,13 +80,13 @@
     <!-- Moment.js for date formatting -->
     <script src="//static.dpaw.wa.gov.au/static/js/moment.js"></script>
     <!-- QR Code lib -->
-    <script src="/static/js/kjua.min.js"></script>
+    <script src="static/js/kjua.min.js"></script>
     <!-- Standard map and ui functionality -->
-    <script src="/static/js/ol.graticule.js"></script>
-    <script src="/static/js/map.js"></script>
-    <script src="/static/js/map.controls.js"></script>
-    <script src="/static/js/interface.js"></script>
-{% block loader_script %}
-{% endblock %}
+    <script src="static/js/ol.graticule.js"></script>
+    <script src="static/js/map.js"></script>
+    <script src="static/js/map.controls.js"></script>
+    <script src="static/js/interface.js"></script>
+    {% block loader_script %} {% endblock %}
 </body>
+
 </html>

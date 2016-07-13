@@ -4,3 +4,4 @@
 venv/
 cordova/*/platforms
 cordova/*/plugins
+cordova/*/www/cache

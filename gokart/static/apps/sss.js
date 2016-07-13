@@ -32,7 +32,7 @@ var addResource = function(f) {
     if (f.get("age") <= 1) {
         color = "_green"
     };
-    f.set("icon", "/static/symbols/device/" + f.get("symbolid") + color + ".svg");
+    f.set("icon", "static/symbols/device/" + f.get("symbolid") + color + ".svg");
     f.set("label", f.get("name") || f.get("callsign") || f.get("rego") || f.get("deviceid"));
     f.set("time", moment(f.get("seen")).toLocaleString());
     // Set a different vue template for rendering
@@ -152,7 +152,7 @@ var spotFireStyle = new ol.style.Style({
         anchor: [0.5, 0.5],
         anchorXUnits: "fraction",
         anchorYUnits: "fraction",
-        src: "/static/symbols/svgs/sss/spotfire.svg"
+        src: "static/symbols/svgs/sss/spotfire.svg"
     })
 });
 
@@ -168,7 +168,7 @@ var divisionStyle = new ol.style.Style({
         anchor: [0.5, 0.5],
         anchorXUnits: "fraction",
         anchorYUnits: "fraction",
-        src: "/static/symbols/svgs/sss/division.svg"
+        src: "static/symbols/svgs/sss/division.svg"
     })
 });
 
@@ -184,7 +184,7 @@ var sectorStyle = new ol.style.Style({
         anchor: [0.5, 0.5],
         anchorXUnits: "fraction",
         anchorYUnits: "fraction",
-        src: "/static/symbols/svgs/sss/sector.svg"
+        src: "static/symbols/svgs/sss/sector.svg"
     })
 });
 
@@ -238,37 +238,37 @@ var snapToLines = new ol.interaction.Snap({
 
 var sssTools = [{
     name: "Hot Spot",
-    icon: "/static/images/iD-sprite.svg#icon-point",
+    icon: "static/images/iD-sprite.svg#icon-point",
     interactions: [hotSpotDraw],
     style: hotSpotStyle,
     showName: true
 }, {
     name: "Spot Fire",
-    icon: "/static/images/iD-sprite.svg#icon-point",
+    icon: "static/images/iD-sprite.svg#icon-point",
     interactions: [spotFireDraw],
     style: spotFireStyle,
     showName: true
 }, {
     name: "Division",
-    icon: "/static/images/iD-sprite.svg#icon-point",
+    icon: "static/images/iD-sprite.svg#icon-point",
     interactions: [divisionDraw, snapToLines],
     style: divisionStyle,
     showName: true
 }, {
     name: "Sector",
-    icon: "/static/images/iD-sprite.svg#icon-point",
+    icon: "static/images/iD-sprite.svg#icon-point",
     interactions: [sectorDraw, snapToLines],
     style: sectorStyle,
     showName: true
 }, {
     name: "Fire Line Constructed",
-    icon: "/static/images/iD-sprite.svg#icon-line",
+    icon: "static/images/iD-sprite.svg#icon-line",
     style: fireLineStyle,
     interactions: [fireLineDraw],
     showName: true
 }, {
     name: "Fire Boundary",
-    icon: "/static/images/iD-sprite.svg#icon-area",
+    icon: "static/images/iD-sprite.svg#icon-area",
     style: fireBoundaryStyle,
     interactions: [fireBoundaryDraw],
     showName: true

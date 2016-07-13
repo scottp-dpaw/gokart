@@ -415,17 +415,17 @@ window.gokart = (function(self) {
         };
         ui.defaultPoint = {
             name: "Point",
-            icon: "/static/images/iD-sprite.svg#icon-point",
+            icon: "static/images/iD-sprite.svg#icon-point",
             interactions: [ui.pointInter]
         };
         ui.defaultLine = {
             name: "Line",
-            icon: "/static/images/iD-sprite.svg#icon-line",
+            icon: "static/images/iD-sprite.svg#icon-line",
             interactions: [ui.lineInter]
         };
         ui.defaultPolygon = {
             name: "Polygon",
-            icon: "/static/images/iD-sprite.svg#icon-area",
+            icon: "static/images/iD-sprite.svg#icon-area",
             interactions: [ui.polyInter]
         };
 
@@ -529,7 +529,7 @@ window.gokart = (function(self) {
             self.initAnnotations();
         }
 
-        $.get("/static/images/legend.svg", function(tmpl) {
+        $.get("static/images/legend.svg", function(tmpl) {
             $("#legendsvg").html(tmpl);
             self.initMapControls();
         }, "text");
