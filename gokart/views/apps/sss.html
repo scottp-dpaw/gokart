@@ -190,12 +190,6 @@ var resource_tracking_style = function(f, res) {
     }
     return style
 }
-{% if env.WMTS_SRC %}
-gokart.defaultWMTSSrc = "{{ env.WMTS_SRC }}";
-{% endif %}
-{% if env.WFS_SRC %}
-gokart.defaultWFSSrc = "{{ env.WFS_SRC }}";
-{% endif %}
 
 // pack-in catalogue
 var catalogue = [

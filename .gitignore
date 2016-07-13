@@ -2,3 +2,5 @@
 *.pyc
 .env
 venv/
+cordova/*/platforms
+cordova/*/plugins
