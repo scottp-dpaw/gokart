@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Cordova CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob: filesystem: mediastream:;">
+    <!-- Unicode is great -->
+    <meta charset="utf-8" />
+    <title>{{ app }}</title>
+    <!-- Disable awful IE compatibility mode -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Force fit-to-viewport sizing on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <!-- Foundation 6 CSS framework -->
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/foundation/6.2.3/foundation-flex.min.css" type="text/css" />
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/font-awesome/4.6.3/css/font-awesome.min.css" type="text/css" />
+    <!-- OpenLayers 3 map widget CSS -->
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/ol3/3.17.1/ol.css" type="text/css" />
+    <!-- Drag and drop CSS -->
+    <link rel="stylesheet" href="//static.dpaw.wa.gov.au/static/libs/dragula/3.7.1/dragula.css" type="text/css" />
+    <!-- Map CSS -->
+    <link rel="stylesheet" href="static/css/style.css" type="text/css" />
+    <!-- favicon -->
+    <link rel="icon" href="static/images/favicon.svg" sizes="any" type="image/svg+xml" />
+    <link rel="icon" href="static/images/favicon-256.png" sizes="16x16 32x32 64x64 128x128 256x256" type="image/png" /> 
+  </head>
+  <body>
+    <app></app>
+    <script src="dist/{{ app }}.js"></script>
+  </body>
+</html>

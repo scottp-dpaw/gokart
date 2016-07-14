@@ -1,7 +1,7 @@
+.DS_Store
+node_modules
+dist/build.js
 *.sw*
 *.pyc
 .env
 venv/
-cordova/*/platforms
-cordova/*/plugins
-cordova/*/www/cache
