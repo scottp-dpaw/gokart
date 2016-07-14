@@ -18,12 +18,32 @@
   "browserify": {
     "transform": [
       "vueify",
-      "babelify"
+      [
+        "babelify",
+        {
+          "only": "src"
+        }
+      ],
+      "browserify-shim",
+      "browserify-css"
     ]
   },
+  "browser": {
+    "jquery": "./node_modules/foundation-sites/node_modules/jquery/dist/jquery.js",
+    "foundation-sites": "./node_modules/foundation-sites/dist/foundation.js"
+  },
+  "browserify-shim": {
+    "jquery": "$",
+    "foundation-sites": {
+      "depends": [
+        "jquery"
+      ]
+    }
+  },
   "dependencies": {
+    "browserify-css": "^0.9.1",
+    "browserify-shim": "^3.8.12",
     "foundation-sites": "^6.2.3",
-    "jquery": "^3.1.0",
     "svg4everybody": "^2.1.0",
     "vue": "^1.0.0"
   },
