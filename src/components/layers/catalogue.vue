@@ -46,3 +46,73 @@
         </div>
     </div>
 </template>
+
+<script>
+    export default {
+        data: function() {
+            return {
+                layer: {},
+                catalogue: new ol.Collection,
+                swapBaseLayers: true,
+                search: "",
+                searchAttrs: ["name", "id"],
+                overview: false
+            }
+        },
+        methods: {
+            preview: function(layer) {
+                if (this.layer == layer) {
+                    return;
+                }
+                if (!layer && this.layer.preview) {
+                    this.layer.preview.setMap(null);
+                    if (!layer) {
+                        this.layer = {};
+                        return;
+                    }
+                }
+                layer.preview = new ol.control.OverviewMap({
+                    layers: [layer.init()],
+                    collapsed: false,
+                    collapsible: false,
+                    view: new ol.View({
+                        projection: "EPSG:4326"
+                    })
+                });
+                layer.preview.setMap(self.map);
+                this.layer = layer;
+            },
+            // helper function to simulate a <label> style click on a row
+            onToggle: function(index) {
+                $(this.$el).find("#ctlgsw" + index).trigger("click");
+            },
+            // toggle a layer in the Layer Catalogue
+            onLayerChange: function(layer, checked) {
+                // if layer matches state, return
+                if (checked == (layer.olLayer() !== undefined)) {
+                    return;
+                }
+                // make the layer match the state
+                if (checked) {
+                    if (layer.base) {
+                        // "Switch out base layers automatically" is enabled, remove
+                        // all other layers with the "base" option set.
+                        if (this.swapBaseLayers) {
+                            ui.layers.olLayers.forEach(function(olLayer) {
+                                if (self.getLayer(olLayer.get("id")).base) {
+                                    ui.layers.removeLayer(olLayer);
+                                }
+                            });
+                        }
+                        // add new base layer to bottom
+                        self.map.getLayers().insertAt(0, layer.init());
+                    } else {
+                        self.map.addLayer(layer.init());
+                    }
+                } else {
+                    ui.layers.removeLayer(layer.olLayer());
+                }
+            }
+        }
+    }
+</script>

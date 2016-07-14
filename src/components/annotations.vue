@@ -1,0 +1,65 @@
+<template>
+    <div class="tabs-panel" id="menu-tab-annotations" v-cloak>
+    <div class="row collapse">
+        <div class="columns">
+            <ul class="tabs" data-tabs id="annotations-tabs">
+                <li class="tabs-title is-active"><a href="#annotations-edit" aria-selected="true">Annotations</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="row collapse" id="annotations-tab-panels">
+        <div class="columns">
+            <div class="tabs-content vertical" data-tabs-content="annotations-tabs">
+                
+                <div class="tabs-panel is-active" id="annotations-edit" v-cloak>
+                    <div class="tool-slice row collapse">
+                        <div class="small-2"><label class="tool-label">Tool:</label></div>
+                        <div class="small-10">
+                            <div class="expanded button-group">
+                                <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
+                            </div>
+                            <div class="expanded stacked button-group">
+                                <a v-for="t in tools | filterIf 'showName' true" class="button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="advanced" class="tool-slice row collapse">
+                        <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
+                        <div class="small-10"><div class="expanded button-group">
+                            <a @click="size = 8" v-bind:class="{'selected': size == 8}" class="button"><small>Small</small></a>
+                            <a @click="size = 12" v-bind:class="{'selected': size == 12}" class="button">Medium</a>
+                            <a @click="size = 16" v-bind:class="{'selected': size == 16}" class="button"><big>Large</big></a>
+                        </div></div>
+                    </div>
+                    <div v-if="advanced" class="tool-slice row collapse">
+                        <div class="small-2"><label class="tool-label">Colour:</label></div>
+                        <div class="small-10"><div class="expanded button-group">
+                            <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}" v-bind:style="{ backgroundColor: c[1] }"></a>
+                        </div></div>
+                    </div>
+                    <div class="tool-slice row collapse">
+                        <div class="small-2"><label class="tool-label">Ops:</label></div>
+                        <div class="small-10">
+                            <div class="expanded button-group">
+                                <a id="tool-cut" class="button"><i class="fa fa-cut" aria-hidden="true"></i> Cut</a>
+                                <a id="tool-copy" class="button"><i class="fa fa-copy" aria-hidden="true"></i> Copy</a>
+                                <a id="tool-paste" class="button"><i class="fa fa-paste" aria-hidden="true"></i> Paste</a>
+                            </div>
+                            <div class="expanded button-group">
+                                <a id="tool-undo" class="button"><i class="fa fa-undo" aria-hidden="true"></i> Undo</a>
+                                <a id="tool-redo" class="button"><i class="fa fa-repeat" aria-hidden="true"></i> Redo</a>
+                            </div>
+                            <div class="expanded button-group">
+                                <a id="tool-import" class="button"><i class="fa fa-upload" aria-hidden="true"></i> Import</a>
+                                <a id="tool-export" class="button"><i class="fa fa-download" aria-hidden="true"></i> Export</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+</div>
+</template>

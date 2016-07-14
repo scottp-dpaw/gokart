@@ -57,8 +57,51 @@
 
 <script>
     export default {
-        data: function () { 
-            return { sliderOpacity: 0, layer: { olLayer: function() {} }, olLayers: [], hoverInfoCache: true, timeIndex: 0 }
-        } 
+        data: function() {
+            return {
+                sliderOpacity: 0,
+                layer: {
+                    olLayer: function() {}
+                },
+                olLayers: [],
+                hoverInfoCache: true,
+                timeIndex: 0
+            }
+        },
+        methods: {
+            getLayer: self.getLayer,
+            toggleGraticule: function() {
+                if (this.graticule) {
+                    self.graticule.setMap(null);
+                } else {
+                    self.graticule.setMap(self.map);
+                }
+            },
+            toggleHoverInfo: function(ev) {
+                this.hoverInfoCache = ev.target.checked;
+                this.hoverInfo = ev.target.checked;
+            },
+            update: function() {
+                var vm = this;
+                vm.olLayers = [];
+                Vue.nextTick(function() {
+                    vm.olLayers = gokart.map.getLayers().getArray();
+                });
+            },
+            removeLayer: function(olLayer) {
+                self.map.removeLayer(olLayer);
+            },
+            // change order of OL layers based on "Map Layers" list order
+            updateOrder: function(el) {
+                Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function(row) {
+                    var layer = self.getMapLayer(row.dataset.id);
+                    self.map.removeLayer(layer);
+                    self.map.addLayer(layer);
+                });
+            },
+            ready: function() {
+                dragula([document.querySelector("#layers-active-list")]).on("dragend", this.updateOrder);
+            }
+        }
     }
 </script>
