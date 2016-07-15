@@ -56,52 +56,95 @@
 </template>
 
 <script>
+    import dragula from 'dragula'
     export default {
-        data: function() {
-            return {
-                sliderOpacity: 0,
-                layer: {
-                    olLayer: function() {}
-                },
-                olLayers: [],
-                hoverInfoCache: true,
-                timeIndex: 0
-            }
-        },
-        methods: {
-            getLayer: self.getLayer,
-            toggleGraticule: function() {
-                if (this.graticule) {
-                    self.graticule.setMap(null);
-                } else {
-                    self.graticule.setMap(self.map);
+        // variables
+        data: function() { return {
+            sliderOpacity: 0,
+            layer: {
+                olLayer: function () { }
+            },
+            olLayers: [],
+            hoverInfoCache: true,
+            timeIndex: 0
+        }},
+        // parts of the template to be computed live
+        computed: {
+            graticule: {
+                cache: false,
+                get: function () {
+                    return this.$root.graticule && this.$root.graticule.getMap() === self.map
                 }
             },
-            toggleHoverInfo: function(ev) {
-                this.hoverInfoCache = ev.target.checked;
-                this.hoverInfo = ev.target.checked;
+            hoverInfo: {
+                cache: false,
+                get: function () {
+                    return this.$root.$refs.app.$refs.map.$refs.info.enabled
+                },
+                set: function (val) {
+                    this.$root.$refs.app.$refs.map.$refs.info.enabled = val
+                }
             },
-            update: function() {
-                var vm = this;
-                vm.olLayers = [];
-                Vue.nextTick(function() {
-                    vm.olLayers = gokart.map.getLayers().getArray();
-                });
+            sliderTimeline: {
+                get: function () {
+                    this.timeIndex = this.layer.olLayer().get('timeIndex')
+                    return this.timeIndex
+                },
+                set: function (val) {
+                    this.layer.olLayer().set('timeIndex', val)
+                    this.timeIndex = val
+                }
             },
-            removeLayer: function(olLayer) {
-                self.map.removeLayer(olLayer);
+            timelineTS: function () {
+                return this.layer.timeline[this.timeIndex][0]
+            },
+            sliderMax: function () {
+                return this.layer.timeline.length - 1
+            },
+            layerOpacity: {
+                get: function () {
+                    return Math.round(this.layer.olLayer().getOpacity() * 100)
+                },
+                set: function (val) {
+                    this.layer.olLayer().setOpacity(val / 100)
+                }
+            }
+        },
+        // methods callable from inside the template
+        methods: {
+            getLayer: self.getLayer,
+            toggleGraticule: function () {
+                if (this.graticule) {
+                    self.graticule.setMap(null)
+                } else {
+                    self.graticule.setMap(self.map)
+                }
+            },
+            toggleHoverInfo: function (ev) {
+                this.hoverInfoCache = ev.target.checked
+                this.hoverInfo = ev.target.checked
+            },
+            update: function () {
+                var vm = this
+                vm.olLayers = []
+                Vue.nextTick(function () {
+                    vm.olLayers = gokart.map.getLayers().getArray()
+                })
+            },
+            removeLayer: function (olLayer) {
+                self.map.removeLayer(olLayer)
             },
             // change order of OL layers based on "Map Layers" list order
-            updateOrder: function(el) {
-                Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function(row) {
-                    var layer = self.getMapLayer(row.dataset.id);
-                    self.map.removeLayer(layer);
-                    self.map.addLayer(layer);
-                });
+            updateOrder: function (el) {
+                Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function (row) {
+                    var layer = self.getMapLayer(row.dataset.id)
+                    self.map.removeLayer(layer)
+                    self.map.addLayer(layer)
+                })
             },
-            ready: function() {
-                dragula([document.querySelector("#layers-active-list")]).on("dragend", this.updateOrder);
-            }
+        },
+        ready: function () {
+            dragula([document.querySelector('#layers-active-list')]).on('dragend', this.updateOrder)
         }
     }
 </script>
