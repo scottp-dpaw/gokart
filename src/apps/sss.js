@@ -4,6 +4,7 @@ import {
     svg4everybody,
     moment,
     loki,
+    LokiIndexedAdapter,
     Vue
 } from 'src/vendor.js'
 import ol from '../ol-extras.js'
@@ -33,7 +34,7 @@ var debounce = function (func, wait, immediate) {
     }
 }
 
-var idbAdapter = new loki.LokiIndexedAdapter('finance')
+var idbAdapter = new LokiIndexedAdapter('finance')
 var db = new loki('test', { adapter: idbAdapter })
 db.loadDatabase(function (result) {
     console.log('done')
@@ -176,27 +177,27 @@ new Vue({
 
         // pack-in catalogue
         var catalogue = [{
-            init: gokart.createWFSLayer,
+            init: this.map.createWFSLayer,
             name: 'Resource Tracking',
             id: 'dpaw:resource_tracking',
             style: resource_tracking_style,
             onadd: addResource,
             refresh: 30
         }, {
-            init: gokart.createWFSLayer,
+            init: this.map.createWFSLayer,
             name: 'Resource Tracking History',
             id: 'dpaw:tracking_history_view',
             style: resource_tracking_style,
             onadd: addResource,
             cql_filter: false
         }, {
-            init: gokart.createTileLayer,
+            init: this.map.createTileLayer,
             name: 'Firewatch Hotspots 72hrs',
             id: 'landgate:firewatch_ecu_hotspots_last_0_72',
             format: 'image/png',
             refresh: 60
         }, {
-            init: gokart.createTimelineLayer,
+            init: this.map.createTimelineLayer,
             name: 'Himawari-8 Hotspots',
             id: 'himawari8:hotspots',
             source: '/hi8/AHI_TKY_FHS',
@@ -205,45 +206,44 @@ new Vue({
             },
             refresh: 300
         }, {
-            init: gokart.createTimelineLayer,
+            init: this.map.createTimelineLayer,
             name: 'Himawari-8 True Colour',
             id: 'himawari8:bandtc',
             source: '/hi8/AHI_TKY_b321',
             refresh: 300,
             base: true
         }, {
-            init: gokart.createTimelineLayer,
+            init: this.map.createTimelineLayer,
             name: 'Himawari-8 Band 3',
             id: 'himawari8:band3',
             source: '/hi8/AHI_TKY_b3',
             refresh: 300,
             base: true
         }, {
-            init: gokart.createTimelineLayer,
+            init: this.map.createTimelineLayer,
             name: 'Himawari-8 Band 7',
             id: 'himawari8:band7',
             source: '/hi8/AHI_TKY_b7',
             refresh: 300,
             base: true
         }, {
-            init: gokart.createTimelineLayer,
+            init: this.map.createTimelineLayer,
             name: 'Himawari-8 Band 15',
             id: 'himawari8:band15',
             source: '/hi8/AHI_TKY_b15',
             refresh: 300,
             base: true
         }, {
-            init: gokart.createTileLayer,
+            init: this.map.createTileLayer,
             name: 'State Map Base',
             id: 'cddp:smb_250K',
             base: true
         }, {
-            init: gokart.createTileLayer,
+            init: this.map.createTileLayer,
             name: 'Virtual Mosaic',
             id: 'landgate:LGATE-V001',
             base: true
         }]
-
 
         // load map with default layers
         this.map.init(catalogue, ['dpaw:resource_tracking', 'cddp:smb_250K'])
@@ -283,7 +283,6 @@ new Vue({
             style: spotFireStyle
         })
 
-
         var divisionStyle = new ol.style.Style({
             image: new ol.style.Icon({
                 anchor: [0.5, 0.5],
@@ -299,7 +298,6 @@ new Vue({
             style: divisionStyle
         })
 
-
         var sectorStyle = new ol.style.Style({
             image: new ol.style.Icon({
                 anchor: [0.5, 0.5],
@@ -314,7 +312,6 @@ new Vue({
             features: gokart.ui.features,
             style: sectorStyle
         })
-
 
         var fireLineStyle = new ol.style.Style({
             stroke: new ol.style.Stroke({
@@ -332,7 +329,6 @@ new Vue({
             style: fireLineStyle
         })
 
-
         var fireBoundaryStyle = new ol.style.Style({
             stroke: new ol.style.Stroke({
                 width: 4.0,
@@ -348,7 +344,6 @@ new Vue({
             features: gokart.ui.features,
             style: fireBoundaryStyle
         })
-
 
         var snapToLines = new ol.interaction.Snap({
             features: gokart.ui.features,
@@ -484,7 +479,6 @@ new Vue({
                 }
             }
         })
-
 
         var renderTracking = debounce(function () {
             if (!trackingLayer.olLayer || (trackingLayer.olLayer().getSource().getFeatures().length === 0) || !gokart.mapExportControls) {

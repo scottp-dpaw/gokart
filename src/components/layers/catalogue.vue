@@ -49,7 +49,7 @@
 
 <script>
     export default {
-        data: function() { return {
+        data: function () { return {
             layer: {},
             catalogue: new ol.Collection(),
             swapBaseLayers: true,
@@ -111,6 +111,21 @@
                     ui.layers.removeLayer(layer.olLayer())
                 }
             }
+        },
+        ready: function () {
+            var initLayer = function(initFunc, mapObj) {
+                return function () {
+                    return initFunc(mapObj)
+                }
+            }
+            var map = this.$root.map
+            this.catalogue.on('add', function (event) {
+                var l = event.element
+                l.olLayer = map.getMapLayer
+                l.id = l.id || l.identifier
+                l.name = l.name || l.title
+                l.init = initLayer( l.init || map.createTileLayer, map ) // override based on layer type
+            })
         }
     }
 </script>

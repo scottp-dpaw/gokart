@@ -92,21 +92,25 @@ self.prototype.createGraticule_ = function (extent, center, resolution, squaredT
     var centerLonLat = this.toLonLatTransform_(center)
     var centerLon = centerLonLat[0]
     var centerLat = centerLonLat[1]
+    var validExtent = [
+        Math.max(extent[0], this.minLonP_),
+        Math.max(extent[1], this.minLatP_),
+        Math.min(extent[2], this.maxLonP_),
+        Math.min(extent[3], this.maxLatP_)
+    ]
     var maxLines = this.maxLines_
-    var cnt, idx, lat, lon, idxLabels = 0
-    var validExtent = [Math.max(extent[0], this.minLonP_), Math.max(extent[1], this.minLatP_), Math.min(extent[2], this.maxLonP_), Math.min(extent[3], this.maxLatP_)]
     validExtent = ol.proj.transformExtent(validExtent, this.projection_, 'EPSG:4326')
     var maxLat = validExtent[3]
     var maxLon = validExtent[2]
     var minLat = validExtent[1]
     var minLon = validExtent[0]
     centerLon = Math.floor(centerLon / interval) * interval
-    lon = ol.math.clamp(centerLon, this.minLon_, this.maxLon_)
-    idx = this.addMeridian_(lon, minLat, maxLat, squaredTolerance, extent, 0)
+    var lon = ol.math.clamp(centerLon, this.minLon_, this.maxLon_)
+    var idx = this.addMeridian_(lon, minLat, maxLat, squaredTolerance, extent, 0)
     if (this.showLabels_) {
         idxLabels = this.addMeridianLabel_(lon, squaredTolerance, extent, 0)
     }
-    cnt = 0
+    var cnt = 0
     while (lon !== this.minLon_ && cnt++ < maxLines) {
         lon = Math.max(lon - interval, this.minLon_)
         idx = this.addMeridian_(lon, minLat, maxLat, squaredTolerance, extent, idx)
@@ -126,8 +130,8 @@ self.prototype.createGraticule_ = function (extent, center, resolution, squaredT
     this.meridians_.length = idx
     this.meridiansLabels_.length = idxLabels
     centerLat = Math.floor(centerLat / interval) * interval
-    lat = ol.math.clamp(centerLat, this.minLat_, this.maxLat_)
-    idxLabels = 0
+    var lat = ol.math.clamp(centerLat, this.minLat_, this.maxLat_)
+    var idxLabels = 0
     idx = this.addParallel_(lat, minLon, maxLon, squaredTolerance, extent, 0)
     if (this.showLabels_) {
         idxLabels = this.addParallelLabel_(lat, squaredTolerance, extent, 0)

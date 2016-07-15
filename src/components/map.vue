@@ -32,7 +32,12 @@
                 defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
                 // fixed scales for the scale selector (1:1K increments)
                 fixedScales: [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000],
-                scale: 0
+                scale: 0,
+                graticule: new ol.LabelGraticule(),
+                dragPanInter: new ol.interaction.DragPan(),
+                doubleClickZoomInter: new ol.interaction.DoubleClickZoom(),
+                keyboardPanInter: new ol.interaction.KeyboardPan(),
+                keyboardZoomInter: new ol.interaction.KeyboardZoom()
             }
         },
         // parts of the template to be computed live
@@ -337,6 +342,7 @@
                 return tileLayer
             },
             getMapLayer: function (id) {
+                if (id.id) { id = id.id } // if passed a catalogue layer, get actual id
                 return this.map.getLayers().getArray().find(function (layer) {
                     return layer.get('id') === id
                 })
@@ -348,35 +354,15 @@
             },
             // initialise map
             init: function (catalogue, layers, options) {
-                var self = this;
-                this.$root.catalogue.catalogue = new ol.Collection()
+                var vm = this
                 options = options || {}
-
-                var getMapLayer = function () {
-                    return self.getMapLayer(this.id)
-                }
-
-                var initLayer = function(initFunc, mapObj) {
-                    return function () {
-                        return initFunc(mapObj)
-                    }
-                }
-
-                this.$root.catalogue.catalogue.on('add', function (event) {
-                    var l = event.element
-                    l.olLayer = getMapLayer
-                    l.id = l.id || l.identifier
-                    l.name = l.name || l.title
-                    l.init = initLayer( l.init || self.createTileLayer, self ) // override based on layer type
-                })
-
                 this.$root.catalogue.catalogue.extend(catalogue)
 
                 var initialLayers = layers.reverse().map(function (id) {
-                    return self.getLayer(id).init()
+                    return vm.getLayer(id).init()
                 })
 
-                self.map = new ol.Map({
+                this.olmap = new ol.Map({
                     logo: false,
                     renderer: 'canvas',
                     target: 'map',
@@ -420,44 +406,26 @@
                     self.setScale(params.scale / 1000)
                 }
                 // add some default interactions
-                self.dragPanInter = new ol.interaction.DragPan()
-                self.doubleClickZoomInter = new ol.interaction.DoubleClickZoom()
-                self.keyboardPanInter = new ol.interaction.KeyboardPan()
-                self.keyboardZoomInter = new ol.interaction.KeyboardZoom()
-                self.map.addInteraction(self.dragPanInter)
-                self.map.addInteraction(self.doubleClickZoomInter)
-                self.map.addInteraction(self.keyboardPanInter)
-                self.map.addInteraction(self.keyboardZoomInter)
+                this.olmap.addInteraction(this.dragPanInter)
+                this.olmap.addInteraction(this.doubleClickZoomInter)
+                this.olmap.addInteraction(this.keyboardPanInter)
+                this.olmap.addInteraction(this.keyboardZoomInter)
 
                 // Create the graticule component
-                self.graticule = new ol.LabelGraticule()
-                self.graticule.setMap(self.map)
+                this.graticule.setMap(this.olmap)
 
                 // setup scale events
-                self.map.on('postrender', function () {
-                    if (self.mapScaleControl) {
-                        self.mapScaleControl.scale = self.getScale()
+                this.olmap.on('postrender', function () {
+                    if (vm.mapScaleControl) {
+                        vm.mapScaleControl.scale = vm.getScale()
                     }
-                    if (self.mapExportControls) {
-                        history.replaceState(null, null, location.pathname + '?' + self.mapExportControls.shortUrl)
+                    if (vm.mapExportControls) {
+                        history.replaceState(null, null, location.pathname + '?' + vm.mapExportControls.shortUrl)
                     }
                 })
-                if (document.querySelector('#info')) {
-                    self.initInfo()
-                }
-                if (document.querySelector('#menu-tab-layers')) {
-                    self.initLayers()
-                }
-                if (document.querySelector('#menu-tab-annotations')) {
-                    self.initAnnotations()
-                }
 
-                $.get('static/images/legend.svg', function (tmpl) {
-                    $('#legendsvg').html(tmpl)
-                    self.initMapControls()
-                }, 'text')
-                // display hover popups
-                self.map.on('pointermove', this.$refs.info.onPointerMove)
+                // tell other components map is ready
+                this.$root.$broadcast("gk-init")
             }
         },
         ready: function() {

@@ -88,6 +88,12 @@
                     this.sel.push(id)
                 }
             }
+        },
+        ready: function() {
+            this.$on("gk-init", function() {
+                // display hover popups
+                this.$root.map.olmap.on('pointermove', this.onPointerMove)
+            })
         }
     }
 </script>
