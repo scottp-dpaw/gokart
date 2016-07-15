@@ -1,14 +1,12 @@
-import 'foundation-sites/dist/foundation-flex.css'
-import 'font-awesome/css/font-awesome.css'
-import 'openlayers/dist/ol-debug.css'
-import 'dragula/dist/dragula.css'
 
-import $ from 'jquery'
-import 'foundation-sites'
-import svg4everybody from 'svg4everybody'
+import {
+    $,
+    svg4everybody,
+    moment,
+    loki,
+    Vue
+} from 'src/vendor.js'
 import ol from '../ol-extras.js'
-import moment from 'moment'
-import Vue from 'vue'
 import App from '../sss.vue'
 
 global.$ = $
@@ -35,6 +33,12 @@ var debounce = function (func, wait, immediate) {
     }
 }
 
+var idbAdapter = new loki.LokiIndexedAdapter('finance')
+var db = new loki('test', { adapter: idbAdapter })
+db.loadDatabase(function (result) {
+    console.log('done')
+})
+
 /* eslint-disable no-new */
 new Vue({
     el: 'body',
@@ -45,7 +49,8 @@ new Vue({
         pngs: {},
         mmPerInch: 25.4,
         geojson: new ol.format.GeoJSON(),
-        wgs84Sphere: new ol.Sphere(6378137)
+        wgs84Sphere: new ol.Sphere(6378137),
+        db: db
     },
     computed: {
         catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
