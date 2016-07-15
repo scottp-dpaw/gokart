@@ -39,6 +39,19 @@
             // scale string for the current map zoom level
             scaleString: function() {
                 return this.getScaleString(this.scale);
+            },
+            // because the viewport size changes when the tab pane opens, don't cache the map width and height            
+            mapWidth: {
+                cache: false,
+                get: function get() {
+                    return this.$el.clientWidth
+                }
+            },
+            mapHeight: {
+                cache: false,
+                get: function get() {
+                    return this.$el.clientHeight
+                }
             }
         },
         // methods callable from inside the template
@@ -49,6 +62,7 @@
                     self.map.getView().setResolution(self.map.getView().getResolution() * scale / self.getScale())
                 }
                 this.scale = scale;
+                console.log(scale);
                 ev.target.selectedIndex = 0;
             },
             // return the scale (1:1K increments)
