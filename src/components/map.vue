@@ -13,14 +13,15 @@
     export default {
         components: { gkInfo },
         data: function() {
+            var resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
             return {
                 // default matrix from KMI
-                resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
-                _matrixSets: {
+                resolutions: resolutions,
+                matrixSets: {
                     'EPSG:4326': {
                         '1024': {
                             'name': 'gda94',
-                            'resolutions': this.resolutions,
+                            'resolutions': resolutions,
                             'minLevel': 0,
                             'maxLevel': 17
                         }
@@ -44,13 +45,19 @@
             mapWidth: {
                 cache: false,
                 get: function get() {
-                    return this.$el.clientWidth
+                    if (this.$el) {
+                        return this.$el.clientWidth
+                    }
+                    return 0
                 }
             },
             mapHeight: {
                 cache: false,
                 get: function get() {
-                    return this.$el.clientHeight
+                    if (this.$el) {
+                        return this.$el.clientHeight
+                    }
+                    return 0
                 }
             }
         },
@@ -128,7 +135,7 @@
                 }
             },
             // loader for layers with a "time" axis, e.g. live satellite imagery
-            createTimelineLayer: function () {
+            createTimelineLayer: function (self) {
                 var options = this
                 options.params = $.extend({
                     FORMAT: 'image/jpeg',
@@ -154,7 +161,7 @@
 
                 // hook the tile loading function to update progress indicator
                 tileLayer.progress = ''
-                tileSource.setTileLoadFunction(_tileLoaderHook(tileSource, tileLayer))
+                tileSource.setTileLoadFunction(self.tileLoaderHook(tileSource, tileLayer))
 
                 // hook to swap the tile layer when timeIndex changes
                 tileLayer.on('propertychange', function (event) {
@@ -279,7 +286,7 @@
                 }, layer)
 
                 // create a tile grid using the stock KMI resolutions
-                var matrixSet = self._matrixSets[layer.projection][layer.tileSize]
+                var matrixSet = self.matrixSets[layer.projection][layer.tileSize]
                 var tileGrid = new ol.tilegrid.WMTS({
                     origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
                     resolutions: matrixSet.resolutions,
@@ -316,7 +323,7 @@
 
                 // hook the tile loading function to update progress indicator
                 tileLayer.progress = ''
-                tileSource.setTileLoadFunction(_tileLoaderHook(tileSource, tileLayer))
+                tileSource.setTileLoadFunction(self.tileLoaderHook(tileSource, tileLayer))
 
                 // if the "refresh" option is set, set a timer
                 // to force a reload of the tile content
@@ -352,18 +359,24 @@
                     return self.getMapLayer(this.id)
                 }
 
+                var initLayer = function(initFunc, mapObj) {
+                    return function () {
+                        return initFunc(mapObj)
+                    }
+                }
+
                 this.$root.catalogue.catalogue.on('add', function (event) {
                     var l = event.element
                     l.olLayer = getMapLayer
                     l.id = l.id || l.identifier
                     l.name = l.name || l.title
-                    l.init = l.init || self.createTileLayer // override based on layer type
+                    l.init = initLayer( l.init || self.createTileLayer, self ) // override based on layer type
                 })
 
                 this.$root.catalogue.catalogue.extend(catalogue)
 
                 var initialLayers = layers.reverse().map(function (id) {
-                    return self.getLayer(id).init(self)
+                    return self.getLayer(id).init()
                 })
 
                 self.map = new ol.Map({
@@ -452,7 +465,7 @@
         },
         ready: function() {
             // generate matrix IDs from name and level number
-            $.each(this._matrixSets, function (projection, innerMatrixSets) {
+            $.each(this.matrixSets, function (projection, innerMatrixSets) {
                 $.each(innerMatrixSets, function (tileSize, matrixSet) {
                     var matrixIds = new Array(matrixSet.maxLevel - matrixSet.minLevel + 1)
                     for (var z = matrixSet.minLevel; z <= matrixSet.maxLevel; ++z) {
