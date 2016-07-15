@@ -8,10 +8,10 @@
     "app": "sss"
   },
   "scripts": {
-    "watchify": "watchify -vd -p browserify-hmr -g browserify-css -e src/apps/$npm_package_config_app.js -o dist/$npm_package_config_app.js",
+    "watchify": "watchify -vd -p browserify-hmr --debug -g browserify-css -e src/apps/$npm_package_config_app.js -o 'exorcist dist/$npm_package_config_app.js.map > dist/$npm_package_config_app.js'",
     "serve": "uwsgi -i uwsgi.ini",
     "dev": "npm-run-all --parallel watchify serve",
-    "build": "cross-env NODE_ENV=production browserify -g browserify-css -e src/apps/$npm_package_config_app.js | uglifyjs -c warnings=false -m > dist/$npm_package_config_app.js",
+    "build": "cross-env NODE_ENV=production browserify --debug -g browserify-css -e src/apps/$npm_package_config_app.js | exorcist dist/$npm_package_config_app.js.map | uglifyjs -c warnings=false -m > dist/$npm_package_config_app.js",
     "lint": "eslint --ext .js,.vue src test/unit",
     "test": "karma start karma.conf.js"
   },
@@ -43,6 +43,7 @@
     "browserify-css": "^0.9.1",
     "browserify-shim": "^3.8.12",
     "dragula": "^3.7.1",
+    "exorcist": "^0.4.0",
     "font-awesome": "^4.6.3",
     "foundation-sites": "^6.2.3",
     "kjua": "^0.1.1",
