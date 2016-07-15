@@ -324,7 +324,7 @@
                 })
             },
             getLayer: function (id) {
-                return self.catalogue.getArray().find(function (layer) {
+                return this.$root.catalogue.getArray().find(function (layer) {
                     return layer.id === id
                 })
             },
@@ -348,7 +348,7 @@
                 self.catalogue.extend(catalogue)
 
                 var initialLayers = layers.reverse().map(function (id) {
-                    return self.getLayer(id).init()
+                    return this.getLayer(id).init()
                 })
 
                 self.map = new ol.Map({

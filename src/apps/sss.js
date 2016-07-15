@@ -6,14 +6,12 @@ import 'dragula/dist/dragula.css'
 import $ from 'jquery'
 import 'foundation-sites'
 import svg4everybody from 'svg4everybody'
-import ol from 'openlayers/dist/ol-debug.js'
+import ol from '../ol-extras.js'
 import moment from 'moment'
 import Vue from 'vue'
 import App from '../sss.vue'
 
 global.$ = $
-ol.OVERVIEWMAP_MIN_RATIO = 1
-ol.OVERVIEWMAP_MAX_RATIO = 1
 global.ol = ol
 
 var debounce = function (func, wait, immediate) {
@@ -139,7 +137,6 @@ new Vue({
             stylecache[icon] = style
             return style
         }
-        Vue.partial('resourceInfo', document.querySelectorAll('#resourceInfo')[0].innerHTML)
         var addResource = function (f) {
             var color = '_red'
             if (f.get('age') < 24) {
@@ -162,7 +159,7 @@ new Vue({
         var resource_tracking_style = function (f, res) {
             var style = stylecache[f.get('icon')] || initStyle(f.get('icon'))
             if (gokart.pngs[style.getImage().iconImage_.src_]) {
-                var style = initStyle(f.get('icon'))
+                style = initStyle(f.get('icon'))
             };
             if (res < 0.002) {
                 style.getText().setText(f.get('label'))
@@ -201,7 +198,7 @@ new Vue({
             params: {
                 FORMAT: 'image/png'
             },
-            refresh: 300,
+            refresh: 300
         }, {
             init: gokart.createTimelineLayer,
             name: 'Himawari-8 True Colour',
@@ -244,8 +241,8 @@ new Vue({
 
 
         // load map with default layers
-        gokart.init(catalogue, ['dpaw:resource_tracking', 'cddp:smb_250K'])
-        gokart.loadRemoteCatalogue('https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss')
+        this.map.init(catalogue, ['dpaw:resource_tracking', 'cddp:smb_250K'])
+        this.catalogue.loadRemoteCatalogue('https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss')
 
         var historyLayer = gokart.getLayer('dpaw:tracking_history_view')
         var trackingLayer = gokart.getLayer('dpaw:resource_tracking')
@@ -436,10 +433,10 @@ new Vue({
                     },
                     set: function (val) {
                         this.historyRangeMilliseconds = val
-                        currentDate = new moment()
+                        var currentDate = new moment()
                         this.historyToDate = currentDate.format('YYYY-MM-DD')
                         this.historyToTime = currentDate.format('HH:mm')
-                        fromDate = currentDate.subtract(val, 'milliseconds')
+                        var fromDate = currentDate.subtract(val, 'milliseconds')
                         this.historyFromDate = fromDate.format('YYYY-MM-DD')
                         this.historyFromTime = fromDate.format('HH:mm')
                     }
