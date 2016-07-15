@@ -77,7 +77,7 @@
                         projection: 'EPSG:4326'
                     })
                 })
-                layer.preview.setMap(self.map)
+                layer.preview.setMap(this.$root.map.map)
                 this.layer = layer
             },
             // helper function to simulate a <label> style click on a row

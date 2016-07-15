@@ -30,19 +30,6 @@
         },
         // parts of the template to be computed live
         computed: {
-            // because the viewport size changes when the tab pane opens, don't cache the map width and height
-            mapWidth: {
-                cache: false,
-                get: function () {
-                    return this.$root.map.olmap.getTargetElement().clientWidth
-                }
-            },
-            mapHeight: {
-                cache: false,
-                get: function () {
-                    return this.$root.map.olmap.getTargetElement().clientHeight
-                }
-            },
             featuresLength: function () {
                 return Object.keys(this.features).length
             },
@@ -51,16 +38,16 @@
                 var css = {
                     'left': this.pixel[0] + this.offset + 'px',
                     'top': this.pixel[1] + this.offset + 'px',
-                    'bottom': this.mapHeight - this.pixel[1] + this.offset + 'px',
-                    'right': this.mapWidth - this.pixel[0] + this.offset + 'px',
+                    'bottom': this.$root.mapHeight - this.pixel[1] + this.offset + 'px',
+                    'right': this.$root.mapWidth - this.pixel[0] + this.offset + 'px',
                     'display': 'none'
                 }
-                if (this.pixel[0] < this.mapWidth / 2) {
+                if (this.pixel[0] < this.$root.mapWidth / 2) {
                     delete css.right
                 } else {
                     delete css.left
                 }
-                if (this.pixel[1] < this.mapHeight / 2) {
+                if (this.pixel[1] < this.$root.mapHeight / 2) {
                     delete css.bottom
                 } else {
                     delete css.top
