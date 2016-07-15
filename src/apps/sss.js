@@ -58,7 +58,9 @@ new Vue({
         info: function () { return this.$refs.app.$refs.map.$refs.info },
         active: function () { return this.$refs.app.$refs.layers.$refs.active },
         catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
-        annotations: function () { return this.$refs.app.$refs.annotations }
+        export: function () { return this.$refs.app.$refs.layers.$refs.export },
+        annotations: function () { return this.$refs.app.$refs.annotations },
+        tracking: function () { return this.$refs.app.$refs.tracking }
     },
     methods: {
         // method to precache SVGs as raster (PNGs)
@@ -252,7 +254,6 @@ new Vue({
         this.map.init(catalogue, ['dpaw:resource_tracking_live', 'cddp:smb_250K'])
         this.catalogue.loadRemoteCatalogue('https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss')
 
-        var historyLayer = this.catalogue.getLayer('dpaw:tracking_history_view')
         var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking_live')
 
         // load custom annotation tools
@@ -397,98 +398,12 @@ new Vue({
             self.annotations.tools.push(tool)
         })
 
-        // template for the tracking tab
-        var trackingList = new Vue({
-            el: '#tracking-list-tab',
-            data: {
-                viewportOnly: true,
-                toggleHistory: false,
-                selectedOnly: false,
-                search: '',
-                cql: '',
-                history: '',
-                fields: ['id', 'name', 'callsign', 'make', 'model', 'rego', 'category', 'deviceid', 'symbol'],
-                allFeatures: [],
-                extentFeatures: [],
-                historyFromDate: '',
-                historyFromTime: '',
-                historyToDate: '',
-                historyToTime: '',
-                historyRangeMilliseconds: 0
-            },
-            computed: {
-                features: function () {
-                    if (this.viewportOnly) {
-                        return this.extentFeatures
-                    } else {
-                        return this.allFeatures
-                    };
-                },
-                selectedFeatures: function () {
-                    return this.features.filter(this.selected)
-                },
-                stats: function () {
-                    return Object.keys(this.extentFeatures).length + '/' + Object.keys(this.allFeatures).length
-                },
-                historyRange: {
-                    get: function () {
-                        return this.historyRangeMilliseconds
-                    },
-                    set: function (val) {
-                        this.historyRangeMilliseconds = val
-                        var currentDate = new moment()
-                        this.historyToDate = currentDate.format('YYYY-MM-DD')
-                        this.historyToTime = currentDate.format('HH:mm')
-                        var fromDate = currentDate.subtract(val, 'milliseconds')
-                        this.historyFromDate = fromDate.format('YYYY-MM-DD')
-                        this.historyFromTime = fromDate.format('HH:mm')
-                    }
-                }
-            },
-            methods: {
-                select: function (f) {
-                    this.info.select(f)
-                },
-                selected: function (f) {
-                    return this.info.selected(f)
-                },
-                setCQLFilter: function (cql) {
-                    trackingLayer.cql_filter = cql
-                    trackingLayer.olLayer().getSource().loadSource()
-                },
-                historyCQLFilter: function () {
-                    historyLayer.cql_filter = 'deviceid in (' + gokart.ui.info.sel.join(',') + ") and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
-                    gokart.ui.catalogue.onLayerChange(historyLayer, true)
-                },
-                resourceFilter: function (f) {
-                    var search = ('' + this.search).toLowerCase()
-                    var found = !search || this.fields.some(function (key) {
-                        return ('' + f.get(key)).toLowerCase().indexOf(search) > -1
-                    })
-                    if (this.selectedOnly) {
-                        return this.selected(f) && found
-                    };
-                    return found
-                },
-                resourceOrder: function (f1, f2) {
-                    return f1.get('age') > f2.get('age')
-                },
-                zoomToSelected: function () {
-                    var extent = ol.extent.createEmpty()
-                    this.selectedFeatures.forEach(function (f) {
-                        ol.extent.extend(extent, f.getGeometry().getExtent())
-                    })
-                    gokart.map.getView().fit(extent, gokart.map.getSize())
-                }
-            }
-        })
-
         var renderTracking = debounce(function () {
-            if (!trackingLayer.olLayer || (trackingLayer.olLayer().getSource().getFeatures().length === 0) || !gokart.mapExportControls) {
+            if (!trackingLayer.olLayer || trackingLayer.olLayer().getSource().getFeatures().length === 0) {
                 return
             }
-            trackingList.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(gokart.mapExportControls.mapLayout.extent)
-            trackingList.allFeatures = trackingLayer.olLayer().getSource().getFeatures()
+            self.tracking.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(self.export.mapLayout.extent)
+            self.tracking.allFeatures = trackingLayer.olLayer().getSource().getFeatures()
         }, 100)
 
         this.map.olmap.getLayerGroup().on('change', renderTracking)

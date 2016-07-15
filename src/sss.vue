@@ -58,7 +58,7 @@
         border-right: 1px solid #fff;
     }
     
-    .device-selected {
+    .feature-row.device-selected {
         background-color: #165016;
     }
     

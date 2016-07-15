@@ -9,7 +9,11 @@
         <div class="row">
             <div class="columns content">
                 <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)">
-                    <partial v-bind:name="f.get('partialId') || 'featureInfo'"></partial>
+                    <div v-if="f.get('partialId') == 'featureInfo'" class="columns">{{ f.getId() }}</div>
+                    <div v-if="f.get('partialId') == 'resourceInfo'" class="columns">
+                        <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <small>({{ f.get('deviceid') }})</small></div>
+                        <small>{{ f.get('time') }}</small>
+                    </div>
                 </div>
             </div>
         </div>
