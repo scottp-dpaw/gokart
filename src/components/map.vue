@@ -20,7 +20,7 @@
                     'EPSG:4326': {
                         '1024': {
                             'name': 'gda94',
-                            'resolutions': self.resolutions,
+                            'resolutions': this.resolutions,
                             'minLevel': 0,
                             'maxLevel': 17
                         }
@@ -178,7 +178,7 @@
                 return tileLayer
             },
             // loader for vector layers with hover querying
-            createWFSLayer: function () {
+            createWFSLayer: function (self) {
                 var options = this
                 var url = self.defaultWFSSrc
                 // default overridable params sent to the WFS source
@@ -248,7 +248,7 @@
                 return vector
             },
             // loader to create a WMTS layer from a kmi datasource
-            createTileLayer: function () {
+            createTileLayer: function (self) {
                 var layer = this
                 if (layer.base) {
                     layer.format = 'image/jpeg'
@@ -265,7 +265,7 @@
                 }, layer)
 
                 // create a tile grid using the stock KMI resolutions
-                var matrixSet = _matrixSets[layer.projection][layer.tileSize]
+                var matrixSet = self._matrixSets[layer.projection][layer.tileSize]
                 var tileGrid = new ol.tilegrid.WMTS({
                     origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
                     resolutions: matrixSet.resolutions,
@@ -324,20 +324,21 @@
                 })
             },
             getLayer: function (id) {
-                return this.$root.catalogue.getArray().find(function (layer) {
+                return this.$root.catalogue.catalogue.getArray().find(function (layer) {
                     return layer.id === id
                 })
             },
             // initialise map
             init: function (catalogue, layers, options) {
-                self.catalogue = new ol.Collection()
+                var self = this;
+                this.$root.catalogue.catalogue = new ol.Collection()
                 options = options || {}
 
                 var getMapLayer = function () {
                     return self.getMapLayer(this.id)
                 }
 
-                self.catalogue.on('add', function (event) {
+                this.$root.catalogue.catalogue.on('add', function (event) {
                     var l = event.element
                     l.olLayer = getMapLayer
                     l.id = l.id || l.identifier
@@ -345,10 +346,10 @@
                     l.init = l.init || self.createTileLayer // override based on layer type
                 })
 
-                self.catalogue.extend(catalogue)
+                this.$root.catalogue.catalogue.extend(catalogue)
 
                 var initialLayers = layers.reverse().map(function (id) {
-                    return this.getLayer(id).init()
+                    return self.getLayer(id).init(self)
                 })
 
                 self.map = new ol.Map({
@@ -436,9 +437,8 @@
             }
         },
         ready: function() {
-            var self = this.$root
             // generate matrix IDs from name and level number
-            $.each(self._matrixSets, function (projection, innerMatrixSets) {
+            $.each(this._matrixSets, function (projection, innerMatrixSets) {
                 $.each(innerMatrixSets, function (tileSize, matrixSet) {
                     var matrixIds = new Array(matrixSet.maxLevel - matrixSet.minLevel + 1)
                     for (var z = matrixSet.minLevel; z <= matrixSet.maxLevel; ++z) {
