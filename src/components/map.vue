@@ -64,34 +64,6 @@
                     }
                     return 0
                 }
-            },
-            // map viewport settings to use for generating the print raster
-            mapLayout: function() {
-                var dims = this.paperSizes[this.paperSize];
-                var size = this.olmap.getSize();
-                return {
-                    width: dims[0], height: dims[1], size: size,
-                    extent: this.olmap.getView().calculateExtent(size),
-                    scale: this.scale, dpmm: this.$root.dpmm
-                }
-            },
-            // info for the legend block on the print raster
-            legendInfo: function() {
-                var whoami = self.whoami || {email: ""};
-                return {
-                    km: (Math.round(this.getScale() * 40) / 1000).toLocaleString(),
-                    scale: "ISO " + this.paperSize + " " + this.scaleString,
-                    title: this.title, author: whoami.email,
-                    date: "Printed " + moment().toLocaleString()
-                }
-            },
-            shortUrl: {
-                cache: false,
-                get: function() {
-                    if (!this.olmap) { return }
-                    var lonlat = this.olmap.getView().getCenter();
-                    return $.param({ lon: lonlat[0], lat: lonlat[1], scale: Math.round(this.getScale() * 1000)})
-                }
             }
         },
         // methods callable from inside the template
@@ -427,7 +399,7 @@
                 })
                 if (params.scale) {
                     this.olmap.getView().setCenter([params.lon, params.lat])
-                    self.setScale(params.scale / 1000)
+                    vm.setScale(params.scale / 1000)
                 }
                 // add some default interactions
                 this.olmap.addInteraction(this.dragPanInter)
@@ -442,7 +414,6 @@
                 this.olmap.on('postrender', function () {
                     vm.scale = vm.getScale()
                     vm.$els.scale.selectedIndex = 0
-                    history.replaceState(null, null, location.pathname + '?' + vm.shortUrl)
                 })
 
                 // tell other components map is ready

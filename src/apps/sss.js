@@ -106,20 +106,20 @@ new Vue({
         var offCanvasLeft = $('#offCanvasLeft')
         $('#menu-tabs').on('change.zf.tabs', function (ev) {
             offCanvasLeft.addClass('reveal-responsive')
-            // self.map.updateSize()
+            self.map.olmap.updateSize()
         }).on('click', '.tabs-title a[aria-selected=false]', function (ev) {
             offCanvasLeft.addClass('reveal-responsive')
             $(this).attr('aria-selected', true)
-            // self.map.updateSize()
+            self.map.olmap.updateSize()
         }).on('click', '.tabs-title a[aria-selected=true]', function (ev) {
             offCanvasLeft.removeClass('reveal-responsive')
             $(this).attr('aria-selected', false)
-            // self.map.updateSize()
+            self.map.olmap.updateSize()
         })
         $('#side-pane-close').on('click', function (ev) {
             offCanvasLeft.removeClass('reveal-responsive')
             $('#menu-tabs').find('.tabs-title a[aria-selected=true]').attr('aria-selected', false)
-            // self.map.updateSize()
+            self.map.olmap.updateSize()
         })
         var gokart = global.gokart = self
 
