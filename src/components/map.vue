@@ -65,21 +65,18 @@
         methods: {
             // force OL to approximate a fixed scale (1:1K increments)
             setScale: function(scale) {
-                while (Math.abs(self.getScale() - scale) > 0.001) {
-                    self.map.getView().setResolution(self.map.getView().getResolution() * scale / self.getScale())
+                while (Math.abs(this.getScale() - scale) > 0.001) {
+                    this.map.getView().setResolution(this.map.getView().getResolution() * scale / this.getScale())
                 }
                 this.scale = scale;
-                console.log(scale);
-                ev.target.selectedIndex = 0;
             },
             // return the scale (1:1K increments)
             getScale: function () {
-                var self = this.$root
-                var size = self.map.getSize()
-                var center = self.map.getView().getCenter()
-                var extent = self.map.getView().calculateExtent(size)
-                var distance = self.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
-                return distance * self.dpmm / size[0]
+                var size = this.map.getSize()
+                var center = this.map.getView().getCenter()
+                var extent = this.map.getView().calculateExtent(size)
+                var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
+                return distance * this.$root.dpmm / size[0]
             },
             // get the fixed scale (1:1K increments) closest to current scale
             getFixedScale: function () {
@@ -135,7 +132,7 @@
                 }
             },
             // loader for layers with a "time" axis, e.g. live satellite imagery
-            createTimelineLayer: function (self) {
+            createTimelineLayer: function (mapObj) {
                 var options = this
                 options.params = $.extend({
                     FORMAT: 'image/jpeg',
@@ -149,7 +146,7 @@
                     params: options.params,
                     tileGrid: new ol.tilegrid.TileGrid({
                         extent: [-180, -90, 180, 90],
-                        resolutions: self.resolutions,
+                        resolutions: mapObj.resolutions,
                         tileSize: [1024, 1024]
                     })
                 })
@@ -161,7 +158,7 @@
 
                 // hook the tile loading function to update progress indicator
                 tileLayer.progress = ''
-                tileSource.setTileLoadFunction(self.tileLoaderHook(tileSource, tileLayer))
+                tileSource.setTileLoadFunction(mapObj.tileLoaderHook(tileSource, tileLayer))
 
                 // hook to swap the tile layer when timeIndex changes
                 tileLayer.on('propertychange', function (event) {
@@ -180,7 +177,7 @@
                         tileSource.setUrls(data.servers)
                         options.timeline = data.layers.reverse()
                         tileLayer.set('timeIndex', options.timeIndex || options.timeline.length - 1)
-                        self.ui.layers.update()
+                        mapObj.$root.gkLayers.update()
                     })
                 }
 
@@ -199,9 +196,9 @@
                 return tileLayer
             },
             // loader for vector layers with hover querying
-            createWFSLayer: function (self) {
+            createWFSLayer: function (mapObj) {
                 var options = this
-                var url = self.defaultWFSSrc
+                var url = mapObj.defaultWFSSrc
                 // default overridable params sent to the WFS source
                 options.params = $.extend({
                     version: '1.1.0',
@@ -231,7 +228,7 @@
                     $.ajax({
                         url: url + '?' + $.param(options.params),
                         success: function (response, stat, xhr) {
-                            var features = self.geojson.readFeatures(response)
+                            var features = mapObj.$root.geojson.readFeatures(response)
                             vectorSource.clear(true)
                             vectorSource.addFeatures(features)
                             vector.progress = 'idle'
@@ -269,7 +266,7 @@
                 return vector
             },
             // loader to create a WMTS layer from a kmi datasource
-            createTileLayer: function (self) {
+            createTileLayer: function (mapObj) {
                 var layer = this
                 if (layer.base) {
                     layer.format = 'image/jpeg'
@@ -282,11 +279,11 @@
                     tileSize: 1024,
                     style: '',
                     projection: 'EPSG:4326',
-                    wmts_url: self.defaultWMTSSrc,
+                    wmts_url: mapObj.defaultWMTSSrc,
                 }, layer)
 
                 // create a tile grid using the stock KMI resolutions
-                var matrixSet = self.matrixSets[layer.projection][layer.tileSize]
+                var matrixSet = mapObj.matrixSets[layer.projection][layer.tileSize]
                 var tileGrid = new ol.tilegrid.WMTS({
                     origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
                     resolutions: matrixSet.resolutions,
@@ -323,7 +320,7 @@
 
                 // hook the tile loading function to update progress indicator
                 tileLayer.progress = ''
-                tileSource.setTileLoadFunction(self.tileLoaderHook(tileSource, tileLayer))
+                tileSource.setTileLoadFunction(mapObj.tileLoaderHook(tileSource, tileLayer))
 
                 // if the "refresh" option is set, set a timer
                 // to force a reload of the tile content
@@ -340,7 +337,7 @@
                 return tileLayer
             },
             getMapLayer: function (id) {
-                return self.map.getLayers().getArray().find(function (layer) {
+                return this.map.getLayers().getArray().find(function (layer) {
                     return layer.get('id') === id
                 })
             },
