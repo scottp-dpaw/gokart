@@ -28,7 +28,7 @@
     ]
   },
   "browser": {
-    "jquery": "./node_modules/foundation-sites/node_modules/jquery/dist/jquery.js",
+    "jquery": "./node_modules/jquery/dist/jquery.js",
     "foundation-sites": "./node_modules/foundation-sites/dist/foundation.js"
   },
   "browserify-shim": {
