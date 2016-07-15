@@ -1,7 +1,7 @@
 <template>
     <div class="map" id="map" tabindex="0">
         <gk-info v-ref:info></gk-info>
-        <select @change="setScale($event.target.value)" id="menu-scale" v-cloak>
+        <select v-el:scale @change="setScale($event.target.value)" id="menu-scale" v-cloak>
             <option value="{{ scale }}" selected>{{ scaleString }}</option>
             <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
         </select>
@@ -64,6 +64,34 @@
                     }
                     return 0
                 }
+            },
+            // map viewport settings to use for generating the print raster
+            mapLayout: function() {
+                var dims = this.paperSizes[this.paperSize];
+                var size = this.olmap.getSize();
+                return {
+                    width: dims[0], height: dims[1], size: size,
+                    extent: this.olmap.getView().calculateExtent(size),
+                    scale: this.scale, dpmm: this.$root.dpmm
+                }
+            },
+            // info for the legend block on the print raster
+            legendInfo: function() {
+                var whoami = self.whoami || {email: ""};
+                return {
+                    km: (Math.round(this.getScale() * 40) / 1000).toLocaleString(),
+                    scale: "ISO " + this.paperSize + " " + this.scaleString,
+                    title: this.title, author: whoami.email,
+                    date: "Printed " + moment().toLocaleString()
+                }
+            },
+            shortUrl: {
+                cache: false,
+                get: function() {
+                    if (!this.olmap) { return }
+                    var lonlat = this.olmap.getView().getCenter();
+                    return $.param({ lon: lonlat[0], lat: lonlat[1], scale: Math.round(this.getScale() * 1000)})
+                }
             }
         },
         // methods callable from inside the template
@@ -71,15 +99,16 @@
             // force OL to approximate a fixed scale (1:1K increments)
             setScale: function(scale) {
                 while (Math.abs(this.getScale() - scale) > 0.001) {
-                    this.map.getView().setResolution(this.map.getView().getResolution() * scale / this.getScale())
+                    this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / this.getScale())
                 }
-                this.scale = scale;
+                this.scale = scale
+                this.$els.scale.selectedIndex = 0
             },
             // return the scale (1:1K increments)
             getScale: function () {
-                var size = this.map.getSize()
-                var center = this.map.getView().getCenter()
-                var extent = this.map.getView().calculateExtent(size)
+                var size = this.olmap.getSize()
+                var center = this.olmap.getView().getCenter()
+                var extent = this.olmap.getView().calculateExtent(size)
                 var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
                 return distance * this.$root.dpmm / size[0]
             },
@@ -342,14 +371,9 @@
                 return tileLayer
             },
             getMapLayer: function (id) {
-                if (id.id) { id = id.id } // if passed a catalogue layer, get actual id
-                return this.map.getLayers().getArray().find(function (layer) {
+                if (id && id.id) { id = id.id } // if passed a catalogue layer, get actual id
+                return this.olmap.getLayers().getArray().find(function (layer) {
                     return layer.get('id') === id
-                })
-            },
-            getLayer: function (id) {
-                return this.$root.catalogue.catalogue.getArray().find(function (layer) {
-                    return layer.id === id
                 })
             },
             // initialise map
@@ -359,7 +383,7 @@
                 this.$root.catalogue.catalogue.extend(catalogue)
 
                 var initialLayers = layers.reverse().map(function (id) {
-                    return vm.getLayer(id).init()
+                    return vm.$root.catalogue.getLayer(id).init()
                 })
 
                 this.olmap = new ol.Map({
@@ -402,7 +426,7 @@
                     params[t[0]] = parseFloat(t[1])
                 })
                 if (params.scale) {
-                    self.map.getView().setCenter([params.lon, params.lat])
+                    this.olmap.getView().setCenter([params.lon, params.lat])
                     self.setScale(params.scale / 1000)
                 }
                 // add some default interactions
@@ -416,12 +440,9 @@
 
                 // setup scale events
                 this.olmap.on('postrender', function () {
-                    if (vm.mapScaleControl) {
-                        vm.mapScaleControl.scale = vm.getScale()
-                    }
-                    if (vm.mapExportControls) {
-                        history.replaceState(null, null, location.pathname + '?' + vm.mapExportControls.shortUrl)
-                    }
+                    vm.scale = vm.getScale()
+                    vm.$els.scale.selectedIndex = 0
+                    history.replaceState(null, null, location.pathname + '?' + vm.shortUrl)
                 })
 
                 // tell other components map is ready

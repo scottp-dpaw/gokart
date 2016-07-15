@@ -75,13 +75,11 @@
     var ui = {}
     export default {
         data: function() { return {
-            tool: ui.defaultPan,
-            tools: [
-                ui.defaultPan,
-                ui.defaultSelect
-            ],
-            features: ui.features,
-            featureOverlay: ui.featureOverlay,
+            tool: {},
+            tools: [],
+            features: new ol.Collection(),
+            selectedFeatures: new ol.Collection(),
+            featureOverlay: {},
             size: 12,
             colour: '#cc0000',
             colours: [
@@ -120,7 +118,7 @@
                 })
 
                 // remove selections
-                ui.selectedFeatures.clear()
+                this.selectedFeatures.clear()
 
                 // auto-disable hover info, but remember the user's choice
                 ui.layers.hoverInfo = ((t.name === 'Pan') && (ui.layers.hoverInfoCache))
@@ -132,72 +130,72 @@
                 vm.tool = t
             },
             deleteSelected: function () {
-                ui.selectedFeatures.forEach(function (feature) {
-                    ui.features.remove(feature)
+                var vm = this
+                this.selectedFeatures.forEach(function (feature) {
+                    vm.features.remove(feature)
                 })
-                ui.selectedFeatures.clear()
+                this.selectedFeatures.clear()
             }
         },
         ready: function() {
+            var vm = this
             // collection to store all annotation features
-            ui.features = new ol.Collection()
-            ui.selectedFeatures = new ol.Collection()
-            ui.features.on('add', function (ev) {
+            this.features.on('add', function (ev) {
                 var feature = ev.element
                 var style = null
                 if (feature.get('toolName')) {
-                    style = ui.annotations.tools.filter(function (t) {
+                    style = vm.tools.filter(function (t) {
                         return t.name === feature.get('toolName')
                     })[0].style
                 } else {
-                    feature.set('toolName', ui.annotations.tool.name)
-                    style = ui.annotations.tool.style
+                    feature.set('toolName', vm.tool.name)
+                    style = vm.tool.style
                 }
                 feature.setStyle(style || null)
             })
             // NASTYHACK: add/remove default style based on select status
-            ui.selectedFeatures.on('add', function (ev) {
+            this.selectedFeatures.on('add', function (ev) {
                 var feature = ev.element
                 feature.preSelectStyle = feature.getStyle()
                 feature.setStyle(null)
             })
-            ui.selectedFeatures.on('remove', function (ev) {
+            this.selectedFeatures.on('remove', function (ev) {
                 var feature = ev.element
                 feature.setStyle(feature.preSelectStyle)
                 delete feature.preSelectStyle
             })
             // layer/source for modiftying annotation features
-            ui.featureOverlay = new ol.layer.Vector({
+            this.featureOverlay = new ol.layer.Vector({
                 source: new ol.source.Vector({
-                    features: ui.features
+                    features: this.features
                 })
             })
-            ui.featureOverlay.set('id', 'annotations')
-            ui.featureOverlay.set('name', 'My Annotations')
+            this.featureOverlay.set('id', 'annotations')
+            this.featureOverlay.set('name', 'My Annotations')
             // collection for tracking selected features
 
             // add new points to annotations layer
             ui.pointInter = new ol.interaction.Draw({
                 type: 'Point',
-                features: ui.features
+                features: this.features
             })
 
             // add new lines to annotations layer
             ui.lineInter = new ol.interaction.Draw({
                 type: 'LineString',
-                features: ui.features
+                features: this.features
             })
 
             // add new polygons to annotations layer
             ui.polyInter = new ol.interaction.Draw({
                 type: 'Polygon',
-                features: ui.features
+                features: this.features
             })
 
             // next three interacts are bundled into the Select tool
             // allow modifying features by click+dragging
             ui.modifyInter = new ol.interaction.Modify({
-                features: ui.features
+                features: this.features
             })
 
             // allow dragbox selection of features
@@ -205,18 +203,18 @@
             // modify selectedFeatures after dragging a box
             ui.dragSelectInter.on('boxend', function () {
                 var extent = ui.dragSelectInter.getGeometry().getExtent()
-                ui.featureOverlay.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
-                    ui.selectedFeatures.push(feature)
+                vm.featureOverlay.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+                    vm.selectedFeatures.push(feature)
                 })
             })
             // clear selectedFeatures before dragging a box
             ui.dragSelectInter.on('boxstart', function () {
-                ui.selectedFeatures.clear()
+                vm.selectedFeatures.clear()
             })
             // allow selecting multiple features by clicking
             ui.selectInter = new ol.interaction.Select({
-                layers: [ui.featureOverlay],
-                features: ui.selectedFeatures
+                layers: [this.featureOverlay],
+                features: this.selectedFeatures
             })
 
             // OpenLayers3 hook for keyboard input
@@ -227,7 +225,7 @@
                         var keyEvent = mapBrowserEvent.originalEvent
                         switch (keyEvent.keyCode) {
                         case 46: // Delete
-                            ui.annotations.deleteSelected()
+                            vm.deleteSelected()
                             break
                         default:
                             break
@@ -238,7 +236,7 @@
                 }
             })
             // load default tools
-            ui.defaultPan = {
+            this.tool = ui.defaultPan = {
                 name: 'Pan',
                 icon: 'fa-hand-paper-o',
                 interactions: [
@@ -258,6 +256,10 @@
                     ui.modifyInter
                 ]
             }
+            this.tools = [
+                ui.defaultPan,
+                ui.defaultSelect
+            ]
             ui.defaultPoint = {
                 name: 'Point',
                 icon: 'static/images/iD-sprite.svg#icon-point',
@@ -277,7 +279,7 @@
             // add annotations layer to catalogue list
             this.$root.catalogue.catalogue.push({
                 init: function () {
-                    return ui.featureOverlay
+                    return vm.featureOverlay
                 },
                 id: 'annotations',
                 name: 'My Annotations'

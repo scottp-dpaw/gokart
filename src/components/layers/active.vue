@@ -145,6 +145,9 @@
         },
         ready: function () {
             dragula([document.querySelector('#layers-active-list')]).on('dragend', this.updateOrder)
+            this.$on("gk-init", function() {
+                this.olLayers = this.$root.map.olmap.getLayers().getArray()
+            })
         }
     }
 </script>

@@ -110,7 +110,26 @@
                 } else {
                     ui.layers.removeLayer(layer.olLayer())
                 }
-            }
+            },
+            // helper to populate the catalogue from a remote service
+            loadRemoteCatalogue: function(url) {
+                var vm = this;
+                var req = new XMLHttpRequest();
+                req.withCredentials = true;
+                req.onload = function() {
+                    JSON.parse(this.responseText).forEach(function(l) {
+                        vm.catalogue.push(l);
+                    });
+                };
+                req.open("GET", url);
+                req.send();
+            },
+            getLayer: function (id) {
+                if (id && id.id) { id = id }
+                return this.catalogue.getArray().find(function (layer) {
+                    return layer.id === id
+                })
+            },
         },
         ready: function () {
             var initLayer = function(initFunc, mapObj) {

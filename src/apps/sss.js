@@ -55,7 +55,9 @@ new Vue({
     },
     computed: {
         catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
-        map: function () { return this.$refs.app.$refs.map }
+        map: function () { return this.$refs.app.$refs.map },
+        annotations: function () { return this.$refs.app.$refs.annotations },
+        info: function () { return this.$refs.app.$refs.map.$refs.info }
     },
     methods: {
         // method to precache SVGs as raster (PNGs)
@@ -249,8 +251,8 @@ new Vue({
         this.map.init(catalogue, ['dpaw:resource_tracking', 'cddp:smb_250K'])
         this.catalogue.loadRemoteCatalogue('https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss')
 
-        var historyLayer = gokart.getLayer('dpaw:tracking_history_view')
-        var trackingLayer = gokart.getLayer('dpaw:resource_tracking')
+        var historyLayer = this.catalogue.getLayer('dpaw:tracking_history_view')
+        var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking')
 
         // load custom annotation tools
         var hotSpotStyle = new ol.style.Style({
@@ -264,7 +266,7 @@ new Vue({
 
         var hotSpotDraw = new ol.interaction.Draw({
             type: 'Point',
-            features: gokart.ui.features,
+            features: this.annotations.features,
             style: hotSpotStyle
         })
 
@@ -279,7 +281,7 @@ new Vue({
 
         var spotFireDraw = new ol.interaction.Draw({
             type: 'Point',
-            features: gokart.ui.features,
+            features: this.annotations.features,
             style: spotFireStyle
         })
 
@@ -294,7 +296,7 @@ new Vue({
 
         var divisionDraw = new ol.interaction.Draw({
             type: 'Point',
-            features: gokart.ui.features,
+            features: this.annotations.features,
             style: divisionStyle
         })
 
@@ -309,7 +311,7 @@ new Vue({
 
         var sectorDraw = new ol.interaction.Draw({
             type: 'Point',
-            features: gokart.ui.features,
+            features: this.annotations.features,
             style: sectorStyle
         })
 
@@ -325,7 +327,7 @@ new Vue({
 
         var fireLineDraw = new ol.interaction.Draw({
             type: 'LineString',
-            features: gokart.ui.features,
+            features: this.annotations.features,
             style: fireLineStyle
         })
 
@@ -341,12 +343,12 @@ new Vue({
 
         var fireBoundaryDraw = new ol.interaction.Draw({
             type: 'Polygon',
-            features: gokart.ui.features,
+            features: this.annotations.features,
             style: fireBoundaryStyle
         })
 
         var snapToLines = new ol.interaction.Snap({
-            features: gokart.ui.features,
+            features: this.annotations.features,
             edge: true,
             vertex: false,
             pixelTolerance: 16
@@ -391,7 +393,7 @@ new Vue({
         }]
 
         sssTools.forEach(function (tool) {
-            gokart.ui.annotations.tools.push(tool)
+            self.annotations.tools.push(tool)
         })
 
         // template for the tracking tab
@@ -444,10 +446,10 @@ new Vue({
             },
             methods: {
                 select: function (f) {
-                    gokart.ui.info.select(f)
+                    this.info.select(f)
                 },
                 selected: function (f) {
-                    return gokart.ui.info.selected(f)
+                    return this.info.selected(f)
                 },
                 setCQLFilter: function (cql) {
                     trackingLayer.cql_filter = cql
@@ -488,7 +490,7 @@ new Vue({
             trackingList.allFeatures = trackingLayer.olLayer().getSource().getFeatures()
         }, 100)
 
-        gokart.map.getLayerGroup().on('change', renderTracking)
-        gokart.map.getView().on('propertychange', renderTracking)
+        this.map.olmap.getLayerGroup().on('change', renderTracking)
+        this.map.olmap.getView().on('propertychange', renderTracking)
     }
 })
