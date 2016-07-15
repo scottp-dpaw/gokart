@@ -9,6 +9,7 @@
 </template>
 
 <script>
+    import { moment } from 'src/vendor.js'
     import gkInfo from './info.vue'
     export default {
         components: { gkInfo },
@@ -47,7 +48,7 @@
                 return this.getScaleString(this.scale);
             },
             // because the viewport size changes when the tab pane opens, don't cache the map width and height            
-            mapWidth: {
+            width: {
                 cache: false,
                 get: function get() {
                     if (this.$el) {
@@ -56,7 +57,7 @@
                     return 0
                 }
             },
-            mapHeight: {
+            height: {
                 cache: false,
                 get: function get() {
                     if (this.$el) {
@@ -138,8 +139,8 @@
                 }
             },
             // loader for layers with a "time" axis, e.g. live satellite imagery
-            createTimelineLayer: function (mapObj) {
-                var options = this
+            createTimelineLayer: function (options) {
+                var vm = this
                 options.params = $.extend({
                     FORMAT: 'image/jpeg',
                     SRS: 'EPSG:4326',
@@ -152,7 +153,7 @@
                     params: options.params,
                     tileGrid: new ol.tilegrid.TileGrid({
                         extent: [-180, -90, 180, 90],
-                        resolutions: mapObj.resolutions,
+                        resolutions: this.resolutions,
                         tileSize: [1024, 1024]
                     })
                 })
@@ -164,7 +165,7 @@
 
                 // hook the tile loading function to update progress indicator
                 tileLayer.progress = ''
-                tileSource.setTileLoadFunction(mapObj.tileLoaderHook(tileSource, tileLayer))
+                tileSource.setTileLoadFunction(this.tileLoaderHook(tileSource, tileLayer))
 
                 // hook to swap the tile layer when timeIndex changes
                 tileLayer.on('propertychange', function (event) {
@@ -183,7 +184,7 @@
                         tileSource.setUrls(data.servers)
                         options.timeline = data.layers.reverse()
                         tileLayer.set('timeIndex', options.timeIndex || options.timeline.length - 1)
-                        mapObj.$root.gkLayers.update()
+                        vm.$root.gkLayers.update()
                     })
                 }
 
@@ -202,9 +203,9 @@
                 return tileLayer
             },
             // loader for vector layers with hover querying
-            createWFSLayer: function (mapObj) {
-                var options = this
-                var url = mapObj.defaultWFSSrc
+            createWFSLayer: function (options) {
+                var vm = this
+                var url = this.defaultWFSSrc
                 // default overridable params sent to the WFS source
                 options.params = $.extend({
                     version: '1.1.0',
@@ -234,7 +235,7 @@
                     $.ajax({
                         url: url + '?' + $.param(options.params),
                         success: function (response, stat, xhr) {
-                            var features = mapObj.$root.geojson.readFeatures(response)
+                            var features = vm.$root.geojson.readFeatures(response)
                             vectorSource.clear(true)
                             vectorSource.addFeatures(features)
                             vector.progress = 'idle'
@@ -272,8 +273,7 @@
                 return vector
             },
             // loader to create a WMTS layer from a kmi datasource
-            createTileLayer: function (mapObj) {
-                var layer = this
+            createTileLayer: function (layer) {
                 if (layer.base) {
                     layer.format = 'image/jpeg'
                 }
@@ -285,11 +285,11 @@
                     tileSize: 1024,
                     style: '',
                     projection: 'EPSG:4326',
-                    wmts_url: mapObj.defaultWMTSSrc,
+                    wmts_url: this.defaultWMTSSrc,
                 }, layer)
 
                 // create a tile grid using the stock KMI resolutions
-                var matrixSet = mapObj.matrixSets[layer.projection][layer.tileSize]
+                var matrixSet = this.matrixSets[layer.projection][layer.tileSize]
                 var tileGrid = new ol.tilegrid.WMTS({
                     origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
                     resolutions: matrixSet.resolutions,
@@ -326,7 +326,7 @@
 
                 // hook the tile loading function to update progress indicator
                 tileLayer.progress = ''
-                tileSource.setTileLoadFunction(mapObj.tileLoaderHook(tileSource, tileLayer))
+                tileSource.setTileLoadFunction(this.tileLoaderHook(tileSource, tileLayer))
 
                 // if the "refresh" option is set, set a timer
                 // to force a reload of the tile content
@@ -357,6 +357,7 @@
                 var initialLayers = layers.reverse().map(function (id) {
                     return vm.$root.catalogue.getLayer(id).init()
                 })
+                console.log(initialLayers)
 
                 this.olmap = new ol.Map({
                     logo: false,

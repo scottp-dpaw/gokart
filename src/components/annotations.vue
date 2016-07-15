@@ -104,30 +104,31 @@
                 }
             },
             setTool: function (t) {
-                var vm = this
+                var map = this.$root.map.olmap
                 // remove all custom tool interactions from map
-                vm.tools.forEach(function (tool) {
+                this.tools.forEach(function (tool) {
                     tool.interactions.forEach(function (inter) {
-                        self.map.removeInteraction(inter)
+                        map.removeInteraction(inter)
                     })
                 })
 
                 // add interactions for this tool
                 t.interactions.forEach(function (inter) {
-                    self.map.addInteraction(inter)
+                    map.addInteraction(inter)
                 })
 
                 // remove selections
                 this.selectedFeatures.clear()
 
                 // auto-disable hover info, but remember the user's choice
-                ui.layers.hoverInfo = ((t.name === 'Pan') && (ui.layers.hoverInfoCache))
+                this.$root.active.hoverInfo = ((t.name === 'Pan') && (this.$root.active.hoverInfoCache))
 
                 // enable annotations layer, if disabled
-                if (!self.getLayer('annotations').olLayer()) {
-                    ui.catalogue.onLayerChange(self.getLayer('annotations'), true)
+                var catalogue = this.$root.catalogue
+                if (!catalogue.getLayer('annotations').olLayer()) {
+                    catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
                 }
-                vm.tool = t
+                this.tool = t
             },
             deleteSelected: function () {
                 var vm = this

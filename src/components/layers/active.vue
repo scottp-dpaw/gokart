@@ -73,16 +73,16 @@
             graticule: {
                 cache: false,
                 get: function () {
-                    return this.$root.graticule && this.$root.graticule.getMap() === self.map
+                    return this.$root.map.graticule && this.$root.map.graticule.getMap() === this.$root.map.olmap
                 }
             },
             hoverInfo: {
                 cache: false,
                 get: function () {
-                    return this.$root.$refs.app.$refs.map.$refs.info.enabled
+                    return this.$root.info.enabled
                 },
                 set: function (val) {
-                    this.$root.$refs.app.$refs.map.$refs.info.enabled = val
+                    this.$root.info.enabled = val
                 }
             },
             sliderTimeline: {
@@ -112,12 +112,15 @@
         },
         // methods callable from inside the template
         methods: {
-            getLayer: self.getLayer,
+            getLayer: function(id) {
+                return this.$root.catalogue.getLayer(id)
+            },
             toggleGraticule: function () {
+                var map = this.$root.map
                 if (this.graticule) {
-                    self.graticule.setMap(null)
+                    map.graticule.setMap(null)
                 } else {
-                    self.graticule.setMap(self.map)
+                    map.graticule.setMap(map.olmap)
                 }
             },
             toggleHoverInfo: function (ev) {
@@ -132,14 +135,15 @@
                 })
             },
             removeLayer: function (olLayer) {
-                self.map.removeLayer(olLayer)
+                this.$root.map.olmap.removeLayer(olLayer)
             },
             // change order of OL layers based on "Map Layers" list order
             updateOrder: function (el) {
+                var map = this.$root.map
                 Array.prototype.slice.call(el.parentNode.children).reverse().forEach(function (row) {
-                    var layer = self.getMapLayer(row.dataset.id)
-                    self.map.removeLayer(layer)
-                    self.map.addLayer(layer)
+                    var layer = map.getMapLayer(row.dataset.id)
+                    map.olmap.removeLayer(layer)
+                    map.olmap.addLayer(layer)
                 })
             },
         },

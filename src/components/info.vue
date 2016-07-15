@@ -35,19 +35,20 @@
             },
             // info panel should be positioned near the mouse in the quadrant furthest away from the viewport edges
             css: function () {
+                var map = this.$root.map
                 var css = {
                     'left': this.pixel[0] + this.offset + 'px',
                     'top': this.pixel[1] + this.offset + 'px',
-                    'bottom': this.$root.mapHeight - this.pixel[1] + this.offset + 'px',
-                    'right': this.$root.mapWidth - this.pixel[0] + this.offset + 'px',
+                    'bottom': map.height - this.pixel[1] + this.offset + 'px',
+                    'right': map.width - this.pixel[0] + this.offset + 'px',
                     'display': 'none'
                 }
-                if (this.pixel[0] < this.$root.mapWidth / 2) {
+                if (this.pixel[0] < map.width / 2) {
                     delete css.right
                 } else {
                     delete css.left
                 }
-                if (this.pixel[1] < this.$root.mapHeight / 2) {
+                if (this.pixel[1] < map.height / 2) {
                     delete css.bottom
                 } else {
                     delete css.top

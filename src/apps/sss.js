@@ -54,10 +54,11 @@ new Vue({
         db: db
     },
     computed: {
-        catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
         map: function () { return this.$refs.app.$refs.map },
-        annotations: function () { return this.$refs.app.$refs.annotations },
-        info: function () { return this.$refs.app.$refs.map.$refs.info }
+        info: function () { return this.$refs.app.$refs.map.$refs.info },
+        active: function () { return this.$refs.app.$refs.layers.$refs.active },
+        catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
+        annotations: function () { return this.$refs.app.$refs.annotations }
     },
     methods: {
         // method to precache SVGs as raster (PNGs)
@@ -179,27 +180,27 @@ new Vue({
 
         // pack-in catalogue
         var catalogue = [{
-            init: this.map.createWFSLayer,
+            type: 'WFSLayer',
             name: 'Resource Tracking',
-            id: 'dpaw:resource_tracking',
+            id: 'dpaw:resource_tracking_live',
             style: resource_tracking_style,
             onadd: addResource,
             refresh: 30
         }, {
-            init: this.map.createWFSLayer,
+            type: 'WFSLayer',
             name: 'Resource Tracking History',
             id: 'dpaw:tracking_history_view',
             style: resource_tracking_style,
             onadd: addResource,
             cql_filter: false
         }, {
-            init: this.map.createTileLayer,
+            type: 'TileLayer',
             name: 'Firewatch Hotspots 72hrs',
             id: 'landgate:firewatch_ecu_hotspots_last_0_72',
             format: 'image/png',
             refresh: 60
         }, {
-            init: this.map.createTimelineLayer,
+            type: 'TimelineLayer',
             name: 'Himawari-8 Hotspots',
             id: 'himawari8:hotspots',
             source: '/hi8/AHI_TKY_FHS',
@@ -208,51 +209,51 @@ new Vue({
             },
             refresh: 300
         }, {
-            init: this.map.createTimelineLayer,
+            type: 'TimelineLayer',
             name: 'Himawari-8 True Colour',
             id: 'himawari8:bandtc',
             source: '/hi8/AHI_TKY_b321',
             refresh: 300,
             base: true
         }, {
-            init: this.map.createTimelineLayer,
+            type: 'TimelineLayer',
             name: 'Himawari-8 Band 3',
             id: 'himawari8:band3',
             source: '/hi8/AHI_TKY_b3',
             refresh: 300,
             base: true
         }, {
-            init: this.map.createTimelineLayer,
+            type: 'TimelineLayer',
             name: 'Himawari-8 Band 7',
             id: 'himawari8:band7',
             source: '/hi8/AHI_TKY_b7',
             refresh: 300,
             base: true
         }, {
-            init: this.map.createTimelineLayer,
+            type: 'TimelineLayer',
             name: 'Himawari-8 Band 15',
             id: 'himawari8:band15',
             source: '/hi8/AHI_TKY_b15',
             refresh: 300,
             base: true
         }, {
-            init: this.map.createTileLayer,
+            type: 'TileLayer',
             name: 'State Map Base',
             id: 'cddp:smb_250K',
             base: true
         }, {
-            init: this.map.createTileLayer,
+            type: 'TileLayer',
             name: 'Virtual Mosaic',
             id: 'landgate:LGATE-V001',
             base: true
         }]
 
         // load map with default layers
-        this.map.init(catalogue, ['dpaw:resource_tracking', 'cddp:smb_250K'])
+        this.map.init(catalogue, ['dpaw:resource_tracking_live', 'cddp:smb_250K'])
         this.catalogue.loadRemoteCatalogue('https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss')
 
         var historyLayer = this.catalogue.getLayer('dpaw:tracking_history_view')
-        var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking')
+        var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking_live')
 
         // load custom annotation tools
         var hotSpotStyle = new ol.style.Style({

@@ -86,6 +86,9 @@
             },
             // toggle a layer in the Layer Catalogue
             onLayerChange: function (layer, checked) {
+                var vm = this
+                var active = this.$root.active
+                var map = this.$root.map.olmap
                 // if layer matches state, return
                 if (checked === (layer.olLayer() !== undefined)) {
                     return
@@ -96,19 +99,19 @@
                         // "Switch out base layers automatically" is enabled, remove
                         // all other layers with the "base" option set.
                         if (this.swapBaseLayers) {
-                            ui.layers.olLayers.forEach(function (olLayer) {
-                                if (self.getLayer(olLayer.get('id')).base) {
-                                    ui.layers.removeLayer(olLayer)
+                            active.olLayers.forEach(function (olLayer) {
+                                if (vm.getLayer(olLayer.get('id')).base) {
+                                    active.removeLayer(olLayer)
                                 }
                             })
                         }
                         // add new base layer to bottom
-                        self.map.getLayers().insertAt(0, layer.init())
+                        map.getLayers().insertAt(0, layer.init())
                     } else {
-                        self.map.addLayer(layer.init())
+                        map.addLayer(layer.init())
                     }
                 } else {
-                    ui.layers.removeLayer(layer.olLayer())
+                    active.removeLayer(layer.olLayer())
                 }
             },
             // helper to populate the catalogue from a remote service
@@ -132,18 +135,18 @@
             },
         },
         ready: function () {
-            var initLayer = function(initFunc, mapObj) {
-                return function () {
-                    return initFunc(mapObj)
+            var map = this.$root.map
+            var initLayer = function(method, layer) {
+                return function() {
+                    return map['create'+method](layer)
                 }
             }
-            var map = this.$root.map
             this.catalogue.on('add', function (event) {
                 var l = event.element
-                l.olLayer = map.getMapLayer
                 l.id = l.id || l.identifier
+                l.olLayer = function() { return map.getMapLayer(l.id) }
                 l.name = l.name || l.title
-                l.init = initLayer( l.init || map.createTileLayer, map ) // override based on layer type
+                l.init = initLayer( l.type || 'TileLayer', l ) // override based on layer type
             })
         }
     }
