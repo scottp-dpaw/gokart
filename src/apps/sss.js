@@ -16,7 +16,7 @@ ol.OVERVIEWMAP_MIN_RATIO = 1
 ol.OVERVIEWMAP_MAX_RATIO = 1
 global.ol = ol
 
-global.debounce = function (func, wait, immediate) {
+var debounce = function (func, wait, immediate) {
     // Returns a function, that, as long as it continues to be invoked, will not
     // be triggered. The function will be called after it stops being called for
     // N milliseconds. If `immediate` is passed, trigger the function on the
