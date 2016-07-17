@@ -1,5 +1,4 @@
 /* full-height page for slippy map, thanks */
-
 html,
 body {
     width: 100%;
@@ -9,13 +8,7 @@ body {
     overflow: hidden;
 }
 
-[v-cloak] {
-    display: none;
-}
-
-
 /* mousehover info pane, hide for mobile */
-
 @media screen and (max-width: 40em) {
     #info {
         display: none;
@@ -34,8 +27,6 @@ body {
     max-height: 30vh;
     overflow: auto;
 }
-
-
 /* full-height the foundation off-canvas stuff also */
 
 .off-canvas-wrapper {
@@ -47,8 +38,6 @@ body {
     background-color: #424f5a;
     color: #fbfbfb;
 }
-
-
 /* SVG icons for buttons (include margin for aligning to text) */
 
 .icon {
@@ -74,8 +63,6 @@ body {
     height: 100%;
     flex: 1;
 }
-
-
 /* slippy map widget */
 
 .map {
@@ -83,7 +70,7 @@ body {
     height: 100%;
     min-height: 20px;
     flex: 1;
-    background: url('../images/bg.png') repeat;
+    background: url('../static/images/bg.png') repeat;
     background-position: center;
     position: relative;
     outline: 0;
@@ -99,8 +86,6 @@ body {
 .ol-overviewmap .ol-overviewmap-map .ol-overviewmap-box {
     display: none;
 }
-
-
 /* position fixes for top-right OpenLayers map widgets */
 
 .ol-scale-line {
@@ -143,8 +128,6 @@ body {
     color: white;
     height: 48px;
 }
-
-
 /* for mobile screens, size the pane to fill the viewport */
 
 .off-canvas.position-left {
@@ -172,8 +155,6 @@ body {
     right: 0;
     top: 0;
 }
-
-
 /* for non-mobile screens, have a fixed 400px left pane */
 
 @media screen and (min-width: 40em) {
@@ -197,16 +178,12 @@ body {
         display: none;
     }
 }
-
-
 /* raise our widgets above the slippy map */
 
 .map-widget {
     position: absolute;
     z-index: 1;
 }
-
-
 /* remove some of the annoying tab box styles */
 
 #offCanvasLeft {
@@ -217,8 +194,6 @@ body {
     background-color: transparent;
     border: 0;
 }
-
-
 /* fix tool labels/padding */
 
 .tool-label,
@@ -251,8 +226,6 @@ body {
 .button-group input:checked + label:active {
     background-color: rgba(0, 60, 136, 0.7);
 }
-
-
 /* make range sliders visible */
 
 input[type="range"] {
@@ -262,8 +235,6 @@ input[type="range"] {
 .tool-slice input[type="range"] {
     width: 100%;
 }
-
-
 /* make tool button text bigger */
 
 .button-group.expanded .button-tool {
@@ -279,8 +250,6 @@ input[type="range"] {
 #menu-pagesize {
     font-weight: bold;
 }
-
-
 /* styling for tabs used in the side-pane */
 
 .off-canvas .tabs {
@@ -307,8 +276,6 @@ input[type="range"] {
     background-color: rgba(128, 128, 128, 0.46);
     border: 1px solid rgba(37, 45, 51, 0.9);
 }
-
-
 /* rig the tabs to use flexbox for full-width */
 
 .off-canvas .tabs {
@@ -323,8 +290,6 @@ input[type="range"] {
 .off-canvas .tabs a {
     height: 100%;
 }
-
-
 /* styling for switch widgets used in the side pane */
 
 .off-canvas .switch-paddle {
@@ -346,8 +311,6 @@ input[type="range"] {
 .side-label {
     margin-left: 1em;
 }
-
-
 /* Set height of internal layers to allow for bottom details */
 
 .layers-topframe {
@@ -358,15 +321,11 @@ input[type="range"] {
 .scroller {
     overflow-y: auto;
 }
-
-
 /* remove extra padding for tab boxes inside other tab boxes */
 
 #layers-list {
     padding: 1rem 0 0 0;
 }
-
-
 /* styling for movable row boxes */
 
 .layer-row,
@@ -390,16 +349,12 @@ input[type="range"] {
     font-style: italic;
     font-size: 75%;
 }
-
-
 /* Add dotted line box to dragged layers*/
 
 .layer-row.gu-transit {
     border: 2px dashed #ffffff;
     border-radius: 4px;
 }
-
-
 /* Add status indicator to left hand side of layer rows */
 
 .layer-row {
@@ -431,8 +386,6 @@ input[type="range"] {
 .layer-row.error {
     border-left-color: #ec5840;
 }
-
-
 /* custom F6 tab style overrides for the side buttons  */
 
 .side-button > a {
@@ -460,8 +413,11 @@ input[type="range"] {
     background-color: rgba(37, 45, 51, 0.8);
     border-left: 3px solid #2199e8;
 }
+/* fix absurdly large margins on button groups */
 
-
+.button-group {
+    margin-bottom: 1px;
+}
 /* colouring changes to OpenLayers widgets to match side buttons*/
 
 .ol-control,
@@ -480,11 +436,4 @@ input[type="range"] {
 .ol-scale-line:hover,
 #menu-scale:hover {
     background-color: rgba(37, 45, 51, 0.9);
-}
-
-
-/* fix absurdly large margins on button groups */
-
-.button-group {
-    margin-bottom: 1px;
 }

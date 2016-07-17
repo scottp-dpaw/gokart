@@ -8,10 +8,7 @@ import {
     Vue
 } from 'src/vendor.js'
 import ol from '../ol-extras.js'
-import App from '../sss.vue'
-
-global.$ = $
-global.ol = ol
+import App from './sss.vue'
 
 var debounce = function (func, wait, immediate) {
     // Returns a function, that, as long as it continues to be invoked, will not

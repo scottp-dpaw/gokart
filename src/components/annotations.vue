@@ -72,9 +72,9 @@
 </template>
 
 <script>
-    var ui = {}
     export default {
         data: function() { return {
+            ui: {},
             tool: {},
             tools: [],
             features: new ol.Collection(),
@@ -140,6 +140,7 @@
         },
         ready: function() {
             var vm = this
+            var map = this.$root.map
             // collection to store all annotation features
             this.features.on('add', function (ev) {
                 var feature = ev.element
@@ -176,50 +177,50 @@
             // collection for tracking selected features
 
             // add new points to annotations layer
-            ui.pointInter = new ol.interaction.Draw({
+            this.ui.pointInter = new ol.interaction.Draw({
                 type: 'Point',
                 features: this.features
             })
 
             // add new lines to annotations layer
-            ui.lineInter = new ol.interaction.Draw({
+            this.ui.lineInter = new ol.interaction.Draw({
                 type: 'LineString',
                 features: this.features
             })
 
             // add new polygons to annotations layer
-            ui.polyInter = new ol.interaction.Draw({
+            this.ui.polyInter = new ol.interaction.Draw({
                 type: 'Polygon',
                 features: this.features
             })
 
             // next three interacts are bundled into the Select tool
             // allow modifying features by click+dragging
-            ui.modifyInter = new ol.interaction.Modify({
+            this.ui.modifyInter = new ol.interaction.Modify({
                 features: this.features
             })
 
             // allow dragbox selection of features
-            ui.dragSelectInter = new ol.interaction.DragBox()
+            this.ui.dragSelectInter = new ol.interaction.DragBox()
             // modify selectedFeatures after dragging a box
-            ui.dragSelectInter.on('boxend', function () {
-                var extent = ui.dragSelectInter.getGeometry().getExtent()
+            this.ui.dragSelectInter.on('boxend', function (event) {
+                var extent = event.target.getGeometry().getExtent()
                 vm.featureOverlay.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
                     vm.selectedFeatures.push(feature)
                 })
             })
             // clear selectedFeatures before dragging a box
-            ui.dragSelectInter.on('boxstart', function () {
+            this.ui.dragSelectInter.on('boxstart', function () {
                 vm.selectedFeatures.clear()
             })
             // allow selecting multiple features by clicking
-            ui.selectInter = new ol.interaction.Select({
+            this.ui.selectInter = new ol.interaction.Select({
                 layers: [this.featureOverlay],
                 features: this.selectedFeatures
             })
 
             // OpenLayers3 hook for keyboard input
-            ui.keyboardInter = new ol.interaction.Interaction({
+            this.ui.keyboardInter = new ol.interaction.Interaction({
                 handleEvent: function (mapBrowserEvent) {
                     var stopEvent = false
                     if (mapBrowserEvent.type === ol.events.EventType.KEYDOWN) {
@@ -237,44 +238,44 @@
                 }
             })
             // load default tools
-            this.tool = ui.defaultPan = {
+            this.tool = this.ui.defaultPan = {
                 name: 'Pan',
                 icon: 'fa-hand-paper-o',
                 interactions: [
-                    self.dragPanInter,
-                    self.doubleClickZoomInter,
-                    self.keyboardPanInter,
-                    self.keyboardZoomInter
+                    map.dragPanInter,
+                    map.doubleClickZoomInter,
+                    map.keyboardPanInter,
+                    map.keyboardZoomInter
                 ]
             }
-            ui.defaultSelect = {
+            this.ui.defaultSelect = {
                 name: 'Select',
                 icon: 'fa-mouse-pointer',
                 interactions: [
-                    ui.keyboardInter,
-                    ui.selectInter,
-                    ui.dragSelectInter,
-                    ui.modifyInter
+                    this.ui.keyboardInter,
+                    this.ui.selectInter,
+                    this.ui.dragSelectInter,
+                    this.ui.modifyInter
                 ]
             }
             this.tools = [
-                ui.defaultPan,
-                ui.defaultSelect
+                this.ui.defaultPan,
+                this.ui.defaultSelect
             ]
-            ui.defaultPoint = {
+            this.ui.defaultPoint = {
                 name: 'Point',
                 icon: 'static/images/iD-sprite.svg#icon-point',
-                interactions: [ui.pointInter]
+                interactions: [this.ui.pointInter]
             }
-            ui.defaultLine = {
+            this.ui.defaultLine = {
                 name: 'Line',
                 icon: 'static/images/iD-sprite.svg#icon-line',
-                interactions: [ui.lineInter]
+                interactions: [this.ui.lineInter]
             }
-            ui.defaultPolygon = {
+            this.ui.defaultPolygon = {
                 name: 'Polygon',
                 icon: 'static/images/iD-sprite.svg#icon-area',
-                interactions: [ui.polyInter]
+                interactions: [this.ui.polyInter]
             }
 
             // add annotations layer to catalogue list

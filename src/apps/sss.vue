@@ -40,10 +40,10 @@
 </template>
 
 <script>
-    import gkMap from './components/map.vue'
-    import gkLayers from './components/layers.vue'
-    import gkAnnotations from './components/annotations.vue'
-    import gkTracking from './components/sss/tracking.vue'
+    import gkMap from '../components/map.vue'
+    import gkLayers from '../components/layers.vue'
+    import gkAnnotations from '../components/annotations.vue'
+    import gkTracking from '../components/sss/tracking.vue'
 
     export default { components: { gkMap, gkLayers, gkAnnotations, gkTracking } }
 </script>

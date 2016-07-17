@@ -31,12 +31,16 @@
                     </div>
                 </div>
             </div>
-            <div class="hide" id="legendsvg"></div>
+            <div class="hide" v-el:legendsvg>
+                <gk-legend></gk-legend>
+            </div>
         </div>
     </div>
 </template>
 <script>
+    import gkLegend from './legend.vue'
     export default {
+        components: { gkLegend },
         data: function() { return {
             minDPI: 100,
             paperSizes: {
@@ -105,7 +109,7 @@
             // generate legend block, scale ruler is 40mm wide
             renderLegend: function() {
                 var qrcanvas = kjua({text: "http://dpaw.io/sss?" + this.shortUrl, render: 'canvas', size: 100});
-                return ["data:image/svg+xml;utf8," + encodeURIComponent($("#legendsvg").html()), qrcanvas];
+                return ["data:image/svg+xml;utf8," + encodeURIComponent(this.$els.legendsvg.innerHTML), qrcanvas];
             },
             // POST a generated JPG to the gokart server backend to convert to GeoPDF
             blobGDAL: function(blob, name, format) {

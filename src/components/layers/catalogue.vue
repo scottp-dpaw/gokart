@@ -146,7 +146,8 @@
                 l.id = l.id || l.identifier
                 l.olLayer = function() { return map.getMapLayer(l.id) }
                 l.name = l.name || l.title
-                l.init = initLayer( l.type || 'TileLayer', l ) // override based on layer type
+                // override based on layer type
+                l.init = l.init || initLayer( l.type || 'TileLayer', l )
             })
         }
     }
