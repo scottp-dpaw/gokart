@@ -38,6 +38,7 @@
     </div>
 </template>
 <script>
+    import { kjua, saveAs } from 'src/vendor.js'
     import gkLegend from './legend.vue'
     export default {
         components: { gkLegend },
@@ -94,7 +95,7 @@
             setSize: function() {
                 $("body").css("cursor", "progress");
                 this.layout = this.mapLayout;
-                this.$root.dpmm = this.minDPI / self.mmPerInch;
+                this.$root.dpmm = this.minDPI / this.$root.mmPerInch;
                 this.olmap.setSize([this.$root.dpmm * this.layout.width, this.$root.dpmm * this.layout.height]);
                 this.olmap.getView().fit(this.layout.extent, this.olmap.getSize());
                 this.$root.map.setScale(this.$root.map.getFixedScale());

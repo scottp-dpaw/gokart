@@ -6,6 +6,8 @@ import 'dragula/dist/dragula.css'
 import $ from 'jquery'
 import 'foundation-sites'
 import svg4everybody from 'svg4everybody'
+import { saveAs } from 'filesaverjs'
+import kjua from 'kjua'
 import ol from 'openlayers/dist/ol-debug.js'
 import moment from 'moment'
 import loki from 'lokijs'
@@ -16,6 +18,8 @@ import dragula from 'dragula'
 export {
     $,
     svg4everybody,
+    saveAs,
+    kjua,
     ol,
     moment,
     loki,
