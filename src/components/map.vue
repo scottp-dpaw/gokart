@@ -13,27 +13,10 @@
   import gkInfo from './info.vue'
   import ol from '../ol-extras.js'
   export default {
+    store: ['defaultWMTSSrc', 'defaultWFSSrc', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm'],
     components: { gkInfo },
     data: function () {
-      var resolutions = [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16]
       return {
-        // default matrix from KMI
-        resolutions: resolutions,
-        matrixSets: {
-          'EPSG:4326': {
-            '1024': {
-              'name': 'gda94',
-              'resolutions': resolutions,
-              'minLevel': 0,
-              'maxLevel': 17
-            }
-          }
-        },
-        // overridable defaults for WMTS and WFS loading
-        defaultWMTSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts',
-        defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
-        // fixed scales for the scale selector (1:1K increments)
-        fixedScales: [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000],
         scale: 0,
         graticule: new ol.LabelGraticule(),
         dragPanInter: new ol.interaction.DragPan(),
@@ -84,7 +67,7 @@
         var center = this.olmap.getView().getCenter()
         var extent = this.olmap.getView().calculateExtent(size)
         var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
-        return distance * this.$root.dpmm / size[0]
+        return distance * this.dpmm / size[0]
       },
       // get the fixed scale (1:1K increments) closest to current scale
       getFixedScale: function () {
@@ -291,7 +274,7 @@
         var matrixSet = this.matrixSets[layer.projection][layer.tileSize]
         var tileGrid = new ol.tilegrid.WMTS({
           origin: ol.extent.getTopLeft([-180, -90, 180, 90]),
-          resolutions: matrixSet.resolutions,
+          resolutions: this.resolutions,
           matrixIds: matrixSet.matrixIds,
           tileSize: layer.tileSize
         })

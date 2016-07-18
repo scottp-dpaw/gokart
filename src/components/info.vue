@@ -23,12 +23,12 @@
 <script>
   import ol from '../ol-extras.js'
   export default {
+    store: ['sel'],
     data: function () {
       return {
         enabled: true,
         features: false,
         coordinate: '',
-        sel: [],
         offset: 20,
         pixel: [0, 0]
       }

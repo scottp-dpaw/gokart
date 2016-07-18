@@ -41,6 +41,7 @@
   import { kjua, saveAs, moment, $ } from 'src/vendor.js'
   import gkLegend from './legend.vue'
   export default {
+    store: ['whoami', 'dpmm'],
     components: { gkLegend },
     data: function () {
       return {
@@ -69,7 +70,7 @@
         return {
           width: dims[0], height: dims[1], size: size,
           extent: this.olmap.getView().calculateExtent(size),
-          scale: this.scale, dpmm: this.$root.dpmm
+          scale: this.scale, dpmm: this.dpmm
         }
       },
       shortUrl: {
@@ -85,13 +86,11 @@
     methods: {
       // info for the legend block on the print raster
       legendInfo: function () {
-        var settings = this.$root.db.addCollection('settings')
-        var whoami = settings.get('whoami') || {email: ''}
         var result = {
           km: (Math.round(this.$root.map.getScale() * 40) / 1000).toLocaleString(),
           scale: 'ISO ' + this.paperSize + ' ' + this.$root.map.scaleString,
           title: this.title,
-          author: whoami.email,
+          author: this.whoami.email,
           date: 'Printed ' + moment().toLocaleString()
         }
         return result
@@ -100,15 +99,15 @@
       setSize: function () {
         $('body').css('cursor', 'progress')
         this.layout = this.mapLayout
-        this.$root.dpmm = this.minDPI / this.$root.mmPerInch
-        this.olmap.setSize([this.$root.dpmm * this.layout.width, this.$root.dpmm * this.layout.height])
+        this.dpmm = this.minDPI / this.$root.mmPerInch
+        this.olmap.setSize([this.dpmm * this.layout.width, this.dpmm * this.layout.height])
         this.olmap.getView().fit(this.layout.extent, this.olmap.getSize())
         this.$root.map.setScale(this.$root.map.getFixedScale())
       },
       // restore map to viewport dimensions
       resetSize: function () {
         this.olmap.setSize(this.layout.size)
-        this.$root.dpmm = this.layout.dpmm
+        this.dpmm = this.layout.dpmm
         this.olmap.getView().fit(this.layout.extent, this.olmap.getSize())
         this.$root.map.setScale(this.layout.scale)
         $('body').css('cursor', 'default')

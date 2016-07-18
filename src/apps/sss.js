@@ -3,9 +3,9 @@ import {
   $,
   svg4everybody,
   moment,
-  Loki,
-  LokiIndexedAdapter,
-  Vue
+  localforage,
+  Vue,
+  VueStash
 } from 'src/vendor.js'
 import ol from '../ol-extras.js'
 import App from './sss.vue'
@@ -31,23 +31,41 @@ var debounce = function (func, wait, immediate) {
   }
 }
 
-var idbAdapter = new LokiIndexedAdapter('sss.json')
-var db = new Loki('sss', { adapter: idbAdapter })
-db.loadDatabase(function (result) {
-  console.log('done')
-})
+var defaultStore = {
+  whoami: { email: null },
+  remoteCatalogue: 'https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss',
+  // overridable defaults for WMTS and WFS loading
+  defaultWMTSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts',
+  defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
+  // default matrix from KMI
+  resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
+  // fixed scales for the scale selector (1:1K increments)
+  fixedScales: [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000],
+  matrixSets: {
+    'EPSG:4326': {
+      '1024': {
+        'name': 'gda94',
+        'minLevel': 0,
+        'maxLevel': 17
+      }
+    }
+  },
+  // selected features
+  sel: [],
+  mmPerInch: 25.4
+}
 
-/* eslint-disable no-new */
-new Vue({
+Vue.use(VueStash)
+localforage.getItem('sssOfflineStore')
+global.gokart = new Vue({
+  store: ['mmPerInch'],
   el: 'body',
   components: {
     App
   },
   data: {
+    store: defaultStore,
     pngs: {},
-    mmPerInch: 25.4,
-    geojson: new ol.format.GeoJSON(),
-    wgs84Sphere: new ol.Sphere(6378137)
   },
   computed: {
     map: function () { return this.$refs.app.$refs.map },
@@ -57,7 +75,8 @@ new Vue({
     export: function () { return this.$refs.app.$refs.layers.$refs.export },
     annotations: function () { return this.$refs.app.$refs.annotations },
     tracking: function () { return this.$refs.app.$refs.tracking },
-    db: function () { return db }
+    geojson: function () { return new ol.format.GeoJSON() },
+    wgs84Sphere: function () { return new ol.Sphere(6378137) }
   },
   methods: {
     // method to precache SVGs as raster (PNGs)
@@ -90,7 +109,7 @@ new Vue({
     // calculate screen res
     $('body').append('<div id="dpi" style="width:1in;display:none"></div>')
     this.dpi = parseFloat($('#dpi').width())
-    this.dpmm = self.dpi / self.mmPerInch
+    this.store.dpmm = self.dpi / self.store.mmPerInch
     $('#dpi').remove();
     // get user info
     (function () {
@@ -121,7 +140,6 @@ new Vue({
       $('#menu-tabs').find('.tabs-title a[aria-selected=true]').attr('aria-selected', false)
       self.map.olmap.updateSize()
     })
-    var gokart = global.gokart = self
 
     var stylecache = {}
     var textStyle = new ol.style.Text({
@@ -135,7 +153,7 @@ new Vue({
     })
     var initStyle = function (icon) {
       var imageicon = new ol.style.Icon({
-        src: gokart.svgToPNG(icon),
+        src: self.svgToPNG(icon),
         opacity: 0.9
       })
       var style = new ol.style.Style({
@@ -166,7 +184,7 @@ new Vue({
     }
     var resourceTrackingStyle = function (f, res) {
       var style = stylecache[f.get('icon')] || initStyle(f.get('icon'))
-      if (gokart.pngs[style.getImage().iconImage_.src_]) {
+      if (self.pngs[style.getImage().iconImage_.src_]) {
         style = initStyle(f.get('icon'))
       };
       if (res < 0.002) {
@@ -177,7 +195,7 @@ new Vue({
       return style
     }
 
-    // pack-in catalogue
+     // pack-in catalogue
     var catalogue = [{
       type: 'WFSLayer',
       name: 'Resource Tracking',
@@ -249,8 +267,7 @@ new Vue({
 
     // load map with default layers
     this.map.init(catalogue, ['dpaw:resource_tracking_live', 'cddp:smb_250K'])
-    this.catalogue.loadRemoteCatalogue('https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss')
-
+    this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue)
     var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking_live')
 
     // load custom annotation tools

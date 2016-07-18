@@ -10,10 +10,10 @@ import { saveAs } from 'filesaverjs'
 import kjua from 'kjua'
 import ol from 'openlayers/dist/ol-debug.js'
 import moment from 'moment'
-import Loki from 'lokijs'
-import LokiIndexedAdapter from 'lokijs/src/loki-indexed-adapter.js'
 import Vue from 'vue'
+import VueStash from 'vue-stash'
 import dragula from 'dragula'
+import localforage from 'localforage'
 
 export {
   $,
@@ -22,8 +22,8 @@ export {
   kjua,
   ol,
   moment,
-  Loki,
-  LokiIndexedAdapter,
   Vue,
-  dragula
+  VueStash,
+  dragula,
+  localforage
 }
