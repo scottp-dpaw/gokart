@@ -38,7 +38,7 @@
     </div>
 </template>
 <script>
-    import { kjua, saveAs } from 'src/vendor.js'
+    import { kjua, saveAs, moment } from 'src/vendor.js'
     import gkLegend from './legend.vue'
     export default {
         components: { gkLegend },
@@ -70,16 +70,6 @@
                     scale: this.scale, dpmm: this.$root.dpmm
                 }
             },
-            // info for the legend block on the print raster
-            legendInfo: function() {
-                var whoami = self.whoami || {email: ""};
-                return {
-                    km: (Math.round(this.getScale() * 40) / 1000).toLocaleString(),
-                    scale: "ISO " + this.paperSize + " " + this.scaleString,
-                    title: this.title, author: whoami.email,
-                    date: "Printed " + moment().toLocaleString()
-                }
-            },
             shortUrl: {
                 cache: false,
                 get: function() {
@@ -91,6 +81,18 @@
         },
         // methods callable from inside the template
         methods: {
+            // info for the legend block on the print raster
+            legendInfo: function() {
+                var whoami = self.whoami || {email: ""};
+                var result = {
+                    km: (Math.round(this.$root.map.getScale() * 40) / 1000).toLocaleString(),
+                    scale: "ISO " + this.paperSize + " " + this.$root.map.scaleString,
+                    title: this.title, 
+                    author: whoami.email,
+                    date: "Printed " + moment().toLocaleString()
+                }
+                return result
+            },
             // resize map to page dimensions (in mm) for printing, save layout
             setSize: function() {
                 $("body").css("cursor", "progress");
@@ -119,7 +121,7 @@
                 formData.append("jpg", blob, name + ".jpg");
                 formData.append("dpi", Math.round(this.layout.canvasPxPerMM * 25.4));
                 formData.append("title", this.title)
-                formData.append("author", this.legendInfo.author)
+                formData.append("author", this.legendInfo().author)
                 var req = new XMLHttpRequest();
                 req.open("POST", "/gdal/" + format);
                 req.responseType = "blob";

@@ -55,7 +55,7 @@ new Vue({
         info: function () { return this.$refs.app.$refs.map.$refs.info },
         active: function () { return this.$refs.app.$refs.layers.$refs.active },
         catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
-        export: function () { return this.$refs.app.$refs.layers.$refs.export },
+        'export': function () { return this.$refs.app.$refs.layers.$refs.export },
         annotations: function () { return this.$refs.app.$refs.annotations },
         tracking: function () { return this.$refs.app.$refs.tracking }
     },
