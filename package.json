@@ -8,9 +8,9 @@
     "app": "sss"
   },
   "scripts": {
-    "watchify": "watchify -vd -p browserify-hmr --external src/vendor.js -e src/apps/$npm_package_config_app.js -o dist/$npm_package_config_app.js",
+    "watchify": "watchify -vd -p browserify-hmr -d -x src/vendor.js -e src/apps/$npm_package_config_app.js -o 'exorcist dist/$npm_package_config_app.js.map > dist/$npm_package_config_app.js'",
     "serve": "uwsgi -i uwsgi.ini",
-    "dev": "npm-run-all --parallel watchify serve",
+    "dev": "npm-run-all --parallel vendor watchify serve",
     "build": "npm-run-all vendor buildapp",
     "buildapp": "browserify --external src/vendor.js -e src/apps/$npm_package_config_app.js -o dist/$npm_package_config_app.js",
     "vendor": "cross-env NODE_ENV=production browserify -g browserify-css -r ./src/vendor.js:src/vendor.js | uglifyjs -c warnings=false -m > dist/vendor.js",
