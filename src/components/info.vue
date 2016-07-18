@@ -21,8 +21,9 @@
 </template>
 
 <script>
+    import ol from '../ol-extras.js'
     export default {
-        data: function() {
+        data: function () {
             return {
                 enabled: true,
                 features: false,
@@ -94,8 +95,8 @@
                 }
             }
         },
-        ready: function() {
-            this.$on("gk-init", function() {
+        ready: function () {
+            this.$on('gk-init', function () {
                 // display hover popups
                 this.$root.map.olmap.on('pointermove', this.onPointerMove)
             })

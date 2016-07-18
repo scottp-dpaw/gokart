@@ -72,29 +72,32 @@
 </template>
 
 <script>
+    import ol from '../ol-extras.js'
     export default {
-        data: function() { return {
-            ui: {},
-            tool: {},
-            tools: [],
-            features: new ol.Collection(),
-            selectedFeatures: new ol.Collection(),
-            featureOverlay: {},
-            size: 12,
-            colour: '#cc0000',
-            colours: [
-                ['red', '#cc0000'],
-                ['orange', '#f57900'],
-                ['yellow', '#edd400'],
-                ['green', '#73d216'],
-                ['blue', '#3465a4'],
-                ['violet', '#75507b'],
-                ['brown', '#8f5902'],
-                ['grey', '#555753'],
-                ['black', '#000000']
-            ],
-            advanced: false
-        }},
+        data: function () {
+            return {
+                ui: {},
+                tool: {},
+                tools: [],
+                features: new ol.Collection(),
+                selectedFeatures: new ol.Collection(),
+                featureOverlay: {},
+                size: 12,
+                colour: '#cc0000',
+                colours: [
+                    ['red', '#cc0000'],
+                    ['orange', '#f57900'],
+                    ['yellow', '#edd400'],
+                    ['green', '#73d216'],
+                    ['blue', '#3465a4'],
+                    ['violet', '#75507b'],
+                    ['brown', '#8f5902'],
+                    ['grey', '#555753'],
+                    ['black', '#000000']
+                ],
+                advanced: false
+            }
+        },
         methods: {
             icon: function (t) {
                 if (t.icon.startsWith('fa-')) {
@@ -138,7 +141,7 @@
                 this.selectedFeatures.clear()
             }
         },
-        ready: function() {
+        ready: function () {
             var vm = this
             var map = this.$root.map
             // collection to store all annotation features

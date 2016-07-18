@@ -56,18 +56,20 @@
 </template>
 
 <script>
-    import dragula from 'dragula'
+    import { Vue, dragula } from 'src/vendor.js'
     export default {
         // variables
-        data: function() { return {
-            sliderOpacity: 0,
-            layer: {
-                olLayer: function () { }
-            },
-            olLayers: [],
-            hoverInfoCache: true,
-            timeIndex: 0
-        }},
+        data: function () {
+            return {
+                sliderOpacity: 0,
+                layer: {
+                    olLayer: function () { }
+                },
+                olLayers: [],
+                hoverInfoCache: true,
+                timeIndex: 0
+            }
+        },
         // parts of the template to be computed live
         computed: {
             graticule: {
@@ -112,7 +114,7 @@
         },
         // methods callable from inside the template
         methods: {
-            getLayer: function(id) {
+            getLayer: function (id) {
                 return this.$root.catalogue.getLayer(id)
             },
             toggleGraticule: function () {
@@ -131,7 +133,7 @@
                 var vm = this
                 vm.olLayers = []
                 Vue.nextTick(function () {
-                    vm.olLayers = gokart.map.getLayers().getArray()
+                    vm.olLayers = this.$root.map.getLayers().getArray()
                 })
             },
             removeLayer: function (olLayer) {
@@ -145,11 +147,11 @@
                     map.olmap.removeLayer(layer)
                     map.olmap.addLayer(layer)
                 })
-            },
+            }
         },
         ready: function () {
             dragula([document.querySelector('#layers-active-list')]).on('dragend', this.updateOrder)
-            this.$on("gk-init", function() {
+            this.$on('gk-init', function () {
                 this.olLayers = this.$root.map.olmap.getLayers().getArray()
             })
         }

@@ -27,12 +27,12 @@
     import gkCatalogue from './layers/catalogue.vue'
     import gkExport from './layers/export.vue'
 
-    Vue.filter('filterIf', function(list, prop, value) {
+    Vue.filter('filterIf', function (list, prop, value) {
         if (!list) { return }
-        return list.filter(function(val) {
-            return val && val[prop] == value;
-        });
-    });
+        return list.filter(function (val) {
+            return val && val[prop] === value
+        })
+    })
 
     export default { components: { gkActive, gkCatalogue, gkExport } }
 </script>

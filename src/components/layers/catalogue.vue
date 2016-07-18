@@ -48,15 +48,19 @@
 </template>
 
 <script>
+    import ol from '../../ol-extras.js'
+    import { $ } from 'src/vendor.js'
     export default {
-        data: function () { return {
-            layer: {},
-            catalogue: new ol.Collection(),
-            swapBaseLayers: true,
-            search: '',
-            searchAttrs: ['name', 'id'],
-            overview: false
-        }},
+        data: function () { 
+            return {
+                layer: {},
+                catalogue: new ol.Collection(),
+                swapBaseLayers: true,
+                search: '',
+                searchAttrs: ['name', 'id'],
+                overview: false
+            }
+        },
         methods: {
             preview: function (layer) {
                 if (this.layer === layer) {
