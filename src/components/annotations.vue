@@ -72,7 +72,16 @@
 </template>
 
 <script>
+  import { Vue } from 'src/vendor.js'
   import ol from '../ol-extras.js'
+
+  Vue.filter('filterIf', function (list, prop, value) {
+    if (!list) { return }
+    return list.filter(function (val) {
+      return val && val[prop] === value
+    })
+  })
+
   export default {
     data: function () {
       return {
@@ -235,7 +244,6 @@
               default:
                 break
             }
-            console.log(keyEvent)
           }
           return !stopEvent
         }

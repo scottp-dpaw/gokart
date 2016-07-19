@@ -419,6 +419,7 @@ localforage.getItem('sssOfflineStore').then(function(store) {
         self.annotations.tools.push(tool)
       })
 
+<<<<<<< HEAD
       var renderTracking = debounce(function () {
         if (!trackingLayer.olLayer || trackingLayer.olLayer().getSource().getFeatures().length === 0) {
           return
@@ -426,6 +427,15 @@ localforage.getItem('sssOfflineStore').then(function(store) {
         self.tracking.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(self.export.mapLayout.extent)
         self.tracking.allFeatures = trackingLayer.olLayer().getSource().getFeatures()
       }, 100)
+=======
+    var renderTracking = debounce(function () {
+      if ((!trackingLayer.olLayer()) || (trackingLayer.olLayer().getSource().getFeatures().length === 0)) {
+        return
+      }
+      self.tracking.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(self.export.mapLayout.extent)
+      self.tracking.allFeatures = trackingLayer.olLayer().getSource().getFeatures()
+    }, 100)
+>>>>>>> ad2449ddd415b1a2ab742ef8896c9dca768e6541
 
       this.map.olmap.getLayerGroup().on('change', renderTracking)
       this.map.olmap.getView().on('propertychange', renderTracking)
