@@ -205,7 +205,31 @@
         this.$root.catalogue.onLayerChange(historyLayer, true)
         var source = this.$root.map.getMapLayer(historyLayer).getSource()
         source.loadSource(function () {
-            // draw in here
+          // callback to draw the line trail after the points information is loaded
+          var devices = {}
+          // group by device
+          source.getFeatures().forEach(function (feature) {
+            var props = feature.getProperties()
+            if (!(props.name in devices)) {
+              devices[props.name] = []
+            }
+            devices[props.name].push(feature)
+          })
+          // sort by timestamp
+          Object.keys(devices).forEach(function (device) {
+            devices[device].sort(function (a, b) {
+              var as = a.get('seen')
+              var bs = b.get('seen')
+              if (as < bs) {
+                return -1
+              } else if (as > bs) {
+                return 1
+              }
+              return 0
+            })
+          })
+          console.log(devices)
+
         })
       },
       resourceFilter: function (f) {
