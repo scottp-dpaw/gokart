@@ -187,15 +187,15 @@
         var deviceFilter = ''
         // filter by specific devices if "Show selected only" is enabled
         if ((this.$root.info.sel.length > 0) && (this.selectedOnly)) {
-            deviceFilter = 'deviceid in (' + this.$root.info.sel.join(',') + ')'
+          deviceFilter = 'deviceid in (' + this.$root.info.sel.join(',') + ')'
         }
         // CQL statement assembling logic
         if (groupFilter && deviceFilter) {
-            trackingLayer.cql_filter = '('+groupFilter+') and ('+deviceFilter+')'
+          trackingLayer.cql_filter = '(' + groupFilter + ') and (' + deviceFilter + ')'
         } else if (deviceFilter) {
-            trackingLayer.cql_filter = deviceFilter
-        } else { 
-            trackingLayer.cql_filter = groupFilter
+          trackingLayer.cql_filter = deviceFilter
+        } else {
+          trackingLayer.cql_filter = groupFilter
         }
         this.$root.map.getMapLayer(trackingLayer).getSource().loadSource()
       },
@@ -203,7 +203,7 @@
         var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
         historyLayer.cql_filter = 'deviceid in (' + this.$root.info.sel.join(',') + ") and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
-        historyLayer.olLayer().getSource().loadSource()
+        this.$root.map.getMapLayer(historyLayer).getSource().loadSource()
       },
       resourceFilter: function (f) {
         var search = ('' + this.search).toLowerCase()

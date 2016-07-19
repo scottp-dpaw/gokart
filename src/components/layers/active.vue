@@ -85,7 +85,7 @@
           this.$root.info.enabled = val
         }
       },
-      
+
       sliderTimeline: {
         get: function () {
           this.timeIndex = this.mapLayer().get('timeIndex')
@@ -113,7 +113,20 @@
     },
     // methods callable from inside the template
     methods: {
-      mapLayer: function(id) { return this.$root.map.getMapLayer(id || this.layer) },
+      activeLayers: function () {
+        var catalogue = this.$root.catalogue
+        var result = this.olLayers.map(function (layer) {
+          var catLayer = catalogue.getLayer(layer)
+          var options = {
+            name: layer.get('name'),
+            type: catLayer.type,
+            opacity: layer.getOpacity()
+          }
+          return [layer.get('id'), options]
+        })
+        return result.reverse()
+      },
+      mapLayer: function (id) { return this.$root.map.getMapLayer(id || this.layer) },
       getLayer: function (id) {
         return this.$root.catalogue.getLayer(id)
       },

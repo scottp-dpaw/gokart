@@ -44,6 +44,11 @@ var defaultStore = {
   view: {
     center: [123.75, -24.966]
   },
+  // id followed by properties to merge into catalogue
+  activeLayers: [
+    ['dpaw:resource_tracking_live', {}],
+    ['cddp:smb_250K', {}]
+  ],
   matrixSets: {
     'EPSG:4326': {
       '1024': {
@@ -60,9 +65,8 @@ var defaultStore = {
 
 global.localforage = localforage
 
-
 Vue.use(VueStash)
-localforage.getItem('sssOfflineStore').then(function(store) {
+localforage.getItem('sssOfflineStore').then(function (store) {
   global.gokart = new Vue({
     el: 'body',
     components: {
@@ -70,7 +74,7 @@ localforage.getItem('sssOfflineStore').then(function(store) {
     },
     data: {
       // store contains state we want to reload/persist
-      store: store || defaultStore,
+      store: $.extend(defaultStore, store || {}),
       pngs: {},
       saved: null
     },
@@ -273,7 +277,7 @@ localforage.getItem('sssOfflineStore').then(function(store) {
       }]
 
       // load map with default layers
-      this.map.init(catalogue, ['dpaw:resource_tracking_live', 'cddp:smb_250K'])
+      this.map.init(catalogue, this.store.activeLayers)
       this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue)
       var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking_live')
 
@@ -432,5 +436,3 @@ localforage.getItem('sssOfflineStore').then(function(store) {
     }
   })
 })
-
-

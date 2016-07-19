@@ -140,12 +140,6 @@
       }
     },
     ready: function () {
-      var map = this.$root.map
-      var initLayer = function (method, layer) {
-        return function () {
-          return map['create' + method](layer)
-        }
-      }
       this.catalogue.on('add', function (event) {
         var l = event.element
         l.id = l.id || l.identifier

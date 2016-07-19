@@ -338,9 +338,8 @@
         var vm = this
         options = options || {}
         this.$root.catalogue.catalogue.extend(catalogue)
-
-        var initialLayers = layers.reverse().map(function (id) {
-          var layer = vm.$root.catalogue.getLayer(id)
+        var initialLayers = layers.reverse().map(function (value) {
+          var layer = $.extend(vm.$root.catalogue.getLayer(value[0]), value[1])
           return vm['create' + layer.type](layer)
         })
 
@@ -378,9 +377,9 @@
             keyboard: false
           })
         })
-        
+
         this.setScale(this.view.scale / 1000)
-        
+
         // add some default interactions
         this.olmap.addInteraction(this.dragPanInter)
         this.olmap.addInteraction(this.doubleClickZoomInter)
