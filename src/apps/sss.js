@@ -206,7 +206,7 @@ global.gokart = new Vue({
     }, {
       type: 'WFSLayer',
       name: 'Resource Tracking History',
-      id: 'dpaw:tracking_history_view',
+      id: 'dpaw:resource_tracking_history',
       style: resourceTrackingStyle,
       onadd: addResource,
       cql_filter: false

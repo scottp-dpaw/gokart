@@ -100,7 +100,7 @@
                 </div>
                 <div class="small-2"></div>
                 <div class="small-2">
-                  <button class="button" @click="historyCQLFilter">Go</button>
+                  <button class="button" style="float: right" @click="historyCQLFilter">Go</button>
                 </div>
               </div>
             </div>
@@ -200,9 +200,10 @@
         trackingLayer.olLayer().getSource().loadSource()
       },
       historyCQLFilter: function () {
-        var historyLayer = this.$root.catalogue.getLayer('dpaw:tracking_history_view')
+        var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
         historyLayer.cql_filter = 'deviceid in (' + this.$root.info.sel.join(',') + ") and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
+        historyLayer.olLayer().getSource().loadSource()
       },
       resourceFilter: function (f) {
         var search = ('' + this.search).toLowerCase()
