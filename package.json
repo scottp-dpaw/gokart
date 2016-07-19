@@ -48,6 +48,7 @@
     "filesaverjs": "^0.2.2",
     "font-awesome": "^4.6.3",
     "foundation-sites": "^6.2.3",
+    "jcanvas": "^16.7.3",
     "kjua": "^0.1.1",
     "localforage": "^1.4.2",
     "moment": "^2.14.1",

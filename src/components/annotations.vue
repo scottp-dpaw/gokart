@@ -62,6 +62,9 @@
                 </div>
               </div>
             </div>
+            <div class="tool-slice row collapse">
+              <canvas v-el:textpreview></canvas>
+            </div>
           </div>
 
         </div>

@@ -69,6 +69,7 @@ var defaultStore = {
 }
 
 global.localforage = localforage
+global.$ = $
 
 Vue.use(VueStash)
 localforage.getItem('sssOfflineStore').then(function (store) {
