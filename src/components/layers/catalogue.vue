@@ -74,7 +74,7 @@
           }
         }
         layer.preview = new ol.control.OverviewMap({
-          layers: [layer.init()],
+          layers: [this.$root.map['create' + layer.type](layer)],
           collapsed: false,
           collapsible: false,
           view: new ol.View({
@@ -110,9 +110,9 @@
               })
             }
             // add new base layer to bottom
-            map.olmap.getLayers().insertAt(0, layer.init())
+            map.olmap.getLayers().insertAt(0, map['create' + layer.type](layer))
           } else {
-            map.olmap.addLayer(layer.init())
+            map.olmap.addLayer(map['create' + layer.type](layer))
           }
         } else {
           active.removeLayer(map.getMapLayer(layer))
@@ -150,8 +150,7 @@
         var l = event.element
         l.id = l.id || l.identifier
         l.name = l.name || l.title
-        // override based on layer type
-        l.init = l.init || initLayer(l.type || 'TileLayer', l)
+        l.type = l.type || 'TileLayer'
       })
     }
   }

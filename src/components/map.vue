@@ -254,6 +254,9 @@
         vector.set('id', options.id)
         return vector
       },
+      createAnnotations: function (layer) {
+        return this.$root.annotations.featureOverlay
+      },
       // loader to create a WMTS layer from a kmi datasource
       createTileLayer: function (layer) {
         if (layer.base) {
@@ -337,7 +340,8 @@
         this.$root.catalogue.catalogue.extend(catalogue)
 
         var initialLayers = layers.reverse().map(function (id) {
-          return vm.$root.catalogue.getLayer(id).init()
+          var layer = vm.$root.catalogue.getLayer(id)
+          return vm['create' + layer.type](layer)
         })
 
         this.olmap = new ol.Map({

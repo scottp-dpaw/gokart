@@ -116,17 +116,17 @@
         }
       },
       setTool: function (t) {
-        var map = this.$root.map.olmap
+        var map = this.$root.map
         // remove all custom tool interactions from map
         this.tools.forEach(function (tool) {
           tool.interactions.forEach(function (inter) {
-            map.removeInteraction(inter)
+            map.olmap.removeInteraction(inter)
           })
         })
 
         // add interactions for this tool
         t.interactions.forEach(function (inter) {
-          map.addInteraction(inter)
+          map.olmap.addInteraction(inter)
         })
 
         // remove selections
@@ -137,7 +137,7 @@
 
         // enable annotations layer, if disabled
         var catalogue = this.$root.catalogue
-        if (!catalogue.mapLayer('annotations')) {
+        if (!map.getMapLayer('annotations')) {
           catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
         }
         this.tool = t
@@ -291,9 +291,7 @@
 
       // add annotations layer to catalogue list
       this.$root.catalogue.catalogue.push({
-        init: function () {
-          return vm.featureOverlay
-        },
+        type: 'Annotations',
         id: 'annotations',
         name: 'My Annotations'
       })
