@@ -420,11 +420,11 @@ localforage.getItem('sssOfflineStore').then(function(store) {
       })
 
       var renderTracking = debounce(function () {
-        if ((!trackingLayer.olLayer()) || (trackingLayer.olLayer().getSource().getFeatures().length === 0)) {
+        if ((!self.map.getMapLayer(trackingLayer)) || (self.map.getMapLayer(trackingLayer).getSource().getFeatures().length === 0)) {
           return
         }
-        self.tracking.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(self.export.mapLayout.extent)
-        self.tracking.allFeatures = trackingLayer.olLayer().getSource().getFeatures()
+        self.tracking.extentFeatures = self.map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(self.export.mapLayout.extent)
+        self.tracking.allFeatures = self.map.getMapLayer(trackingLayer).getSource().getFeatures()
       }, 100)
 
       this.map.olmap.getLayerGroup().on('change', renderTracking)

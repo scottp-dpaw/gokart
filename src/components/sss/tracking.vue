@@ -197,7 +197,7 @@
         } else { 
             trackingLayer.cql_filter = groupFilter
         }
-        trackingLayer.olLayer().getSource().loadSource()
+        this.$root.map.getMapLayer(trackingLayer).getSource().loadSource()
       },
       historyCQLFilter: function () {
         var historyLayer = this.$root.catalogue.getLayer('dpaw:tracking_history_view')

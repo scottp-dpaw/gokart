@@ -42,7 +42,7 @@
     <div class="row collapse">
       <div class="columns">
         <h4>{{ layer.name }}</h4>
-        <div class="tool-slice row" v-if="layer.olLayer()">
+        <div class="tool-slice row" v-if="mapLayer()">
           <div class="columns small-2"><label class="tool-label">Opacity:<br/>{{ layerOpacity }}%</label></div>
           <div class="columns small-10"><input type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
         </div>
@@ -62,9 +62,7 @@
     data: function () {
       return {
         sliderOpacity: 0,
-        layer: {
-          olLayer: function () { }
-        },
+        layer: {},
         olLayers: [],
         hoverInfoCache: true,
         timeIndex: 0
@@ -87,13 +85,14 @@
           this.$root.info.enabled = val
         }
       },
+      
       sliderTimeline: {
         get: function () {
-          this.timeIndex = this.layer.olLayer().get('timeIndex')
+          this.timeIndex = this.mapLayer().get('timeIndex')
           return this.timeIndex
         },
         set: function (val) {
-          this.layer.olLayer().set('timeIndex', val)
+          this.mapLayer().set('timeIndex', val)
           this.timeIndex = val
         }
       },
@@ -105,15 +104,16 @@
       },
       layerOpacity: {
         get: function () {
-          return Math.round(this.layer.olLayer().getOpacity() * 100)
+          return Math.round(this.mapLayer().getOpacity() * 100)
         },
         set: function (val) {
-          this.layer.olLayer().setOpacity(val / 100)
+          this.mapLayer().setOpacity(val / 100)
         }
       }
     },
     // methods callable from inside the template
     methods: {
+      mapLayer: function(id) { return this.$root.map.getMapLayer(id || this.layer) },
       getLayer: function (id) {
         return this.$root.catalogue.getLayer(id)
       },

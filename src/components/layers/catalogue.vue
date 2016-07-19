@@ -92,9 +92,9 @@
       onLayerChange: function (layer, checked) {
         var vm = this
         var active = this.$root.active
-        var map = this.$root.map.olmap
+        var map = this.$root.map
         // if layer matches state, return
-        if (checked === (layer.olLayer() !== undefined)) {
+        if (checked === (map.getMapLayer(layer) !== undefined)) {
           return
         }
         // make the layer match the state
@@ -103,19 +103,19 @@
             // "Switch out base layers automatically" is enabled, remove
             // all other layers with the "base" option set.
             if (this.swapBaseLayers) {
-              active.olLayers.forEach(function (olLayer) {
-                if (vm.getLayer(olLayer.get('id')).base) {
-                  active.removeLayer(olLayer)
+              active.olLayers.forEach(function (mapLayer) {
+                if (vm.getLayer(mapLayer).base) {
+                  active.removeLayer(mapLayer)
                 }
               })
             }
             // add new base layer to bottom
-            map.getLayers().insertAt(0, layer.init())
+            map.olmap.getLayers().insertAt(0, layer.init())
           } else {
-            map.addLayer(layer.init())
+            map.olmap.addLayer(layer.init())
           }
         } else {
-          active.removeLayer(layer.olLayer())
+          active.removeLayer(map.getMapLayer(layer))
         }
       },
       // helper to populate the catalogue from a remote service
@@ -132,7 +132,8 @@
         req.send()
       },
       getLayer: function (id) {
-        if (id && id.id) { id = id.id }
+        // handle openlayers layers as well as raw ids
+        if (id && id.get) { id = id.get('id') }
         return this.catalogue.getArray().find(function (layer) {
           return layer.id === id
         })
@@ -148,7 +149,6 @@
       this.catalogue.on('add', function (event) {
         var l = event.element
         l.id = l.id || l.identifier
-        l.olLayer = function () { return map.getMapLayer(l.id) }
         l.name = l.name || l.title
         // override based on layer type
         l.init = l.init || initLayer(l.type || 'TileLayer', l)
