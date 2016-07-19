@@ -217,15 +217,15 @@
           store.view.center = vm.olmap.getView().getCenter()
           store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
           var activeLayers = vm.$root.active.activeLayers()
-          if (!activeLayers) {
+          if (activeLayers === false) {
             return
           }
-          store.activeLayers = activeLayers
+          store.activeLayers = activeLayers || []
           store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
           localforage.setItem('sssOfflineStore', store).then(function (value) {
             vm.$root.saved = moment().toLocaleString()
           })
-        }, 250))
+        }, 250, true))
       })
     }
   }
