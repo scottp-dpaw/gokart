@@ -25,10 +25,20 @@
         </div>
         <div class="small-9">
           <div class="expanded button-group">
-            <a class="button" title="JPG for quick and easy printing" @click="print('jpg')"><i class="fa fa-file-image-o"></i> JPG</a>
-            <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i> PDF</a>
-            <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i> TIF</a>
+            <a class="button" title="JPG for quick and easy printing" @click="print('jpg')"><i class="fa fa-file-image-o"></i><br>JPG</a>
+            <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i><br>PDF</a>
+            <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i><br>GeoTIFF</a>
+            <a class="button" title="JSON bundle of current setup and annotations" @click="save()"><i class="fa fa-cloud-download"></i><br>JSON</a>
           </div>
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Upload:</label>
+        </div>
+        <div class="small-9">
+          <input type="file" name="statefile" accept="application/json" v-model="statefile" v-el:statefile>
+          <a class="button" title="JSON bundle of current setup and annotations" @click="load()"><i class="fa fa-cloud-upload"></i><br>JSON</a>
         </div>
       </div>
       <div class="hide" v-el:legendsvg>
@@ -55,7 +65,8 @@
         },
         paperSize: 'A3',
         layout: {},
-        title: 'Quick Print'
+        title: 'Quick Print',
+        statefile: ""
       }
     },
     // parts of the template to be computed live
@@ -179,6 +190,22 @@
           }, 5000)
         })
         vm.olmap.renderSync()
+      },
+      save: function() {
+        localforage.getItem('sssOfflineStore').then(function(store) {
+          var blob = new Blob([JSON.stringify(store, null, 2)], {type: "application/json;charset=utf-8"})
+          saveAs(blob, "sss_state_" + moment().toLocaleString() + "_.json")
+        })
+      },
+      load: function() {
+        var reader = new window.FileReader()
+        reader.onload = function(e) {
+          console.log(JSON.parse(e.target.result))
+          localforage.setItem('sssOfflineStore', JSON.parse(e.target.result)).then(function(v) {
+            document.location.reload()
+          })
+        }
+        reader.readAsText(this.$els.statefile.files[0])
       }
     },
     ready: function () {
