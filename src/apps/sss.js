@@ -413,7 +413,7 @@ global.gokart = new Vue({
     })
 
     var renderTracking = debounce(function () {
-      if (!trackingLayer.olLayer || trackingLayer.olLayer().getSource().getFeatures().length === 0) {
+      if ((!trackingLayer.olLayer()) || (trackingLayer.olLayer().getSource().getFeatures().length === 0)) {
         return
       }
       self.tracking.extentFeatures = trackingLayer.olLayer().getSource().getFeaturesInExtent(self.export.mapLayout.extent)

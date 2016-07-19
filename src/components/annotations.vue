@@ -235,7 +235,6 @@
               default:
                 break
             }
-            console.log(keyEvent)
           }
           return !stopEvent
         }
