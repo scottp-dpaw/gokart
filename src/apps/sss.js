@@ -60,7 +60,12 @@ var defaultStore = {
   },
   // selected features
   sel: [],
-  mmPerInch: 25.4
+  mmPerInch: 25.4,
+  // blank annotations
+  annotations: {
+    type: "FeatureCollection",
+    features: []
+  }
 }
 
 global.localforage = localforage
