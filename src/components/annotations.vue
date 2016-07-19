@@ -137,7 +137,7 @@
 
         // enable annotations layer, if disabled
         var catalogue = this.$root.catalogue
-        if (!catalogue.getLayer('annotations').olLayer()) {
+        if (!catalogue.mapLayer('annotations')) {
           catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
         }
         this.tool = t

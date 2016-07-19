@@ -38,10 +38,10 @@
   </div>
 </template>
 <script>
-  import { kjua, saveAs, moment, $ } from 'src/vendor.js'
+  import { kjua, saveAs, moment, $, localforage } from 'src/vendor.js'
   import gkLegend from './legend.vue'
   export default {
-    store: ['whoami', 'dpmm'],
+    store: ['whoami', 'dpmm', 'view'],
     components: { gkLegend },
     data: function () {
       return {
@@ -184,9 +184,14 @@
     ready: function () {
       var vm = this
       this.$on('gk-init', function () {
-        // update url with location of viewport
+        // save state every render
         this.olmap.on('postrender', function () {
-          window.history.replaceState(null, null, window.location.pathname + '?' + vm.shortUrl)
+          var store = vm.$root.store
+          store.view.center = vm.olmap.getView().getCenter()
+          store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
+          localforage.setItem('sssOfflineStore', store).then(function(value) {
+            vm.$root.saved = moment().toLocaleString()
+          })
         })
       })
     }
