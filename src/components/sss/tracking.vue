@@ -215,8 +215,8 @@
             }
             devices[props.name].push(feature)
           })
-          // sort by timestamp
           Object.keys(devices).forEach(function (device) {
+            // sort by timestamp
             devices[device].sort(function (a, b) {
               var as = a.get('seen')
               var bs = b.get('seen')
@@ -227,9 +227,17 @@
               }
               return 0
             })
+            // pull the coordinates
+            var coords = devices[device].map(function (point) {
+              return point.getGeometry().getCoordinates()
+            })
+            // create a new linestring
+            var feature = new ol.Feature({
+              name: device+' path',
+              geometry: new ol.geom.LineString(coords)
+            })
+            source.addFeature(feature)
           })
-          console.log(devices)
-
         })
       },
       resourceFilter: function (f) {
