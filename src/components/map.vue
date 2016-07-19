@@ -13,7 +13,7 @@
   import gkInfo from './info.vue'
   import ol from '../ol-extras.js'
   export default {
-    store: ['defaultWMTSSrc', 'defaultWFSSrc', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm'],
+    store: ['defaultWMTSSrc', 'defaultWFSSrc', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm', 'view'],
     components: { gkInfo },
     data: function () {
       return {
@@ -347,7 +347,7 @@
           layers: initialLayers,
           view: new ol.View({
             projection: 'EPSG:4326',
-            center: [123.75, -24.966],
+            center: vm.view.center,
             zoom: 6,
             maxZoom: 21,
             minZoom: 5
@@ -374,15 +374,9 @@
             keyboard: false
           })
         })
-        var params = {}
-        decodeURIComponent(window.location.search).slice(1).split('&').forEach(function (p) {
-          var t = p.split('=')
-          params[t[0]] = parseFloat(t[1])
-        })
-        if (params.scale) {
-          this.olmap.getView().setCenter([params.lon, params.lat])
-          vm.setScale(params.scale / 1000)
-        }
+        
+        this.setScale(this.view.scale / 1000)
+        
         // add some default interactions
         this.olmap.addInteraction(this.dragPanInter)
         this.olmap.addInteraction(this.doubleClickZoomInter)
