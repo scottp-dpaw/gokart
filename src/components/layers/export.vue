@@ -212,7 +212,7 @@
       var vm = this
       this.$on('gk-init', function () {
         // save state every render
-        this.olmap.on('postrender', function () {
+        this.olmap.on('postrender', debounce(function () {
           var store = vm.$root.store
           store.view.center = vm.olmap.getView().getCenter()
           store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
@@ -225,7 +225,7 @@
           localforage.setItem('sssOfflineStore', store).then(function (value) {
             vm.$root.saved = moment().toLocaleString()
           })
-        })
+        }, 250))
       })
     }
   }
