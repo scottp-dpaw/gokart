@@ -189,7 +189,11 @@
           var store = vm.$root.store
           store.view.center = vm.olmap.getView().getCenter()
           store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
-          store.activeLayers = vm.$root.active.activeLayers()
+          var activeLayers = vm.$root.active.activeLayers()
+          if (!activeLayers) {
+            return
+          }
+          store.activeLayers = activeLayers
           localforage.setItem('sssOfflineStore', store).then(function (value) {
             vm.$root.saved = moment().toLocaleString()
           })

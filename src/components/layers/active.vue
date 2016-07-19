@@ -115,19 +115,27 @@
     methods: {
       activeLayers: function () {
         var catalogue = this.$root.catalogue
-        var result = this.olLayers.map(function (layer) {
+        var results = []
+        var success = this.olLayers.every(function (layer) {
           // catlayer doesn't exist at startup, need to 
           // persist relevant catalogue entries perhaps?
           var catLayer = catalogue.getLayer(layer)
+          if (!catLayer) {
+            return false
+          }
           var options = {
             id: layer.get('id'),
             name: layer.get('name'),
             type: catLayer.type,
             opacity: layer.getOpacity()
           }
-          return [layer.get('id'), options]
+          results.push([layer.get('id'), options])
+          return true
         })
-        return result.reverse()
+        if (!success) {
+          return false
+        }
+        return results.reverse()
       },
       mapLayer: function (id) { return this.$root.map.getMapLayer(id || this.layer) },
       getLayer: function (id) {
