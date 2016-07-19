@@ -170,7 +170,6 @@
       var savedFeatures = this.$root.geojson.readFeatures(this.$root.store.annotations)
       this.$on('gk-init', function () {
         if (savedFeatures) {
-          console.log(savedFeatures)
           this.features.extend(savedFeatures)
         }
       })
