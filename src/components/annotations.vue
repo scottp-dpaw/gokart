@@ -167,6 +167,13 @@
         }
         feature.setStyle(style || null)
       })
+      var savedFeatures = this.$root.geojson.readFeatures(this.$root.store.annotations)
+      this.$on('gk-init', function () {
+        if (savedFeatures) {
+          console.log(savedFeatures)
+          this.features.extend(savedFeatures)
+        }
+      })
       // NASTYHACK: add/remove default style based on select status
       this.selectedFeatures.on('add', function (ev) {
         var feature = ev.element

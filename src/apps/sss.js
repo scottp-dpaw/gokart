@@ -280,10 +280,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         base: true
       }]
 
-      // load map with default layers
-      this.map.init(catalogue, this.store.activeLayers)
-      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue)
-      var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking_live')
 
       // load custom annotation tools
       var hotSpotStyle = new ol.style.Style({
@@ -434,6 +430,11 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.tracking.extentFeatures = self.map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(self.export.mapLayout.extent)
         self.tracking.allFeatures = self.map.getMapLayer(trackingLayer).getSource().getFeatures()
       }, 100)
+
+      // load map with default layers
+      this.map.init(catalogue, this.store.activeLayers)
+      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue)
+      var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking_live')
 
       this.map.olmap.getLayerGroup().on('change', renderTracking)
       this.map.olmap.getView().on('propertychange', renderTracking)
