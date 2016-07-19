@@ -221,6 +221,7 @@
             return
           }
           store.activeLayers = activeLayers
+          store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
           localforage.setItem('sssOfflineStore', store).then(function (value) {
             vm.$root.saved = moment().toLocaleString()
           })
