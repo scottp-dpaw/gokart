@@ -23,7 +23,7 @@
             </div>
             <div class="row collapse">
               <div class="small-6 columns">
-                <select name="select" v-model="cql" @change="setCQLFilter(cql)">
+                <select name="select" v-model="cql" @change="updateCQLFilter">
                 <option value="" selected>All resources</option> 
                 <option value="symbolid LIKE '%comms_bus'">Communications Bus</option>
                 <option value="symbolid LIKE '%gang_truck'">Gang Truck</option>
@@ -52,7 +52,7 @@
                 <div class="columns">
                   <div class="row">
                     <div class="switch tiny">
-                      <input class="switch-input" id="selectedOnly" type="checkbox" v-model="selectedOnly" />
+                      <input class="switch-input" id="selectedOnly" type="checkbox" v-model="selectedOnly" @change="updateCQLFilter" />
                       <label class="switch-paddle" for="selectedOnly">
                     <span class="show-for-sr">Show selected only</span>
                   </label>
@@ -181,9 +181,22 @@
       selected: function (f) {
         return this.$root.info.selected(f)
       },
-      setCQLFilter: function (cql) {
+      updateCQLFilter: function () {
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
-        trackingLayer.cql_filter = cql
+        var groupFilter = this.cql
+        var deviceFilter = ''
+        // filter by specific devices if "Show selected only" is enabled
+        if ((this.$root.info.sel.length > 0) && (this.selectedOnly)) {
+            deviceFilter = 'deviceid in (' + this.$root.info.sel.join(',') + ')'
+        }
+        // CQL statement assembling logic
+        if (groupFilter && deviceFilter) {
+            trackingLayer.cql_filter = '('+groupFilter+') and ('+deviceFilter+')'
+        } else if (deviceFilter) {
+            trackingLayer.cql_filter = deviceFilter
+        } else { 
+            trackingLayer.cql_filter = groupFilter
+        }
         trackingLayer.olLayer().getSource().loadSource()
       },
       historyCQLFilter: function () {
