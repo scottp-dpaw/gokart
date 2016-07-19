@@ -169,7 +169,11 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         })
         var style = new ol.style.Style({
           image: imageicon,
-          text: textStyle
+          text: textStyle,
+          stroke: new ol.style.Stroke({
+            color: [52, 101, 164, 0.6],
+            width: 4.0
+          })
         })
         stylecache[icon] = style
         return style

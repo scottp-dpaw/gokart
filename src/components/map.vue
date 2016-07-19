@@ -208,7 +208,7 @@
         })
         vector.progress = ''
 
-        vectorSource.loadSource = function () {
+        vectorSource.loadSource = function (onSuccess) {
           if (options.cql_filter) {
             options.params.cql_filter = options.cql_filter
           } else if (options.params.cql_filter) {
@@ -222,6 +222,9 @@
               vectorSource.clear(true)
               vectorSource.addFeatures(features)
               vector.progress = 'idle'
+              if (onSuccess) {
+                onSuccess()
+              }
             },
             error: function () {
               vector.progress = 'error'
