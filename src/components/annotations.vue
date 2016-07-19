@@ -19,12 +19,19 @@
                   <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
                     @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
                 </div>
-                <div class="expanded stacked button-group">
-                  <a v-for="t in tools | filterIf 'showName' true" class="button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
-                    v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
+                <div class="row resetmargin">
+                  <div class="small-6 rightmargin">
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index %2 === 0" class="expanded button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                      v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
+                  </div>
+                  <div class="small-6">
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index %2 === 1" class="expanded button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                      v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
+                  </div>
                 </div>
               </div>
             </div>
+
             <div v-if="advanced" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
@@ -47,18 +54,18 @@
             <div class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Ops:</label></div>
               <div class="small-10">
-                <div class="expanded button-group">
-                  <a id="tool-cut" class="button"><i class="fa fa-cut" aria-hidden="true"></i> Cut</a>
-                  <a id="tool-copy" class="button"><i class="fa fa-copy" aria-hidden="true"></i> Copy</a>
-                  <a id="tool-paste" class="button"><i class="fa fa-paste" aria-hidden="true"></i> Paste</a>
+                <div class="expanded button-group hide">
+                  <a class="button"><i class="fa fa-cut" aria-hidden="true"></i> Cut</a>
+                  <a class="button"><i class="fa fa-copy" aria-hidden="true"></i> Copy</a>
+                  <a class="button"><i class="fa fa-paste" aria-hidden="true"></i> Paste</a>
+                </div>
+                <div class="expanded button-group hide">
+                  <a class="button"><i class="fa fa-undo" aria-hidden="true"></i> Undo</a>
+                  <a class="button"><i class="fa fa-repeat" aria-hidden="true"></i> Redo</a>
                 </div>
                 <div class="expanded button-group">
-                  <a id="tool-undo" class="button"><i class="fa fa-undo" aria-hidden="true"></i> Undo</a>
-                  <a id="tool-redo" class="button"><i class="fa fa-repeat" aria-hidden="true"></i> Redo</a>
-                </div>
-                <div class="expanded button-group">
-                  <a id="tool-import" class="button"><i class="fa fa-upload" aria-hidden="true"></i> Import</a>
-                  <a id="tool-export" class="button"><i class="fa fa-download" aria-hidden="true"></i> Export</a>
+                  <a class="button"><i class="fa fa-upload" aria-hidden="true"></i> Import</a>
+                  <a class="button"><i class="fa fa-download" aria-hidden="true"></i> Export</a>
                 </div>
               </div>
             </div>
@@ -73,6 +80,25 @@
 
   </div>
 </template>
+
+<style>
+  .row.resetmargin {
+    margin: 0px;
+  }
+  .resetmargin .small-6.rightmargin {
+    margin-right: 1px;
+  }
+  .resetmargin .small-6 {
+    margin-right: -1px;
+    padding-right: 1px;
+  }
+  .resetmargin .expanded.button {
+    margin-bottom: 2px;
+  }
+  .fa.red {
+    color: #b43232;
+  }
+</style>
 
 <script>
   import { Vue } from 'src/vendor.js'
@@ -114,7 +140,11 @@
       icon: function (t) {
         if (t.icon.startsWith('fa-')) {
           return '<i class="fa ' + t.icon + '" aria-hidden="true"></i>'
+        } else if (t.icon.search('#') === -1) {
+          // plain svg/image
+          return '<img class="icon" src="' + t.icon + '" />'
         } else {
+          // svg reference
           return '<svg class="icon"><use xlink:href="' + t.icon + '"></use></svg>'
         }
       },

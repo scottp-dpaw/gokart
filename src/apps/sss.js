@@ -350,7 +350,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       var fireLineStyle = new ol.style.Style({
         stroke: new ol.style.Stroke({
-          width: 8.0,
+          width: 4.0,
           lineDash: [20, 20],
           color: [0, 114, 0, 1.0],
           lineCap: 'square',
@@ -389,25 +389,25 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       var sssTools = [{
         name: 'Hot Spot',
-        icon: 'static/images/iD-sprite.svg#icon-point',
+        icon: 'fa-circle red',
         interactions: [hotSpotDraw],
         style: hotSpotStyle,
         showName: true
       }, {
         name: 'Spot Fire',
-        icon: 'static/images/iD-sprite.svg#icon-point',
+        icon: 'static/symbols/svgs/sss/spotfire.svg',
         interactions: [spotFireDraw],
         style: spotFireStyle,
         showName: true
       }, {
         name: 'Division',
-        icon: 'static/images/iD-sprite.svg#icon-point',
+        icon: 'static/symbols/svgs/sss/division.svg',
         interactions: [divisionDraw, snapToLines],
         style: divisionStyle,
         showName: true
       }, {
         name: 'Sector',
-        icon: 'static/images/iD-sprite.svg#icon-point',
+        icon: 'static/symbols/svgs/sss/sector.svg',
         interactions: [sectorDraw, snapToLines],
         style: sectorStyle,
         showName: true
