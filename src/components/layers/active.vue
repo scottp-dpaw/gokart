@@ -116,8 +116,11 @@
       activeLayers: function () {
         var catalogue = this.$root.catalogue
         var result = this.olLayers.map(function (layer) {
+          // catlayer doesn't exist at startup, need to 
+          // persist relevant catalogue entries perhaps?
           var catLayer = catalogue.getLayer(layer)
           var options = {
+            id: layer.get('id'),
             name: layer.get('name'),
             type: catLayer.type,
             opacity: layer.getOpacity()
