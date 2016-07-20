@@ -307,9 +307,9 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         var url = 'static/images/placeholder.svg'
         if (f) {
           if (!f.get('note')) {
-            f.set('note', self.annotations.noteContent)
+            f.set('note', $.extend({}, self.annotations.note))
           }
-          url = self.annotations.getNoteUrl('general', f.get('note'))
+          url = self.annotations.getNoteUrl(f.get('note'))
         }
         return new ol.style.Style({
           image: new ol.style.Icon({

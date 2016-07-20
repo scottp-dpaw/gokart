@@ -72,10 +72,14 @@
             <div v-if="tool.name == 'Sector Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea class="notecontent" v-model="noteContent">Placeholder note</textarea>
+                <textarea @blur="drawNote(note, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)">Placeholder note</textarea>
               </div>
             </div>
-            <canvas v-show="tool.name == 'Sector Note'" v-el:textpreview></canvas>
+            <div class="tool-slice row collapse">
+              <div class="small-12 canvaspane">
+                <canvas width="1000" height="1000" v-show="tool.name == 'Sector Note'" v-el:textpreview></canvas>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -86,9 +90,10 @@
 </template>
 
 <style>
-  textarea.notecontent {
-    width: 236px;
-    height: 100px;
+  .canvaspane {
+    overflow: hidden;
+    width: 100px;
+    height: 30vh;
   }
   .row.resetmargin {
     margin: 0px;
@@ -128,7 +133,12 @@
         features: new ol.Collection(),
         selectedFeatures: new ol.Collection(),
         featureOverlay: {},
-        noteContent: "A cool note",
+        note: {
+          style: 'general',
+          text: "A cool note",
+          width: 236,
+          height: 100
+        },
         notes: {},
         noteStyles: {
           'general': [
@@ -136,8 +146,8 @@
               fillStyle: '#fef6bb',
               strokeStyle: '#c4a000',
               x: 20, y: 20,
-              width: 256,
-              height: 100,
+              width: '$eval:note.width',
+              height: '$eval:note.height',
               cornerRadius: 4,
               fromCenter: false
             }],
@@ -154,10 +164,10 @@
             ['drawText', {
               fillStyle: '#000',
               fontSize: '12pt',
-              text: 'The quick brown fox jumps over the lazy dog.',
+              text: '$eval:note.text',
               x: 30, y: 30,
               align: 'left',
-              maxWidth: 236,
+              maxWidth: '$eval:note.width - 20',
               fromCenter: false
             }]
           ]
@@ -224,29 +234,44 @@
         })
         this.selectedFeatures.clear()
       },
-      drawNote: function(style, text, save) {
+      updateNote: function(textarea) {
+        this.note.text = textarea.value
+        this.note.width = textarea.clientWidth
+        this.note.height = textarea.clientHeight
+        this.drawNote()
+      },
+      drawNote: function(save) {
         var vm = this
-        var key = style + text
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
-        this.noteStyles[style].forEach(function(cmd) {
-          if (cmd[1].text) {
-            cmd[1].text = text
-          }
-          $(noteCanvas)[cmd[0]](cmd[1])
+        this.noteStyles[this.note.style].forEach(function(cmd) {
+          var params = $.extend({}, cmd[1])
+          Object.keys(params).forEach(function(key) {
+            if (typeof params[key] === 'string' && params[key].startsWith('$eval:')) {
+              params[key] = vm.$eval(params[key].replace('$eval:',''))
+            }
+          })
+          $(noteCanvas)[cmd[0]](params)
         })
         if (save) {
+          var key = JSON.stringify(this.note)
+          // temp placeholder
+          this.notes[key] = 'static/images/placeholder.svg'
           noteCanvas.toBlob(function (blob) {
-            vm.notes[key] = window.URL.createObjectURL(blob) 
+            // switch for actual image
+            vm.notes[key] = window.URL.createObjectURL(blob)
+            // FIXME: redraw stuff when savin blobs (broken in chrome)
+            global.debounce(function() { vm.$root.map.olmap.updateSize() }, 100)
           }, 'image/png')
         }
       },
-      getNoteUrl: function(style, text) {
-        var key = style + text
-        if (!this.notes[key]) { 
-          this.drawNote(style, text, true) 
+      getNoteUrl: function(note) {
+        var key = JSON.stringify(note)
+        if (!this.notes[key]) {
+          this.note = note
+          this.drawNote(true)
         }
-        return this.notes[key] || 'static/images/placeholder.svg'
+        return this.notes[key]
       }
     },
     ready: function () {
@@ -400,12 +425,6 @@
         id: 'annotations',
         name: 'My Annotations'
       })
-    },
-    watch: {
-      noteContent: function(value, oldValue) {
-        var style = 'general'
-        this.drawNote(style, value, true)
-      }
     }
   }
 </script>
