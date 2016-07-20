@@ -28,7 +28,7 @@
             <a class="button" title="JPG for quick and easy printing" @click="print('jpg')"><i class="fa fa-file-image-o"></i><br>JPG</a>
             <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i><br>PDF</a>
             <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i><br>GeoTIFF</a>
-            <a class="button" title="JSON bundle of current setup and annotations" @click="save()"><i class="fa fa-cloud-download"></i><br>JSON</a>
+            <a class="button" title="JSON bundle of SSS config and annotations" @click="save()"><i class="fa fa-cloud-download"></i><br>SSS</a>
           </div>
         </div>
       </div>
@@ -38,7 +38,10 @@
         </div>
         <div class="small-9">
           <input type="file" name="statefile" accept="application/json" v-model="statefile" v-el:statefile>
-          <a class="button" title="JSON bundle of current setup and annotations" @click="load()"><i class="fa fa-cloud-upload"></i><br>JSON</a>
+          <div class="expanded button-group">
+            <a class="button" title="JSON bundle of SSS config and annotations" @click="load()"><i class="fa fa-cloud-upload"></i><br>Upload bundle</a>
+            <a class="button" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i><br>Reset SSS</a>
+          </div>
         </div>
       </div>
       <div class="hide" v-el:legendsvg>
@@ -66,7 +69,7 @@
         paperSize: 'A3',
         layout: {},
         title: 'Quick Print',
-        statefile: ""
+        statefile: ''
       }
     },
     // parts of the template to be computed live
@@ -191,28 +194,33 @@
         })
         vm.olmap.renderSync()
       },
-      save: function() {
-        localforage.getItem('sssOfflineStore').then(function(store) {
-          var blob = new Blob([JSON.stringify(store, null, 2)], {type: "application/json;charset=utf-8"})
-          saveAs(blob, "sss_state_" + moment().toLocaleString() + "_.json")
+      save: function () {
+        localforage.getItem('sssOfflineStore').then(function (store) {
+          var blob = new window.Blob([JSON.stringify(store, null, 2)], {type: 'application/json;charset=utf-8'})
+          saveAs(blob, 'sss_state_' + moment().toLocaleString() + '_.sss.json')
         })
       },
-      load: function() {
+      load: function () {
         var reader = new window.FileReader()
-        reader.onload = function(e) {
+        reader.onload = function (e) {
           console.log(JSON.parse(e.target.result))
-          localforage.setItem('sssOfflineStore', JSON.parse(e.target.result)).then(function(v) {
+          localforage.setItem('sssOfflineStore', JSON.parse(e.target.result)).then(function (v) {
             document.location.reload()
           })
         }
         reader.readAsText(this.$els.statefile.files[0])
+      },
+      reset: function () {
+        localforage.removeItem('sssOfflineStore').then(function (v) {
+          document.location.reload()
+        })
       }
     },
     ready: function () {
       var vm = this
       this.$on('gk-init', function () {
         // save state every render
-        this.olmap.on('postrender', debounce(function () {
+        this.olmap.on('postrender', global.debounce(function () {
           var store = vm.$root.store
           store.view.center = vm.olmap.getView().getCenter()
           store.view.scale = Math.round(vm.$root.map.getScale() * 1000)

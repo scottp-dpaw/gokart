@@ -117,7 +117,7 @@
         var catalogue = this.$root.catalogue
         var results = []
         var success = this.olLayers.every(function (layer) {
-          // catlayer doesn't exist at startup, need to 
+          // catlayer doesn't exist at startup, need to
           // persist relevant catalogue entries perhaps?
           var catLayer = catalogue.getLayer(layer)
           if (!catLayer) {

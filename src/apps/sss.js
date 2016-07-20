@@ -63,7 +63,7 @@ var defaultStore = {
   mmPerInch: 25.4,
   // blank annotations
   annotations: {
-    type: "FeatureCollection",
+    type: 'FeatureCollection',
     features: []
   }
 }
@@ -286,7 +286,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         base: true
       }]
 
-
       // load custom annotation tools
       var hotSpotStyle = new ol.style.Style({
         image: new ol.style.Circle({
@@ -302,6 +301,62 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         features: this.annotations.features,
         style: hotSpotStyle
       })
+
+      // temporary once of canvas rules
+      // TODO: generate from form
+      var noteContent = [
+        ['drawRect', {
+          fillStyle: '#fef6bb',
+          strokeStyle: '#c4a000',
+          x: 20, y: 20,
+          width: 256,
+          height: 100,
+          cornerRadius: 4,
+          fromCenter: false
+        }],
+        ['drawPath', {
+          fillStyle: '#fef6bb',
+          strokeStyle: '#c4a000',
+          p1: {
+            type: 'line',
+            x1: 20.5, y1: 27.5,
+            x2: 2.5, y2: 2.5,
+            x3: 27.5, y3: 20.5
+          }
+        }],
+        ['drawText', {
+          fillStyle: '#000',
+          fontSize: '12pt',
+          text: 'The quick brown fox jumps over the lazy dog.',
+          x: 30, y: 30,
+          align: 'left',
+          maxWidth: 236,
+          fromCenter: false
+        }]
+      ]
+      // generate blob, get blob url
+      var noteCanvas = self.annotations.$els.textpreview
+      $(noteCanvas).clearCanvas()
+      noteContent.forEach(function(cmd) {
+        $(noteCanvas)[cmd[0]](cmd[1])
+      })
+
+      var noteImage = ""
+      noteCanvas.toBlob(function (blob) {
+        noteImage = window.URL.createObjectURL(blob) 
+      }, 'image/png')
+
+      var noteStyle = function(f) {
+        return new ol.style.Style({
+          image: new ol.style.Icon({
+            anchor: [0, 0],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'fraction',
+            opacity: 0.8,
+            src: noteImage
+          })
+        })
+      }
 
       var spotFireStyle = new ol.style.Style({
         image: new ol.style.Icon({
@@ -346,6 +401,12 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         type: 'Point',
         features: this.annotations.features,
         style: sectorStyle
+      })
+
+      var noteDraw = new ol.interaction.Draw({
+        type: 'Point',
+        features: this.annotations.features,
+        style: noteStyle
       })
 
       var fireLineStyle = new ol.style.Style({
@@ -412,7 +473,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: sectorStyle,
         showName: true
       }, {
-        name: 'Fire Line Constructed',
+        name: 'Control Line',
         icon: 'static/images/iD-sprite.svg#icon-line',
         style: fireLineStyle,
         interactions: [fireLineDraw],
@@ -423,13 +484,25 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: fireBoundaryStyle,
         interactions: [fireBoundaryDraw],
         showName: true
+      }, {
+        name: 'Sector Note',
+        icon: 'fa-comments',
+        style: noteStyle,
+        interactions: [noteDraw],
+        showName: true
+      }, {
+        name: 'General Note',
+        icon: 'fa-comment',
+        style: noteStyle,
+        interactions: [noteDraw],
+        showName: true
       }]
 
       sssTools.forEach(function (tool) {
         self.annotations.tools.push(tool)
       })
 
-      var renderTracking = debounce(function () {
+      var renderTracking = global.debounce(function () {
         if ((!self.map.getMapLayer(trackingLayer)) || (self.map.getMapLayer(trackingLayer).getSource().getFeatures().length === 0)) {
           return
         }

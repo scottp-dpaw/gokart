@@ -21,11 +21,11 @@
                 </div>
                 <div class="row resetmargin">
                   <div class="small-6 rightmargin">
-                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index %2 === 0" class="expanded button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
                       v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
                   </div>
                   <div class="small-6">
-                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index %2 === 1" class="expanded button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
                       v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
                   </div>
                 </div>
@@ -70,7 +70,11 @@
               </div>
             </div>
             <div class="tool-slice row collapse">
-              <canvas v-el:textpreview></canvas>
+              <div class="small-2">Note:</div>
+              <div class="small-10">
+                <textarea class="notecontent" v-el:textcontent>Placeholder note</textarea>
+                <canvas v-el:textpreview></canvas>
+              </div>
             </div>
           </div>
 
@@ -82,6 +86,10 @@
 </template>
 
 <style>
+  textarea.notecontent {
+    width: 236px;
+    height: 100px;
+  }
   .row.resetmargin {
     margin: 0px;
   }

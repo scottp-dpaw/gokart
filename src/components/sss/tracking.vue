@@ -233,7 +233,7 @@
             })
             // create a new linestring
             var feature = new ol.Feature({
-              name: device+' path',
+              name: device + ' path',
               geometry: new ol.geom.LineString(coords)
             })
             source.addFeature(feature)

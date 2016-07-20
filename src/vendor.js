@@ -14,7 +14,7 @@ import moment from 'moment'
 import Vue from 'vue'
 import VueStash from 'vue-stash'
 import dragula from 'dragula'
-import localforage from 'localforage' 
+import localforage from 'localforage'
 
 export {
   $,
