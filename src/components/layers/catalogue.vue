@@ -24,8 +24,7 @@
           </div>
         </div>
         <div id="layers-catalogue-list">
-          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)"
-            @mouseleave="preview(false)" @click="onToggle($index)">
+          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @mouseleave="preview(false)" @click="onToggle($index)" track-by="id">
             <div class="small-10">
               <a @click.stop href="https://oim.dpaw.wa.gov.au/django-admin/catalogue/record/?identifier={{ l.id }}" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
@@ -33,7 +32,7 @@
             <div class="small-2">
               <div class="text-right">
                 <div class="switch tiny" @click.stop>
-                  <input class="switch-input" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="l.olLayer() !== undefined"
+                  <input class="switch-input" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="getMapLayer(l) !== undefined"
                     type="checkbox" />
                   <label class="switch-paddle" for="ctlgsw{{ $index }}">
                         <span class="show-for-sr">Toggle layer</span>
@@ -144,6 +143,9 @@
         return this.catalogue.getArray().find(function (layer) {
           return layer.id === id
         })
+      },
+      getMapLayer: function(id) {
+        return this.$root.map.getMapLayer(id)
       }
     },
     ready: function () {
