@@ -62,7 +62,7 @@
                 </div>
               </div>
               <div class="small-2">
-                <a class="button" @click="zoomToSelected()" style="float: right"><i class="fa fa-search"></i></a>
+                <a title="Zoom to selected" class="button" @click="zoomToSelected()" style="float: right"><i class="fa fa-search"></i></a>
               </div>
             </div>
             <div id="history-panel" v-if="toggleHistory">
@@ -106,9 +106,10 @@
             </div>
             <div id="tracking-list">
               <div v-for="f in features | filterBy resourceFilter | orderBy resourceOrder" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
-                @click="select(f)">
+                @click="select(f)" track-by="get('id')">
                 <div class="columns">
-                  <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <small>({{ f.get('deviceid') }})</small></div>
+                  <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button small secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }}</div>
                   <small>{{ f.get('time') }}</small>
                 </div>
               </div>
