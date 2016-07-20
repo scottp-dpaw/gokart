@@ -72,7 +72,7 @@
             <div v-if="tool.name == 'Sector Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea @blur="drawNote(note, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)">Placeholder note</textarea>
+                <textarea style="width:{{ note.width }}px;height:{{ note.height }}px;" @blur="drawNote(note, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">
@@ -268,7 +268,7 @@
       getNoteUrl: function(note) {
         var key = JSON.stringify(note)
         if (!this.notes[key]) {
-          this.note = note
+          this.note = $.extend({}, note)
           this.drawNote(true)
         }
         return this.notes[key]
