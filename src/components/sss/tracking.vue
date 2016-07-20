@@ -37,7 +37,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="small-10">
+              <div class="small-9">
                 <div class="columns">
                   <div class="row">
                     <div class="switch tiny">
@@ -61,8 +61,9 @@
                   </div>
                 </div>
               </div>
-              <div class="small-2">
-                <a title="Zoom to selected" class="button" @click="zoomToSelected()" style="float: right"><i class="fa fa-search"></i></a>
+              <div class="small-3">
+                <a title="Zoom to selected" class="button float-right" @click="zoomToSelected()"><i class="fa fa-search"></i></a>
+                <a title="Download list" class="button" @click="downloadList()" class="float-right"><i class="fa fa-download"></i></a>
               </div>
             </div>
             <div id="history-panel" v-if="toggleHistory">
@@ -109,7 +110,7 @@
                 @click="select(f)" track-by="get('id')">
                 <div class="columns">
                   <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button small secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }}</div>
+                  <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
                   <small>{{ f.get('time') }}</small>
                 </div>
               </div>
@@ -125,7 +126,7 @@
   </div>
 </template>
 <script>
-  import { moment } from 'src/vendor.js'
+  import { moment, saveAs } from 'src/vendor.js'
   import ol from '../../ol-extras.js'
   export default {
     data: function () {
@@ -176,11 +177,19 @@
       }
     },
     methods: {
+      ago: function (time) {
+        return moment(time).fromNow()
+      },
       select: function (f) {
         this.$root.info.select(f)
       },
       selected: function (f) {
         return this.$root.info.selected(f)
+      },
+      downloadList: function() {
+        var result = this.$root.geojson.writeFeatures(this.features.filter(this.resourceFilter).sort(this.resourceOrder))
+        var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
+        saveAs(blob, 'tracking_data_' + moment().toLocaleString() + '_.geo.json')
       },
       updateCQLFilter: function () {
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
@@ -252,7 +261,7 @@
         return found
       },
       resourceOrder: function (f1, f2) {
-        return f1.get('age') > f2.get('age')
+        return f2.get('seen') > f1.get('seen')
       },
       zoomToSelected: function () {
         var extent = ol.extent.createEmpty()

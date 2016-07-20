@@ -11,8 +11,7 @@
         <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)" track-by="get('id')">
           <div v-if="f.get('partialId') == 'featureInfo'" class="columns">{{ f.getId() }}</div>
           <div v-if="f.get('partialId') == 'resourceInfo'" class="columns">
-            <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }}</div>
-            <small>{{ f.get('time') }}</small>
+            <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
           </div>
         </div>
       </div>
@@ -22,6 +21,7 @@
 
 <script>
   import ol from '../ol-extras.js'
+  import { moment } from 'src/vendor.js'
   export default {
     store: ['sel'],
     data: function () {
@@ -66,6 +66,9 @@
     },
     // methods callable from inside the template
     methods: {
+      ago: function (time) {
+        return moment(time).fromNow()
+      },
       // update the panel content
       onPointerMove: function (event) {
         if (event.dragging || !this.enabled) {

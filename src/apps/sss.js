@@ -195,7 +195,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         if (f.get('age') <= 1) {
           color = '_green'
         };
-        f.set('icon', 'static/symbols/device/' + f.get('symbolid') + color + '.svg')
+        f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + color + '.svg')
         f.set('label', f.get('name') || f.get('callsign') || f.get('rego') || f.get('deviceid'))
         f.set('time', moment(f.get('seen')).toLocaleString())
         // Set a different vue template for rendering
@@ -304,7 +304,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       
       var noteStyle = function(res) {
         var f = this
-        var url = 'static/images/placeholder.svg'
+        var url = 'dist/static/images/placeholder.svg'
         if (f) {
           if (!f.get('note')) {
             f.set('note', $.extend({}, self.annotations.note))
@@ -327,7 +327,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           anchor: [0.5, 0.5],
           anchorXUnits: 'fraction',
           anchorYUnits: 'fraction',
-          src: 'static/symbols/svgs/sss/spotfire.svg'
+          src: 'dist/static/symbols/svgs/sss/spotfire.svg'
         })
       })
 
@@ -342,7 +342,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           anchor: [0.5, 0.5],
           anchorXUnits: 'fraction',
           anchorYUnits: 'fraction',
-          src: 'static/symbols/svgs/sss/division.svg'
+          src: 'dist/static/symbols/svgs/sss/division.svg'
         })
       })
 
@@ -357,7 +357,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           anchor: [0.5, 0.5],
           anchorXUnits: 'fraction',
           anchorYUnits: 'fraction',
-          src: 'static/symbols/svgs/sss/sector.svg'
+          src: 'dist/static/symbols/svgs/sss/sector.svg'
         })
       })
 
@@ -419,31 +419,31 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         showName: true
       }, {
         name: 'Spot Fire',
-        icon: 'static/symbols/svgs/sss/spotfire.svg',
+        icon: 'dist/static/symbols/svgs/sss/spotfire.svg',
         interactions: [spotFireDraw],
         style: spotFireStyle,
         showName: true
       }, {
         name: 'Division',
-        icon: 'static/symbols/svgs/sss/division.svg',
+        icon: 'dist/static/symbols/svgs/sss/division.svg',
         interactions: [divisionDraw, snapToLines],
         style: divisionStyle,
         showName: true
       }, {
         name: 'Sector',
-        icon: 'static/symbols/svgs/sss/sector.svg',
+        icon: 'dist/static/symbols/svgs/sss/sector.svg',
         interactions: [sectorDraw, snapToLines],
         style: sectorStyle,
         showName: true
       }, {
         name: 'Control Line',
-        icon: 'static/images/iD-sprite.svg#icon-line',
+        icon: 'dist/static/images/iD-sprite.svg#icon-line',
         style: fireLineStyle,
         interactions: [fireLineDraw],
         showName: true
       }, {
         name: 'Fire Boundary',
-        icon: 'static/images/iD-sprite.svg#icon-area',
+        icon: 'dist/static/images/iD-sprite.svg#icon-area',
         style: fireBoundaryStyle,
         interactions: [fireBoundaryDraw],
         showName: true

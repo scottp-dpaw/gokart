@@ -416,5 +416,3 @@
     }
   }
 </script>
-
-<style src="./map.css"></style>

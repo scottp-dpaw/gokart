@@ -14,21 +14,21 @@
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-layers" title="Map Layers">
                             <svg class="icon">
-                                <use xlink:href="static/images/iD-sprite.svg#icon-layers"></use>
+                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-layers"></use>
                             </svg>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-annotations" title="Annotations">
                             <svg class="icon">
-                                <use xlink:href="static/images/iD-sprite.svg#icon-data"></use>
+                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-data"></use>
                             </svg>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-tracking" title="Vehicle Tracking">
                             <svg class="icon">
-                                <use xlink:href="static/images/iD-sprite.svg#icon-geolocate"></use>
+                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-geolocate"></use>
                             </svg>
                         </a>
                     </li>

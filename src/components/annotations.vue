@@ -256,7 +256,7 @@
         if (save) {
           var key = JSON.stringify(this.note)
           // temp placeholder
-          this.notes[key] = 'static/images/placeholder.svg'
+          this.notes[key] = 'dist/static/images/placeholder.svg'
           noteCanvas.toBlob(function (blob) {
             // switch for actual image
             vm.notes[key] = window.URL.createObjectURL(blob)
@@ -405,17 +405,17 @@
       ]
       this.ui.defaultPoint = {
         name: 'Point',
-        icon: 'static/images/iD-sprite.svg#icon-point',
+        icon: 'dist/static/images/iD-sprite.svg#icon-point',
         interactions: [this.ui.pointInter]
       }
       this.ui.defaultLine = {
         name: 'Line',
-        icon: 'static/images/iD-sprite.svg#icon-line',
+        icon: 'dist/static/images/iD-sprite.svg#icon-line',
         interactions: [this.ui.lineInter]
       }
       this.ui.defaultPolygon = {
         name: 'Polygon',
-        icon: 'static/images/iD-sprite.svg#icon-area',
+        icon: 'dist/static/images/iD-sprite.svg#icon-area',
         interactions: [this.ui.polyInter]
       }
 
