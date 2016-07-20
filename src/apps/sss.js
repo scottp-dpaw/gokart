@@ -301,59 +301,23 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         features: this.annotations.features,
         style: hotSpotStyle
       })
-
-      // temporary once of canvas rules
-      // TODO: generate from form
-      var noteContent = [
-        ['drawRect', {
-          fillStyle: '#fef6bb',
-          strokeStyle: '#c4a000',
-          x: 20, y: 20,
-          width: 256,
-          height: 100,
-          cornerRadius: 4,
-          fromCenter: false
-        }],
-        ['drawPath', {
-          fillStyle: '#fef6bb',
-          strokeStyle: '#c4a000',
-          p1: {
-            type: 'line',
-            x1: 20.5, y1: 27.5,
-            x2: 2.5, y2: 2.5,
-            x3: 27.5, y3: 20.5
+      
+      var noteStyle = function(res) {
+        var f = this
+        var url = 'static/images/placeholder.svg'
+        if (f) {
+          if (!f.get('note')) {
+            f.set('note', self.annotations.noteContent)
           }
-        }],
-        ['drawText', {
-          fillStyle: '#000',
-          fontSize: '12pt',
-          text: 'The quick brown fox jumps over the lazy dog.',
-          x: 30, y: 30,
-          align: 'left',
-          maxWidth: 236,
-          fromCenter: false
-        }]
-      ]
-      // generate blob, get blob url
-      var noteCanvas = self.annotations.$els.textpreview
-      $(noteCanvas).clearCanvas()
-      noteContent.forEach(function(cmd) {
-        $(noteCanvas)[cmd[0]](cmd[1])
-      })
-
-      var noteImage = ""
-      noteCanvas.toBlob(function (blob) {
-        noteImage = window.URL.createObjectURL(blob) 
-      }, 'image/png')
-
-      var noteStyle = function(f) {
+          url = self.annotations.getNoteUrl('general', f.get('note'))
+        }
         return new ol.style.Style({
           image: new ol.style.Icon({
             anchor: [0, 0],
             anchorXUnits: 'fraction',
             anchorYUnits: 'fraction',
             opacity: 0.8,
-            src: noteImage
+            src: url
           })
         })
       }
@@ -405,8 +369,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       var noteDraw = new ol.interaction.Draw({
         type: 'Point',
-        features: this.annotations.features,
-        style: noteStyle
+        features: this.annotations.features
       })
 
       var fireLineStyle = new ol.style.Style({

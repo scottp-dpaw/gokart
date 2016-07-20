@@ -69,13 +69,13 @@
                 </div>
               </div>
             </div>
-            <div class="tool-slice row collapse">
+            <div v-if="tool.name == 'Sector Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea class="notecontent" v-el:textcontent>Placeholder note</textarea>
-                <canvas v-el:textpreview></canvas>
+                <textarea class="notecontent" v-model="noteContent">Placeholder note</textarea>
               </div>
             </div>
+            <canvas v-show="tool.name == 'Sector Note'" v-el:textpreview></canvas>
           </div>
 
         </div>
@@ -128,6 +128,40 @@
         features: new ol.Collection(),
         selectedFeatures: new ol.Collection(),
         featureOverlay: {},
+        noteContent: "A cool note",
+        notes: {},
+        noteStyles: {
+          'general': [
+            ['drawRect', {
+              fillStyle: '#fef6bb',
+              strokeStyle: '#c4a000',
+              x: 20, y: 20,
+              width: 256,
+              height: 100,
+              cornerRadius: 4,
+              fromCenter: false
+            }],
+            ['drawPath', {
+              fillStyle: '#fef6bb',
+              strokeStyle: '#c4a000',
+              p1: {
+                type: 'line',
+                x1: 20.5, y1: 27.5,
+                x2: 2.5, y2: 2.5,
+                x3: 27.5, y3: 20.5
+              }
+            }],
+            ['drawText', {
+              fillStyle: '#000',
+              fontSize: '12pt',
+              text: 'The quick brown fox jumps over the lazy dog.',
+              x: 30, y: 30,
+              align: 'left',
+              maxWidth: 236,
+              fromCenter: false
+            }]
+          ]
+        },
         size: 12,
         colour: '#cc0000',
         colours: [
@@ -189,6 +223,30 @@
           vm.features.remove(feature)
         })
         this.selectedFeatures.clear()
+      },
+      drawNote: function(style, text, save) {
+        var vm = this
+        var key = style + text
+        var noteCanvas = this.$els.textpreview
+        $(noteCanvas).clearCanvas()
+        this.noteStyles[style].forEach(function(cmd) {
+          if (cmd[1].text) {
+            cmd[1].text = text
+          }
+          $(noteCanvas)[cmd[0]](cmd[1])
+        })
+        if (save) {
+          noteCanvas.toBlob(function (blob) {
+            vm.notes[key] = window.URL.createObjectURL(blob) 
+          }, 'image/png')
+        }
+      },
+      getNoteUrl: function(style, text) {
+        var key = style + text
+        if (!this.notes[key]) { 
+          this.drawNote(style, text, true) 
+        }
+        return this.notes[key] || 'static/images/placeholder.svg'
       }
     },
     ready: function () {
@@ -342,6 +400,12 @@
         id: 'annotations',
         name: 'My Annotations'
       })
+    },
+    watch: {
+      noteContent: function(value, oldValue) {
+        var style = 'general'
+        this.drawNote(style, value, true)
+      }
     }
   }
 </script>
