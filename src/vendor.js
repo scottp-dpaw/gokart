@@ -1,5 +1,4 @@
 import 'foundation-sites/dist/foundation-flex.css'
-import 'font-awesome/css/font-awesome.css'
 import 'openlayers/dist/ol-debug.css'
 import 'dragula/dist/dragula.css'
 

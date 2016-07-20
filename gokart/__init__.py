@@ -23,9 +23,8 @@ bottle.debug(True)
 # serve up map apps
 @bottle.route('/<app>')
 def index(app):
-    if not os.path.exists("../dist/{}.js".format(app)) and os.path.exists("../src/apps/{}.js".format(app)):
-        subprocess.call(["npm", "run", "build", "--gokart:app={}".format(app)])
     return bottle.jinja2_template('index.html', app=app)
+
 
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
