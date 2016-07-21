@@ -74,7 +74,7 @@
             <div v-if="tool.name == 'Text Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea style="width:{{ note.width }}px;height:{{ note.height }}px;" @blur="drawNote(note, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)">{{ note.text }}</textarea>
+                <textarea @blur="updateNote($event.target, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target, false)" @mouseup="updateNote($event.target, false)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">
@@ -93,6 +93,10 @@
 </template>
 
 <style>
+  .notecontent {
+    width: 256px;
+    height: 100px;
+  }
   .canvaspane {
     overflow: hidden;
     width: 100px;
@@ -144,28 +148,51 @@
         notes: {},
         noteStyles: {
           'general': [
-            ['drawRect', {
-              fillStyle: '#fef6bb',
-              strokeStyle: '#c4a000',
-              x: 20, y: 20,
-              width: '$eval:note.width',
-              height: '$eval:note.height',
-              cornerRadius: 4,
-              fromCenter: false
-            }],
             ['drawPath', {
-              fillStyle: '#fef6bb',
-              strokeStyle: '#c4a000',
+              strokeStyle: '#fff',
+              strokeWidth: 4.0,
+              strokeCap: 'round',
               p1: {
                 type: 'line',
-                x1: 20.5, y1: 27.5,
-                x2: 2.5, y2: 2.5,
-                x3: 27.5, y3: 20.5
+                x1: 2.0, y1: 2.0,
+                x2: 20.0, y2: 20.0
+              },
+              p2: {
+                type: 'line',
+                x1: 20.0, y1: '$eval:note.height+20.0',
+                x2: 20.0, y2: 20.0,
+                x3: '$eval:note.width+20.0', y3: 20.0
+              }
+            }],
+            ['drawPath', {
+              strokeStyle: '#000',
+              strokeWidth: 2.0,
+              strokeCap: 'round',
+              p1: {
+                type: 'line',
+                x1: 2.0, y1: 2.0,
+                x2: 20.0, y2: 20.0
+              },
+              p2: {
+                type: 'line',
+                x1: 20.0, y1: '$eval:note.height+20.0',
+                x2: 20.0, y2: 20.0,
+                x3: '$eval:note.width+20.0', y3: 20.0
               }
             }],
             ['drawText', {
+              strokeStyle: '#fff',
+              strokeWidth: 4.0,
+              fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
+              text: '$eval:note.text',
+              x: 30, y: 30,
+              align: 'left',
+              maxWidth: '$eval:note.width - 20',
+              fromCenter: false
+            }],
+            ['drawText', {
               fillStyle: '#000',
-              fontSize: '12pt',
+              fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
               text: '$eval:note.text',
               x: 30, y: 30,
               align: 'left',
@@ -236,42 +263,48 @@
         })
         this.selectedFeatures.clear()
       },
-      updateNote: function (textarea) {
+      updateNote: function (textarea, save) {
         this.note.text = textarea.value
-        this.note.width = textarea.clientWidth
-        this.note.height = textarea.clientHeight
-        this.drawNote()
+        this.note.width = $(textarea).width()
+        this.note.height = $(textarea).height()
+        this.drawNote(this.note, save)
       },
-      drawNote: function (save) {
+      drawNote: function (note, save) {
         var vm = this
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
-        this.noteStyles[this.note.style].forEach(function (cmd) {
-          var params = $.extend({}, cmd[1])
-          Object.keys(params).forEach(function (key) {
-            if (typeof params[key] === 'string' && params[key].startsWith('$eval:')) {
-              params[key] = vm.$eval(params[key].replace('$eval:', ''))
+        if ((note.style) && (note.style in this.noteStyles)) {
+          this.noteStyles[note.style].forEach(function (cmd) {
+            var params = $.extend({}, cmd[1])
+            var loader = function loader (base, stop) {
+              Object.keys(base).forEach(function (key) {
+                if (typeof base[key] === 'string' && base[key].startsWith('$eval:')) {
+                  base[key] = vm.$eval(base[key].replace('$eval:', ''))
+                } else if ((stop>0) && (base[key] instanceof Object)) {
+                  loader(base[key], stop-1)
+                }
+              })
             }
+            loader(params, 1)
+            $(noteCanvas)[cmd[0]](params)
           })
-          $(noteCanvas)[cmd[0]](params)
-        })
-        if (save) {
-          var key = JSON.stringify(this.note)
-          // temp placeholder
-          this.notes[key] = 'dist/static/images/placeholder.svg'
-          noteCanvas.toBlob(function (blob) {
-            // switch for actual image
-            vm.notes[key] = window.URL.createObjectURL(blob)
-            // FIXME: redraw stuff when saving blobs (broken in chrome)
-            global.debounce(function () { vm.$root.map.olmap.updateSize() }, 100)
-          }, 'image/png')
+          if (save) {
+            var key = JSON.stringify(note)
+            // temp placeholder
+            this.notes[key] = 'dist/static/images/placeholder.svg'
+            noteCanvas.toBlob(function (blob) {
+              // switch for actual image
+              vm.notes[key] = window.URL.createObjectURL(blob)
+              // FIXME: redraw stuff when saving blobs (broken in chrome)
+              global.debounce(function () { vm.$root.map.olmap.updateSize() }, 100)
+            }, 'image/png')
+          }
         }
       },
       getNoteUrl: function (note) {
         var key = JSON.stringify(note)
         if (!this.notes[key]) {
-          this.note = $.extend({}, note)
-          this.drawNote(true)
+          this.drawNote(note, true)
         }
         return this.notes[key]
       }
@@ -283,16 +316,13 @@
       this.features.on('add', function (ev) {
         var feature = ev.element
         var tool = null
-        var toolName = feature.get('toolName')
-        if (toolName) {
+        if (feature.get('toolName')) {
           tool = vm.tools.filter(function (t) {
-            return t.name === toolName
+            return t.name === feature.get('toolName')
           })[0]
-        }
-        // set current tool if none/old
-        if (!tool) {
+        } else {
+          feature.set('toolName', vm.tool.name)
           tool = vm.tool
-          feature.set('toolName', tool.name)
         }
         if (tool.onAdd) {
           tool.onAdd(feature)
