@@ -54,8 +54,7 @@
 </style>
 
 <script>
-  import ol from '../../ol-extras.js'
-  import { $ } from 'src/vendor.js'
+  import { $, ol } from 'src/vendor.js'
   export default {
     data: function () {
       return {

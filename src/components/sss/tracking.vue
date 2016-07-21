@@ -126,8 +126,7 @@
   </div>
 </template>
 <script>
-  import { moment, saveAs } from 'src/vendor.js'
-  import ol from '../../ol-extras.js'
+  import { ol, moment, saveAs } from 'src/vendor.js'
   export default {
     data: function () {
       return {
