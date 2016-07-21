@@ -144,7 +144,7 @@
           return layer.id === id
         })
       },
-      getMapLayer: function(id) {
+      getMapLayer: function (id) {
         return this.$root.map.getMapLayer(id)
       }
     },

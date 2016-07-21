@@ -117,7 +117,7 @@
 </style>
 
 <script>
-  import { Vue } from 'src/vendor.js'
+  import { $, Vue } from 'src/vendor.js'
   import ol from '../ol-extras.js'
 
   Vue.filter('filterIf', function (list, prop, value) {
@@ -138,7 +138,7 @@
         featureOverlay: {},
         note: {
           style: 'general',
-          text: "A cool note",
+          text: 'Insert note here',
           width: 236,
           height: 100
         },
@@ -237,21 +237,21 @@
         })
         this.selectedFeatures.clear()
       },
-      updateNote: function(textarea) {
+      updateNote: function (textarea) {
         this.note.text = textarea.value
         this.note.width = textarea.clientWidth
         this.note.height = textarea.clientHeight
         this.drawNote()
       },
-      drawNote: function(save) {
+      drawNote: function (save) {
         var vm = this
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
-        this.noteStyles[this.note.style].forEach(function(cmd) {
+        this.noteStyles[this.note.style].forEach(function (cmd) {
           var params = $.extend({}, cmd[1])
-          Object.keys(params).forEach(function(key) {
+          Object.keys(params).forEach(function (key) {
             if (typeof params[key] === 'string' && params[key].startsWith('$eval:')) {
-              params[key] = vm.$eval(params[key].replace('$eval:',''))
+              params[key] = vm.$eval(params[key].replace('$eval:', ''))
             }
           })
           $(noteCanvas)[cmd[0]](params)
@@ -263,12 +263,12 @@
           noteCanvas.toBlob(function (blob) {
             // switch for actual image
             vm.notes[key] = window.URL.createObjectURL(blob)
-            // FIXME: redraw stuff when savin blobs (broken in chrome)
-            global.debounce(function() { vm.$root.map.olmap.updateSize() }, 100)
+            // FIXME: redraw stuff when saving blobs (broken in chrome)
+            global.debounce(function () { vm.$root.map.olmap.updateSize() }, 100)
           }, 'image/png')
         }
       },
-      getNoteUrl: function(note) {
+      getNoteUrl: function (note) {
         var key = JSON.stringify(note)
         if (!this.notes[key]) {
           this.note = $.extend({}, note)
@@ -283,7 +283,7 @@
       // collection to store all annotation features
       this.features.on('add', function (ev) {
         var feature = ev.element
-        var style = null
+        var tool = null
         if (feature.get('toolName')) {
           tool = vm.tools.filter(function (t) {
             return t.name === feature.get('toolName')
@@ -411,7 +411,7 @@
       ]
 
       var noteStyleCache = {}
-      var noteStyle = function(res) {
+      var noteStyle = function (res) {
         var f = this
         var url = 'dist/static/images/placeholder.svg'
         if (f) {
@@ -445,26 +445,26 @@
         }
       }
       var customAdd = function (f) {
-        f.set('size', vm.size),
+        f.set('size', vm.size)
         f.set('colour', vm.colour)
       }
       var vectorStyleCache = {
         'default': ol.style.defaultStyleFunction()
       }
-      var vectorStyle = function(res) {
+      var vectorStyle = function (res) {
         var f = this
-        var key = "default"
+        var key = 'default'
         if (f) {
           key = f.get('size') + f.get('colour')
         }
         if (!vectorStyleCache[key]) {
           vectorStyleCache[key] = new ol.style.Style({
             fill: new ol.style.Fill({
-                color: "rgba(255, 255, 255, 0.2)"
+              color: 'rgba(255, 255, 255, 0.2)'
             }),
             stroke: new ol.style.Stroke({
-                color: f.get("colour"),
-                width: 2 * f.get("size")
+              color: f.get('colour'),
+              width: 2 * f.get('size')
             })
           })
         }

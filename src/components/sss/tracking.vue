@@ -186,7 +186,7 @@
       selected: function (f) {
         return this.$root.info.selected(f)
       },
-      downloadList: function() {
+      downloadList: function () {
         var result = this.$root.geojson.writeFeatures(this.features.filter(this.resourceFilter).sort(this.resourceOrder))
         var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
         saveAs(blob, 'tracking_data_' + moment().toLocaleString() + '_.geo.json')
