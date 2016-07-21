@@ -32,25 +32,6 @@
               </div>
             </div>
 
-            <div v-if="advanced" class="tool-slice row collapse">
-              <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
-              <div class="small-10">
-                <div class="expanded button-group">
-                  <a @click="size = 8" v-bind:class="{'selected': size == 8}" class="button"><small>Small</small></a>
-                  <a @click="size = 12" v-bind:class="{'selected': size == 12}" class="button">Medium</a>
-                  <a @click="size = 16" v-bind:class="{'selected': size == 16}" class="button"><big>Large</big></a>
-                </div>
-              </div>
-            </div>
-            <div v-if="advanced" class="tool-slice row collapse">
-              <div class="small-2"><label class="tool-label">Colour:</label></div>
-              <div class="small-10">
-                <div class="expanded button-group">
-                  <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}"
-                    v-bind:style="{ backgroundColor: c[1] }"></a>
-                </div>
-              </div>
-            </div>
             <div class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Ops:</label></div>
               <div class="small-10">
@@ -69,7 +50,28 @@
                 </div>
               </div>
             </div>
-            <div v-if="tool.name == 'Sector Note'" class="tool-slice row collapse">
+
+            <div v-if="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+              <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
+              <div class="small-10">
+                <div class="expanded button-group">
+                  <a @click="size = 1" v-bind:class="{'selected': size == 1}" class="button"><small>Small</small></a>
+                  <a @click="size = 2" v-bind:class="{'selected': size == 2}" class="button">Medium</a>
+                  <a @click="size = 4" v-bind:class="{'selected': size == 4}" class="button"><big>Large</big></a>
+                </div>
+              </div>
+            </div>
+            <div v-if="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+              <div class="small-2"><label class="tool-label">Colour:</label></div>
+              <div class="small-10">
+                <div class="expanded button-group">
+                  <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}"
+                    v-bind:style="{ backgroundColor: c[1] }"></a>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="tool.name == 'Text Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
                 <textarea style="width:{{ note.width }}px;height:{{ note.height }}px;" @blur="drawNote(note, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)">{{ note.text }}</textarea>
@@ -77,9 +79,10 @@
             </div>
             <div class="tool-slice row collapse">
               <div class="small-12 canvaspane">
-                <canvas width="1000" height="1000" v-show="tool.name == 'Sector Note'" v-el:textpreview></canvas>
+                <canvas width="1000" height="1000" v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
               </div>
             </div>
+
           </div>
 
         </div>
@@ -172,7 +175,7 @@
             }]
           ]
         },
-        size: 12,
+        size: 2,
         colour: '#cc0000',
         colours: [
           ['red', '#cc0000'],
@@ -282,14 +285,17 @@
         var feature = ev.element
         var style = null
         if (feature.get('toolName')) {
-          style = vm.tools.filter(function (t) {
+          tool = vm.tools.filter(function (t) {
             return t.name === feature.get('toolName')
-          })[0].style
+          })[0]
         } else {
           feature.set('toolName', vm.tool.name)
-          style = vm.tool.style
+          tool = vm.tool
         }
-        feature.setStyle(style || null)
+        if (tool.onAdd) {
+          tool.onAdd(feature)
+        }
+        feature.setStyle(tool.style || null)
       })
       var savedFeatures = this.$root.geojson.readFeatures(this.$root.store.annotations)
       this.$on('gk-init', function () {
@@ -403,20 +409,82 @@
         this.ui.defaultPan,
         this.ui.defaultSelect
       ]
-      this.ui.defaultPoint = {
-        name: 'Point',
-        icon: 'dist/static/images/iD-sprite.svg#icon-point',
-        interactions: [this.ui.pointInter]
+
+      var noteStyleCache = {}
+      var noteStyle = function(res) {
+        var f = this
+        var url = 'dist/static/images/placeholder.svg'
+        if (f) {
+          url = vm.getNoteUrl(f.get('note'))
+        }
+        if (!noteStyleCache[url]) {
+          noteStyleCache[url] = new ol.style.Style({
+            image: new ol.style.Icon({
+              anchor: [0, 0],
+              anchorXUnits: 'fraction',
+              anchorYUnits: 'fraction',
+              opacity: 0.8,
+              src: url
+            })
+          })
+        }
+        return noteStyleCache[url]
+      }
+      var noteDraw = new ol.interaction.Draw({
+        type: 'Point',
+        features: this.features
+      })
+      this.ui.defaultText = {
+        name: 'Text Note',
+        icon: 'fa-comment',
+        style: noteStyle,
+        interactions: [noteDraw],
+        showName: true,
+        onAdd: function (f) {
+          f.set('note', $.extend({}, vm.note))
+        }
+      }
+      var customAdd = function (f) {
+        f.set('size', vm.size),
+        f.set('colour', vm.colour)
+      }
+      var vectorStyleCache = {
+        'default': ol.style.defaultStyleFunction()
+      }
+      var vectorStyle = function(res) {
+        var f = this
+        var key = "default"
+        if (f) {
+          key = f.get('size') + f.get('colour')
+        }
+        if (!vectorStyleCache[key]) {
+          vectorStyleCache[key] = new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: "rgba(255, 255, 255, 0.2)"
+            }),
+            stroke: new ol.style.Stroke({
+                color: f.get("colour"),
+                width: 2 * f.get("size")
+            })
+          })
+        }
+        return vectorStyleCache[key]
       }
       this.ui.defaultLine = {
-        name: 'Line',
+        name: 'Custom Line',
         icon: 'dist/static/images/iD-sprite.svg#icon-line',
-        interactions: [this.ui.lineInter]
+        interactions: [this.ui.lineInter],
+        showName: true,
+        onAdd: customAdd,
+        style: vectorStyle
       }
       this.ui.defaultPolygon = {
-        name: 'Polygon',
+        name: 'Custom Area',
         icon: 'dist/static/images/iD-sprite.svg#icon-area',
-        interactions: [this.ui.polyInter]
+        interactions: [this.ui.polyInter],
+        showName: true,
+        onAdd: customAdd,
+        style: vectorStyle
       }
 
       // add annotations layer to catalogue list

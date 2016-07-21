@@ -301,26 +301,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         features: this.annotations.features,
         style: hotSpotStyle
       })
-      
-      var noteStyle = function(res) {
-        var f = this
-        var url = 'dist/static/images/placeholder.svg'
-        if (f) {
-          if (!f.get('note')) {
-            f.set('note', $.extend({}, self.annotations.note))
-          }
-          url = self.annotations.getNoteUrl(f.get('note'))
-        }
-        return new ol.style.Style({
-          image: new ol.style.Icon({
-            anchor: [0, 0],
-            anchorXUnits: 'fraction',
-            anchorYUnits: 'fraction',
-            opacity: 0.8,
-            src: url
-          })
-        })
-      }
 
       var spotFireStyle = new ol.style.Style({
         image: new ol.style.Icon({
@@ -367,11 +347,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: sectorStyle
       })
 
-      var noteDraw = new ol.interaction.Draw({
-        type: 'Point',
-        features: this.annotations.features
-      })
-
       var fireLineStyle = new ol.style.Style({
         stroke: new ol.style.Stroke({
           width: 4.0,
@@ -411,55 +386,42 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         pixelTolerance: 16
       })
 
-      var sssTools = [{
-        name: 'Hot Spot',
-        icon: 'fa-circle red',
-        interactions: [hotSpotDraw],
-        style: hotSpotStyle,
-        showName: true
-      }, {
-        name: 'Spot Fire',
-        icon: 'dist/static/symbols/svgs/sss/spotfire.svg',
-        interactions: [spotFireDraw],
-        style: spotFireStyle,
-        showName: true
-      }, {
-        name: 'Division',
-        icon: 'dist/static/symbols/svgs/sss/division.svg',
-        interactions: [divisionDraw, snapToLines],
-        style: divisionStyle,
-        showName: true
-      }, {
-        name: 'Sector',
-        icon: 'dist/static/symbols/svgs/sss/sector.svg',
-        interactions: [sectorDraw, snapToLines],
-        style: sectorStyle,
-        showName: true
-      }, {
-        name: 'Control Line',
-        icon: 'dist/static/images/iD-sprite.svg#icon-line',
-        style: fireLineStyle,
-        interactions: [fireLineDraw],
-        showName: true
-      }, {
-        name: 'Fire Boundary',
-        icon: 'dist/static/images/iD-sprite.svg#icon-area',
-        style: fireBoundaryStyle,
-        interactions: [fireBoundaryDraw],
-        showName: true
-      }, {
-        name: 'Sector Note',
-        icon: 'fa-comments',
-        style: noteStyle,
-        interactions: [noteDraw],
-        showName: true
-      }, {
-        name: 'General Note',
-        icon: 'fa-comment',
-        style: noteStyle,
-        interactions: [noteDraw],
-        showName: true
-      }]
+      var sssTools = [
+        {
+          name: 'Hot Spot',
+          icon: 'fa-circle red',
+          interactions: [hotSpotDraw],
+          style: hotSpotStyle,
+          showName: true
+        }, {
+          name: 'Spot Fire',
+          icon: 'dist/static/symbols/svgs/sss/spotfire.svg',
+          interactions: [spotFireDraw],
+          style: spotFireStyle,
+          showName: true
+        }, {
+          name: 'Division',
+          icon: 'dist/static/symbols/svgs/sss/division.svg',
+          interactions: [divisionDraw, snapToLines],
+          style: divisionStyle,
+          showName: true
+        }, {
+          name: 'Sector',
+          icon: 'dist/static/symbols/svgs/sss/sector.svg',
+          interactions: [sectorDraw, snapToLines],
+          style: sectorStyle,
+          showName: true
+        }, {
+          name: 'Fire Boundary',
+          icon: 'dist/static/images/iD-sprite.svg#icon-area',
+          style: fireBoundaryStyle,
+          interactions: [fireBoundaryDraw],
+          showName: true
+        },
+        self.annotations.ui.defaultText,
+        self.annotations.ui.defaultLine,
+        self.annotations.ui.defaultPolygon
+      ]
 
       sssTools.forEach(function (tool) {
         self.annotations.tools.push(tool)
