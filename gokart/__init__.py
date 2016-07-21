@@ -16,14 +16,15 @@ from email.mime.text import MIMEText
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 
-bottle.TEMPLATE_PATH.append('./gokart/views')
+bottle.TEMPLATE_PATH.append('./gokart')
 bottle.debug(True)
 
 
 # serve up map apps
-@bottle.route('/<app_name>')
-def index(app_name):
-    return bottle.jinja2_template('apps/{}.html'.format(app_name), env=os.environ)
+@bottle.route('/<app>')
+def index(app):
+    return bottle.template('index.html', app=app)
+
 
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
