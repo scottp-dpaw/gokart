@@ -214,26 +214,30 @@
         localforage.removeItem('sssOfflineStore').then(function (v) {
           document.location.reload()
         })
+      },
+      saveState: function () {
+        var vm = this
+        var store = this.$root.store
+        // don't save if user is in tour
+        if (vm.$root.touring) { return }
+        store.view.center = vm.olmap.getView().getCenter()
+        store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
+        var activeLayers = vm.$root.active.activeLayers()
+        if (activeLayers === false) {
+          return
+        }
+        store.activeLayers = activeLayers || []
+        store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
+        localforage.setItem('sssOfflineStore', store).then(function (value) {
+          vm.$root.saved = moment().toLocaleString()
+        })
       }
     },
     ready: function () {
       var vm = this
       this.$on('gk-init', function () {
         // save state every render
-        this.olmap.on('postrender', global.debounce(function () {
-          var store = vm.$root.store
-          store.view.center = vm.olmap.getView().getCenter()
-          store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
-          var activeLayers = vm.$root.active.activeLayers()
-          if (activeLayers === false) {
-            return
-          }
-          store.activeLayers = activeLayers || []
-          store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
-          localforage.setItem('sssOfflineStore', store).then(function (value) {
-            vm.$root.saved = moment().toLocaleString()
-          })
-        }, 250, true))
+        this.olmap.on('postrender', global.debounce(this.saveState, 250, true))
       })
     }
   }

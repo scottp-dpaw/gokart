@@ -7,6 +7,13 @@ let tour = new Shepherd.Tour({
   }
 })
 
+// Change this to prompt tour again
+tour.version = 0.1
+
+tour.on('cancel', function() {
+    global.gokart.touring = false
+})
+
 tour.addStep('welcome', {
   text: 'Would you like a tour of the Spatial Support System? If you exit now, you can always rerun the tour by clicking "Reset SSS" in Layers > Download & Print',
   buttons: [
@@ -24,8 +31,9 @@ tour.addStep('welcome', {
     text: 'At the top right are common map controls for zooming, setting a scale, and fullscreen',
     attachTo: '.ol-zoom bottom',
     when: {
-        "before-show": function() {
-            gokart.map.setScale(10000)
+        "show": function() {
+            gokart.map.animatePan([116,-32])
+            gokart.map.animateZoom(0.1)
         }
     }
 }).addStep('menu', {
@@ -115,7 +123,7 @@ tour.addStep('welcome', {
     when: {
         "before-show": function() {
             Vue.nextTick(function() {
-                gokart.annotations.features.push(global.exampleFeature)
+                global.gokart.annotations.features.push(global.exampleFeature)
             })
         }
     }
@@ -127,9 +135,7 @@ tour.addStep('welcome', {
             $("#menu-tab-tracking-label").click()
         },
         'hide': function() {
-            localforage.removeItem('sssOfflineStore').then(function() {
-                document.location.reload()
-            })
+            document.location.reload()
         }
     }
 })
