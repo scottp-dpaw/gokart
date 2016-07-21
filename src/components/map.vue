@@ -9,9 +9,8 @@
 </template>
 
 <script>
-  import { moment, $ } from 'src/vendor.js'
+  import { $, ol, moment } from 'src/vendor.js'
   import gkInfo from './info.vue'
-  import ol from '../ol-extras.js'
   export default {
     store: ['defaultWMTSSrc', 'defaultWFSSrc', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm', 'view'],
     components: { gkInfo },

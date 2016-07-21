@@ -2,12 +2,12 @@
 import {
   $,
   svg4everybody,
+  ol,
   moment,
   localforage,
   Vue,
   VueStash
 } from 'src/vendor.js'
-import ol from '../ol-extras.js'
 import App from './sss.vue'
 
 global.debounce = function (func, wait, immediate) {

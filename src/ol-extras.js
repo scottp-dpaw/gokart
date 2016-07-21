@@ -1,9 +1,9 @@
-import { ol } from 'src/vendor.js'
+import ol from 'openlayers/dist/ol-debug.js'
 /**
  * Render a grid for a coordinate system on a map.
  * Based on https://github.com/Brictarus/ol3/blob/d41eb87204e76cbf99d61915eb89b1c16c4a4e05/src/ol/graticule.js
  */
-var self = function (optOptions) {
+var labelGrat = function (optOptions) {
   var options = {
     showLabels: true,
     lonLabelFormatter: function (lon) {
@@ -40,9 +40,9 @@ var self = function (optOptions) {
   this.latLabelPosition_ = options.latLabelPosition !== undefined ? ol.math.clamp(options.latLabelPosition, 0, 1) : 1
   this.setMap(options.map !== undefined ? options.map : null)
 }
-ol.inherits(self, ol.Graticule)
-self.intervals_ = [5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.01, 0.005, 0.002, 0.001]
-self.prototype.addMeridianLabel_ = function (lon, squaredTolerance, extent, index) {
+ol.inherits(labelGrat, ol.Graticule)
+labelGrat.intervals_ = [5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.01, 0.005, 0.002, 0.001]
+labelGrat.prototype.addMeridianLabel_ = function (lon, squaredTolerance, extent, index) {
   var textPoint = this.getMeridianPoint_(lon, squaredTolerance, extent, index)
   var style = new ol.style.Text(this.baseTextStyle_)
   style.setText(this.lonLabelFormatter_ ? this.lonLabelFormatter_(lon) : lon.toString())
@@ -54,7 +54,7 @@ self.prototype.addMeridianLabel_ = function (lon, squaredTolerance, extent, inde
   }
   return index
 }
-self.prototype.getMeridianPoint_ = function (lon, squaredTolerance, extent, index) {
+labelGrat.prototype.getMeridianPoint_ = function (lon, squaredTolerance, extent, index) {
   var flatCoordinates = ol.geom.flat.geodesic.meridian(lon, this.minLat_, this.maxLat_, this.projection_, squaredTolerance)
   var lat = extent[1] + Math.abs(extent[1] - extent[3]) * this.lonLabelPosition_
   var coordinate = [flatCoordinates[0], lat]
@@ -62,7 +62,7 @@ self.prototype.getMeridianPoint_ = function (lon, squaredTolerance, extent, inde
   point.setCoordinates(coordinate)
   return point
 }
-self.prototype.addParallelLabel_ = function (lat, squaredTolerance, extent, index) {
+labelGrat.prototype.addParallelLabel_ = function (lat, squaredTolerance, extent, index) {
   var textPoint = this.getParallelPoint_(lat, squaredTolerance, extent, index)
   var style = new ol.style.Text(this.baseTextStyle_)
   style.setTextBaseline('middle')
@@ -74,7 +74,7 @@ self.prototype.addParallelLabel_ = function (lat, squaredTolerance, extent, inde
   }
   return index
 }
-self.prototype.getParallelPoint_ = function (lat, squaredTolerance, extent, index) {
+labelGrat.prototype.getParallelPoint_ = function (lat, squaredTolerance, extent, index) {
   var flatCoordinates = ol.geom.flat.geodesic.parallel(lat, this.minLon_, this.maxLon_, this.projection_, squaredTolerance)
   var lon = extent[0] + Math.abs(extent[0] - extent[2]) * this.latLabelPosition_
   var coordinate = [lon, flatCoordinates[1]]
@@ -82,7 +82,7 @@ self.prototype.getParallelPoint_ = function (lat, squaredTolerance, extent, inde
   point.setCoordinates(coordinate)
   return point
 }
-self.prototype.createGraticule_ = function (extent, center, resolution, squaredTolerance) {
+labelGrat.prototype.createGraticule_ = function (extent, center, resolution, squaredTolerance) {
   var interval = this.getInterval_(resolution)
   if (interval === -1) {
     this.meridians_.length = this.parallels_.length = 0
@@ -156,7 +156,7 @@ self.prototype.createGraticule_ = function (extent, center, resolution, squaredT
   this.parallels_.length = idx
   this.parallelsLabels_.length = idxLabels
 }
-self.prototype.handlePostCompose_ = function (e) {
+labelGrat.prototype.handlePostCompose_ = function (e) {
   var vectorContext = e.vectorContext
   var frameState = e.frameState
   var extent = frameState.extent
@@ -208,7 +208,7 @@ self.prototype.handlePostCompose_ = function (e) {
     }
   }
 }
-ol.LabelGraticule = self
+ol.LabelGraticule = labelGrat
 
 ol.OVERVIEWMAP_MIN_RATIO = 1
 ol.OVERVIEWMAP_MAX_RATIO = 1

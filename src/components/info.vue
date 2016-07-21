@@ -20,8 +20,7 @@
 </template>
 
 <script>
-  import ol from '../ol-extras.js'
-  import { moment } from 'src/vendor.js'
+  import { ol, moment } from 'src/vendor.js'
   export default {
     store: ['sel'],
     data: function () {

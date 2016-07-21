@@ -117,8 +117,7 @@
 </style>
 
 <script>
-  import { $, Vue } from 'src/vendor.js'
-  import ol from '../ol-extras.js'
+  import { $, ol, Vue } from 'src/vendor.js'
 
   Vue.filter('filterIf', function (list, prop, value) {
     if (!list) { return }
