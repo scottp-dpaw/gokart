@@ -30,6 +30,7 @@ import moment from 'moment'
 import dragula from 'dragula'
 // Data storage engine
 import localforage from 'localforage'
+// Guided tour lib
 import Shepherd from 'tether-shepherd'
 
 export {
