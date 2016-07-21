@@ -51,7 +51,7 @@
               </div>
             </div>
 
-            <div v-if="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+            <div v-show="tool.name.startsWith('Custom')" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
@@ -61,25 +61,29 @@
                 </div>
               </div>
             </div>
-            <div v-if="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+            <div v-show="tool.name.startsWith('Custom') || tool.name.startsWith('Text')" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
-                <div class="expanded button-group">
+                <div @click="updateNote(false)" class="expanded button-group">
                   <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}"
                     v-bind:style="{ backgroundColor: c[1] }"></a>
                 </div>
               </div>
             </div>
 
-            <div v-if="tool.name == 'Text Note'" class="tool-slice row collapse">
+            <div v-show="tool.name == 'Text Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea @blur="updateNote($event.target, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target, false)" @click="updateNote($event.target, true)" @mouseup="updateNote($event.target, false)">{{ note.text }}</textarea>
+                <select name="select" @change="note.text = $event.target.value.split('<br>').join('\n')">
+                  <option value="" selected>Text Templates</option> 
+                  <option value="Sector Alpha<br>Channel: <br>Commander: ">Sector Details</option>
+                </select>
+                <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote()" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">
               <div class="small-12 canvaspane">
-                <canvas width="1000" height="1000" v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
+                <canvas v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
               </div>
             </div>
 
@@ -132,71 +136,38 @@
 
   var noteOffset = 20
   var notePadding = 10
-  var notePropFunc = function (prop) {
-    return function (note) {
-      return note[prop]
-    }
-  }
-  var noteDispFunc = function (prop, offset) {
-    return function (note) {
-      return note[prop]+offset
-    }
-  }
 
   var noteStyles = {
-    'general': [
-      ['drawPath', {
-        strokeStyle: '#fff',
-        strokeWidth: 4.0,
+    'general': function(note) {
+      var pathTmpl = {
         strokeCap: 'round',
         p1: {
           type: 'line',
-          x1: 2.0, y1: 2.0,
-          x2: noteOffset, y2: noteOffset
+          x1: 2.0, y1: note.height + noteOffset - 2.0,
+          x2: noteOffset, y2: note.height
         },
         p2: {
           type: 'line',
-          x1: noteOffset, y1: noteDispFunc('height', noteOffset),
-          x2: noteOffset, y2: noteOffset,
-          x3: noteDispFunc('width', noteOffset), y3: noteOffset
+          x1: noteOffset, y1: 2.0,
+          x2: noteOffset, y2: note.height,
+          x3: note.width + noteOffset, y3: note.height
         }
-      }],
-      ['drawPath', {
-        strokeStyle: '#000',
-        strokeWidth: 2.0,
-        strokeCap: 'round',
-        p1: {
-          type: 'line',
-          x1: 2.0, y1: 2.0,
-          x2: noteOffset, y2: noteOffset
-        },
-        p2: {
-          type: 'line',
-          x1: noteOffset, y1: noteDispFunc('height', noteOffset),
-          x2: noteOffset, y2: noteOffset,
-          x3: noteDispFunc('width', noteOffset), y3: noteOffset
-        }
-      }],
-      ['drawText', {
-        strokeStyle: '#fff',
-        strokeWidth: 4.0,
+      }
+      var textTmpl = {
         fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
-        text: notePropFunc('text'),
-        x: noteOffset+notePadding, y: noteOffset+notePadding,
+        text: note.text,
+        x: noteOffset + notePadding, y: notePadding,
         align: 'left',
-        maxWidth: noteDispFunc('width', notePadding*-2),
+        maxWidth: note.width + notePadding * -2,
         fromCenter: false
-      }],
-      ['drawText', {
-        fillStyle: '#000',
-        fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
-        text: notePropFunc('text'),
-        x: noteOffset+notePadding, y: noteOffset+notePadding,
-        align: 'left',
-        maxWidth:  noteDispFunc('width', notePadding*-2),
-        fromCenter: false
-      }]
-    ]
+      }
+      return [
+        ['drawPath', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, pathTmpl)],
+        ['drawPath', $.extend({strokeWidth: 2.0, strokeStyle: note.colour}, pathTmpl)],
+        ['drawText', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, textTmpl)],
+        ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
+      ]
+    }
   }
 
 
@@ -278,10 +249,11 @@
         })
         this.selectedFeatures.clear()
       },
-      updateNote: function (textarea, save) {
-        this.note.text = textarea.value
-        this.note.width = $(textarea).width()
-        this.note.height = $(textarea).height()
+      updateNote: function (save) {
+        this.note.text = this.$els.notecontent.value
+        this.note.width = $(this.$els.notecontent).width()
+        this.note.height = $(this.$els.notecontent).height()
+        this.note.colour = this.colour
         this.drawNote(this.note, save)
       },
       drawNote: function (note, save) {
@@ -289,26 +261,10 @@
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
         if ((note.style) && (note.style in noteStyles)) {
-          noteStyles[note.style].forEach(function (cmd) {
-            var params = {}
-            var src = cmd[1]
-
-            var loader = function loader (baseSrc, baseDest, stop) {
-              Object.keys(baseSrc).forEach(function (key) {
-                if (typeof baseSrc[key] === 'function') {
-                  baseDest[key] = baseSrc[key](note)
-                } else if (baseSrc[key] instanceof Object) {
-                  baseDest[key] = {}
-                  if (stop>0) {
-                    loader(baseSrc[key], baseDest[key], stop-1)
-                  }
-                } else {
-                  baseDest[key] = baseSrc[key]
-                }
-              })
-            }
-            loader(src, params, 1)
-            $(noteCanvas)[cmd[0]](params)
+          $(noteCanvas).attr("height", note.height + noteOffset)
+          $(noteCanvas).attr("width", note.width + noteOffset)
+          noteStyles[note.style](note).forEach(function (cmd) {
+            $(noteCanvas)[cmd[0]](cmd[1])
           })
           if (save) {
             var key = JSON.stringify(note)
@@ -474,10 +430,8 @@
         if (!noteStyleCache[url]) {
           noteStyleCache[url] = new ol.style.Style({
             image: new ol.style.Icon({
+              anchorOrigin: 'bottom-left',
               anchor: [0, 0],
-              anchorXUnits: 'fraction',
-              anchorYUnits: 'fraction',
-              opacity: 0.8,
               src: url
             })
           })
@@ -500,7 +454,9 @@
         }
       }
       var customAdd = function (f) {
+        if (f.get('size')) { return }
         f.set('size', vm.size)
+        if (f.get('colour')) { return }
         f.set('colour', vm.colour)
       }
       var vectorStyleCache = {

@@ -24,13 +24,13 @@
             <div class="row collapse">
               <div class="small-6 columns">
                 <select name="select" v-model="cql" @change="updateCQLFilter">
-                <option value="" selected>All resources</option> 
-                <option value="symbolid LIKE '%comms_bus'">Communications Bus</option>
-                <option value="symbolid LIKE '%gang_truck'">Gang Truck</option>
-                <option value="symbolid LIKE '%heavy_duty'">Heavy Duty</option>
-                <option value="(symbolid LIKE '%heavy_duty' OR symbolid LIKE '%gang_truck')">GT and HD</option>
-                <option value="symbolid LIKE '%aircraft'">Aircraft</option>
-              </select>
+                  <option value="" selected>All resources</option> 
+                  <option value="symbolid LIKE '%comms_bus'">Communications Bus</option>
+                  <option value="symbolid LIKE '%gang_truck'">Gang Truck</option>
+                  <option value="symbolid LIKE '%heavy_duty'">Heavy Duty</option>
+                  <option value="(symbolid LIKE '%heavy_duty' OR symbolid LIKE '%gang_truck')">GT and HD</option>
+                  <option value="symbolid LIKE '%aircraft'">Aircraft</option>
+                </select>
               </div>
               <div class="small-6 columns">
                 <input type="search" v-model="search" placeholder="Find a resource">
