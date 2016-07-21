@@ -130,6 +130,76 @@
     })
   })
 
+  var noteOffset = 20
+  var notePadding = 10
+  var notePropFunc = function (prop) {
+    return function (note) {
+      return note[prop]
+    }
+  }
+  var noteDispFunc = function (prop, offset) {
+    return function (note) {
+      return note[prop]+offset
+    }
+  }
+
+  var noteStyles = {
+    'general': [
+      ['drawPath', {
+        strokeStyle: '#fff',
+        strokeWidth: 4.0,
+        strokeCap: 'round',
+        p1: {
+          type: 'line',
+          x1: 2.0, y1: 2.0,
+          x2: noteOffset, y2: noteOffset
+        },
+        p2: {
+          type: 'line',
+          x1: noteOffset, y1: noteDispFunc('height', noteOffset),
+          x2: noteOffset, y2: noteOffset,
+          x3: noteDispFunc('width', noteOffset), y3: noteOffset
+        }
+      }],
+      ['drawPath', {
+        strokeStyle: '#000',
+        strokeWidth: 2.0,
+        strokeCap: 'round',
+        p1: {
+          type: 'line',
+          x1: 2.0, y1: 2.0,
+          x2: noteOffset, y2: noteOffset
+        },
+        p2: {
+          type: 'line',
+          x1: noteOffset, y1: noteDispFunc('height', noteOffset),
+          x2: noteOffset, y2: noteOffset,
+          x3: noteDispFunc('width', noteOffset), y3: noteOffset
+        }
+      }],
+      ['drawText', {
+        strokeStyle: '#fff',
+        strokeWidth: 4.0,
+        fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
+        text: notePropFunc('text'),
+        x: noteOffset+notePadding, y: noteOffset+notePadding,
+        align: 'left',
+        maxWidth: noteDispFunc('width', notePadding*-2),
+        fromCenter: false
+      }],
+      ['drawText', {
+        fillStyle: '#000',
+        fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
+        text: notePropFunc('text'),
+        x: noteOffset+notePadding, y: noteOffset+notePadding,
+        align: 'left',
+        maxWidth:  noteDispFunc('width', notePadding*-2),
+        fromCenter: false
+      }]
+    ]
+  }
+
+
   export default {
     data: function () {
       return {
@@ -146,61 +216,6 @@
           height: 100
         },
         notes: {},
-        noteStyles: {
-          'general': [
-            ['drawPath', {
-              strokeStyle: '#fff',
-              strokeWidth: 4.0,
-              strokeCap: 'round',
-              p1: {
-                type: 'line',
-                x1: 2.0, y1: 2.0,
-                x2: 20.0, y2: 20.0
-              },
-              p2: {
-                type: 'line',
-                x1: 20.0, y1: '$eval:note.height+20.0',
-                x2: 20.0, y2: 20.0,
-                x3: '$eval:note.width+20.0', y3: 20.0
-              }
-            }],
-            ['drawPath', {
-              strokeStyle: '#000',
-              strokeWidth: 2.0,
-              strokeCap: 'round',
-              p1: {
-                type: 'line',
-                x1: 2.0, y1: 2.0,
-                x2: 20.0, y2: 20.0
-              },
-              p2: {
-                type: 'line',
-                x1: 20.0, y1: '$eval:note.height+20.0',
-                x2: 20.0, y2: 20.0,
-                x3: '$eval:note.width+20.0', y3: 20.0
-              }
-            }],
-            ['drawText', {
-              strokeStyle: '#fff',
-              strokeWidth: 4.0,
-              fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
-              text: '$eval:note.text',
-              x: 30, y: 30,
-              align: 'left',
-              maxWidth: '$eval:note.width - 20',
-              fromCenter: false
-            }],
-            ['drawText', {
-              fillStyle: '#000',
-              fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
-              text: '$eval:note.text',
-              x: 30, y: 30,
-              align: 'left',
-              maxWidth: '$eval:note.width - 20',
-              fromCenter: false
-            }]
-          ]
-        },
         size: 2,
         colour: '#cc0000',
         colours: [
@@ -273,19 +288,26 @@
         var vm = this
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
-        if ((note.style) && (note.style in this.noteStyles)) {
-          this.noteStyles[note.style].forEach(function (cmd) {
-            var params = $.extend({}, cmd[1])
-            var loader = function loader (base, stop) {
-              Object.keys(base).forEach(function (key) {
-                if (typeof base[key] === 'string' && base[key].startsWith('$eval:')) {
-                  base[key] = vm.$eval(base[key].replace('$eval:', ''))
-                } else if ((stop>0) && (base[key] instanceof Object)) {
-                  loader(base[key], stop-1)
+        if ((note.style) && (note.style in noteStyles)) {
+          noteStyles[note.style].forEach(function (cmd) {
+            var params = {}
+            var src = cmd[1]
+
+            var loader = function loader (baseSrc, baseDest, stop) {
+              Object.keys(baseSrc).forEach(function (key) {
+                if (typeof baseSrc[key] === 'function') {
+                  baseDest[key] = baseSrc[key](note)
+                } else if (baseSrc[key] instanceof Object) {
+                  baseDest[key] = {}
+                  if (stop>0) {
+                    loader(baseSrc[key], baseDest[key], stop-1)
+                  }
+                } else {
+                  baseDest[key] = baseSrc[key]
                 }
               })
             }
-            loader(params, 1)
+            loader(src, params, 1)
             $(noteCanvas)[cmd[0]](params)
           })
           if (save) {
