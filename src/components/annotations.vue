@@ -74,7 +74,7 @@
             <div v-if="tool.name == 'Text Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea @blur="updateNote($event.target, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target, false)" @mouseup="updateNote($event.target, false)">{{ note.text }}</textarea>
+                <textarea @blur="updateNote($event.target, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target, false)" @click="updateNote($event.target, true)" @mouseup="updateNote($event.target, false)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">

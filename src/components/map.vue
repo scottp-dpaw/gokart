@@ -52,6 +52,25 @@
     },
     // methods callable from inside the template
     methods: {
+      animatePan: function(location) {
+        // pan from the current center
+        var pan = ol.animation.pan({
+          source: this.olmap.getView().getCenter()
+        });
+        this.olmap.beforeRender(pan);
+        // when we set the new location, the map will pan smoothly to it
+        this.olmap.getView().setCenter(location);
+      },
+      animateZoom: function(factor) {
+        // zoom from the current resolution
+        var zoom = ol.animation.zoom({
+          resolution: this.olmap.getView().getResolution()
+        });
+        this.olmap.beforeRender(zoom);
+        // setting the resolution to a new value will smoothly zoom in or out
+        // depending on the factor
+        this.olmap.getView().setResolution(this.olmap.getView().getResolution() * factor);
+      },
       // force OL to approximate a fixed scale (1:1K increments)
       setScale: function (scale) {
         while (Math.abs(this.getScale() - scale) > 0.001) {

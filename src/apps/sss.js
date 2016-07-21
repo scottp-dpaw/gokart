@@ -35,7 +35,7 @@ global.debounce = function (func, wait, immediate) {
 }
 
 var defaultStore = {
-  takenTour: false,
+  tourVersion: null,
   whoami: { email: null },
   remoteCatalogue: 'https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss',
   // overridable defaults for WMTS and WFS loading
@@ -86,7 +86,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       // store contains state we want to reload/persist
       store: $.extend(defaultStore, store || {}),
       pngs: {},
-      saved: null
+      saved: null,
+      touring: false
     },
     computed: {
       map: function () { return this.$refs.app.$refs.map },
@@ -435,7 +436,10 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       this.map.init(catalogue, this.store.activeLayers)
       this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue, function() {
         // after catalogue load trigger a tour
-        if (!self.store.takenTour) {
+        if (self.store.tourVersion !== tour.version) {
+          self.store.tourVersion = tour.version
+          self.export.saveState()
+          self.touring = true
           tour.start()
         }
       })

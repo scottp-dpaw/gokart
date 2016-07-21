@@ -40,7 +40,7 @@
           <input type="file" name="statefile" accept="application/json" v-model="statefile" v-el:statefile>
           <div class="expanded button-group">
             <a class="button" title="JSON bundle of SSS config and annotations" @click="load()"><i class="fa fa-cloud-upload"></i><br>Upload bundle</a>
-            <a class="button" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i><br>Reset SSS</a>
+            <a id="reset-sss" class="button" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i><br>Reset SSS</a>
           </div>
         </div>
       </div>
@@ -214,26 +214,30 @@
         localforage.removeItem('sssOfflineStore').then(function (v) {
           document.location.reload()
         })
+      },
+      saveState: function () {
+        var vm = this
+        var store = this.$root.store
+        // don't save if user is in tour
+        if (vm.$root.touring) { return }
+        store.view.center = vm.olmap.getView().getCenter()
+        store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
+        var activeLayers = vm.$root.active.activeLayers()
+        if (activeLayers === false) {
+          return
+        }
+        store.activeLayers = activeLayers || []
+        store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
+        localforage.setItem('sssOfflineStore', store).then(function (value) {
+          vm.$root.saved = moment().toLocaleString()
+        })
       }
     },
     ready: function () {
       var vm = this
       this.$on('gk-init', function () {
         // save state every render
-        this.olmap.on('postrender', global.debounce(function () {
-          var store = vm.$root.store
-          store.view.center = vm.olmap.getView().getCenter()
-          store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
-          var activeLayers = vm.$root.active.activeLayers()
-          if (activeLayers === false) {
-            return
-          }
-          store.activeLayers = activeLayers || []
-          store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
-          localforage.setItem('sssOfflineStore', store).then(function (value) {
-            vm.$root.saved = moment().toLocaleString()
-          })
-        }, 250, true))
+        this.olmap.on('postrender', global.debounce(this.saveState, 250, true))
       })
     }
   }

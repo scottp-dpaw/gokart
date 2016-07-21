@@ -276,9 +276,9 @@
       var map = this.$root.map
       // post init event hookup
       this.$on('gk-init', function () {
-        console.log('init')
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
         var renderTracking = global.debounce(function () {
+          if (!map.getMapLayer(trackingLayer)) { return }
           vm.extentFeatures = map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent)
           vm.allFeatures = map.getMapLayer(trackingLayer).getSource().getFeatures()
         }, 100)
