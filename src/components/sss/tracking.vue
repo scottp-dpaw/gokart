@@ -271,6 +271,22 @@
         var map = this.$root.map.olmap
         map.getView().fit(extent, map.getSize())
       }
+    },
+    ready: function () {
+      var vm = this
+      var map = this.$root.map
+      // post init event hookup
+      this.$on('gk-init', function () {
+        console.log('init')
+        var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
+        var renderTracking = global.debounce(function () {
+          vm.extentFeatures = map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent)
+          vm.allFeatures = map.getMapLayer(trackingLayer).getSource().getFeatures()
+        }, 100)
+
+        map.olmap.getLayerGroup().on('change', renderTracking)
+        map.olmap.getView().on('propertychange', renderTracking)
+      })
     }
   }
 </script>

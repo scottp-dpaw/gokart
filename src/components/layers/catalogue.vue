@@ -20,7 +20,7 @@
                   </select>
           </div>
           <div class="small-6 columns">
-            <input type="search" v-model="search" placeholder="Find a layer">
+            <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
           </div>
         </div>
         <div id="layers-catalogue-list">
@@ -125,7 +125,7 @@
         }
       },
       // helper to populate the catalogue from a remote service
-      loadRemoteCatalogue: function (url) {
+      loadRemoteCatalogue: function (url, callback) {
         var vm = this
         var req = new window.XMLHttpRequest()
         req.withCredentials = true
@@ -133,6 +133,7 @@
           JSON.parse(this.responseText).forEach(function (l) {
             vm.catalogue.push(l)
           })
+          callback()
         }
         req.open('GET', url)
         req.send()

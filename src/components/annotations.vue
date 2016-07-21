@@ -284,13 +284,16 @@
       this.features.on('add', function (ev) {
         var feature = ev.element
         var tool = null
-        if (feature.get('toolName')) {
+        var toolName = feature.get('toolName')
+        if (toolName) {
           tool = vm.tools.filter(function (t) {
-            return t.name === feature.get('toolName')
+            return t.name === toolName
           })[0]
-        } else {
-          feature.set('toolName', vm.tool.name)
+        }
+        // set current tool if none/old
+        if (!tool) {
           tool = vm.tool
+          feature.set('toolName', tool.name)
         }
         if (tool.onAdd) {
           tool.onAdd(feature)

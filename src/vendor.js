@@ -1,3 +1,4 @@
+import 'tether-shepherd/dist/css/shepherd-theme-dark.css'
 import 'foundation-sites/dist/foundation-flex.css'
 import 'openlayers/dist/ol-debug.css'
 import 'dragula/dist/dragula.css'
@@ -14,6 +15,7 @@ import Vue from 'vue'
 import VueStash from 'vue-stash'
 import dragula from 'dragula'
 import localforage from 'localforage'
+import Shepherd from 'tether-shepherd'
 
 export {
   $,
@@ -25,5 +27,6 @@ export {
   Vue,
   VueStash,
   dragula,
-  localforage
+  localforage,
+  Shepherd
 }
