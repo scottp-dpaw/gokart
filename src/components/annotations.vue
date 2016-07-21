@@ -45,8 +45,8 @@
                   <a class="button"><i class="fa fa-repeat" aria-hidden="true"></i> Redo</a>
                 </div>
                 <div class="expanded button-group">
-                  <a class="button"><i class="fa fa-upload" aria-hidden="true"></i> Import</a>
-                  <a class="button"><i class="fa fa-download" aria-hidden="true"></i> Export</a>
+                  <a class="button"><i class="fa fa-upload" aria-hidden="true"></i> Upload Boundary</a>
+                  <a class="button"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations</a>
                 </div>
               </div>
             </div>
