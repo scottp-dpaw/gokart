@@ -19,18 +19,7 @@ tour.addStep('welcome', {
       text: 'Next',
       action: tour.next
     }
-  ],
-  when: {
-      'hide': function() {
-          $("#menu-tab-layers-label").click()
-          $("#layers-export-label").click()
-          $("#reset-sss").addClass('selected').delay(3000).queue(function(next) {
-              $("#reset-sss").removeClass('selected')
-              $("#menu-tab-layers-label").click()
-              next()
-          })
-      }
-  }
+  ]
 }).addStep('map-controls', {
     text: 'At the top right are common map controls for zooming, setting a scale, and fullscreen',
     attachTo: '.ol-zoom bottom',
@@ -131,11 +120,16 @@ tour.addStep('welcome', {
         }
     }
 }).addStep('tracking', {
-    text: 'The Tracking pane is used to find and filter the vehicles displayed on the map',
+    text: 'The Tracking pane is used to find and filter the vehicles displayed on the map. (END TOUR, will reload now)',
     attachTo: '#menu-tab-tracking-label right',
     when: {
         "before-show": function() {
             $("#menu-tab-tracking-label").click()
+        },
+        'hide': function() {
+            localforage.removeItem('sssOfflineStore').then(function() {
+                document.location.reload()
+            })
         }
     }
 })
