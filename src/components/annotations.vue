@@ -495,6 +495,7 @@
         interactions: [noteDraw],
         showName: true,
         onAdd: function (f) {
+          if (f.get('note')) { return }
           f.set('note', $.extend({}, vm.note))
         }
       }
