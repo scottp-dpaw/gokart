@@ -74,7 +74,8 @@
             <div v-if="tool.name == 'Text Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea style="width:{{ note.width }}px;height:{{ note.height }}px;" @blur="drawNote(note, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)">{{ note.text }}</textarea>
+                <textarea style="width:{{ note.width }}px;height:{{ note.height }}px;" @blur="drawNote(note, true)" class="notecontent" 
+                    v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)" @click="updateNote($event.target, true)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">
@@ -236,11 +237,11 @@
         })
         this.selectedFeatures.clear()
       },
-      updateNote: function (textarea) {
+      updateNote: function (textarea, save) {
         this.note.text = textarea.value
         this.note.width = textarea.clientWidth
         this.note.height = textarea.clientHeight
-        this.drawNote()
+        this.drawNote(save)
       },
       drawNote: function (save) {
         var vm = this

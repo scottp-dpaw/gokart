@@ -40,7 +40,7 @@
           <input type="file" name="statefile" accept="application/json" v-model="statefile" v-el:statefile>
           <div class="expanded button-group">
             <a class="button" title="JSON bundle of SSS config and annotations" @click="load()"><i class="fa fa-cloud-upload"></i><br>Upload bundle</a>
-            <a class="button" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i><br>Reset SSS</a>
+            <a id="reset-sss" class="button" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i><br>Reset SSS</a>
           </div>
         </div>
       </div>

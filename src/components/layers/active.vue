@@ -32,7 +32,7 @@
             </div>
             <div class="small-3">
               <div class="text-right">
-                <a @click="removeLayer(l)" class="button alert">&#x2715;</a>
+                <a @click="removeLayer(l)" class="button alert remove-layer">&#x2715;</a>
               </div>
             </div>
           </div>
@@ -40,11 +40,11 @@
       </div>
     </div>
     <div class="row collapse">
-      <div class="columns">
+      <div id="layer-config" class="columns">
         <h4>{{ layer.name }}</h4>
         <div class="tool-slice row" v-if="mapLayer()">
           <div class="columns small-2"><label class="tool-label">Opacity:<br/>{{ layerOpacity }}%</label></div>
-          <div class="columns small-10"><input type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
+          <div class="columns small-10"><input class="layer-opacity" type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
         </div>
         <div class="tool-slice row" v-if="layer.timeline">
           <div class="columns small-2"><label class="tool-label">Timeline:<br/>{{ timelineTS }}</label></div>

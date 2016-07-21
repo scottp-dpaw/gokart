@@ -437,6 +437,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         // after catalogue load trigger a tour
         if (!self.store.takenTour) {
           tour.start()
+          self.store.takenTour = true
         }
       })
     }
