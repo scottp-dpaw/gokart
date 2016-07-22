@@ -18,6 +18,8 @@
                 <div class="expanded button-group">
                   <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
                     @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
+                  <a class="button button-tool" v-bind:class="{'disabled': selectedFeatures.getArray().length !== 1}"
+                    @click="editFeature(selectedFeatures.getArray()[0])" title="Edit selected feature"><i class="fa fa-pencil"></i></a>
                 </div>
                 <div class="row resetmargin">
                   <div class="small-6 rightmargin">
@@ -78,7 +80,7 @@
                   <option value="" selected>Text Templates</option> 
                   <option value="Sector Alpha<br>Channel: <br>Commander: ">Sector Details</option>
                 </select>
-                <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote()" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
+                <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote(false)" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">
@@ -86,7 +88,6 @@
                 <canvas v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
               </div>
             </div>
-
           </div>
 
         </div>
@@ -98,8 +99,8 @@
 
 <style>
   .notecontent {
-    width: 256px;
-    height: 100px;
+    width: 300px;
+    height: 40px;
   }
   .canvaspane {
     overflow: hidden;
@@ -143,14 +144,14 @@
         strokeCap: 'round',
         p1: {
           type: 'line',
-          x1: 2.0, y1: note.height + noteOffset - 2.0,
-          x2: noteOffset, y2: note.height
+          x1: 2, y1: note.height + noteOffset - 2,
+          x2: noteOffset, y2: note.height + noteOffset/2
         },
         p2: {
           type: 'line',
-          x1: noteOffset, y1: 2.0,
-          x2: noteOffset, y2: note.height,
-          x3: note.width + noteOffset, y3: note.height
+          x1: noteOffset, y1: 2,
+          x2: noteOffset, y2: note.height + noteOffset/2,
+          x3: note.width + noteOffset - 2, y3: note.height + noteOffset/2
         }
       }
       var textTmpl = {
@@ -162,9 +163,9 @@
         fromCenter: false
       }
       return [
-        ['drawPath', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, pathTmpl)],
-        ['drawPath', $.extend({strokeWidth: 2.0, strokeStyle: note.colour}, pathTmpl)],
-        ['drawText', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, textTmpl)],
+        ['drawPath', $.extend({strokeWidth: 4, strokeStyle: '#fff'}, pathTmpl)],
+        ['drawPath', $.extend({strokeWidth: 2, strokeStyle: note.colour}, pathTmpl)],
+        ['drawText', $.extend({strokeWidth: 4, strokeStyle: '#fff'}, textTmpl)],
         ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
       ]
     }
@@ -180,15 +181,17 @@
         features: new ol.Collection(),
         selectedFeatures: new ol.Collection(),
         featureOverlay: {},
+        featureEditing: false,
         note: {
           style: 'general',
           text: 'Insert note here',
-          width: 236,
-          height: 100
+          width: 300,
+          height: 40,
+          colour: '#000000'
         },
         notes: {},
-        size: 2,
-        colour: '#cc0000',
+        _size: 2,
+        _colour: '#000000',
         colours: [
           ['red', '#cc0000'],
           ['orange', '#f57900'],
@@ -203,6 +206,39 @@
         advanced: false
       }
     },
+    computed: {
+      colour: {
+        cache: false,
+        get: function() {
+          if (this.featureEditing) {
+            return this.featureEditing.get('colour')
+          }
+          return this._colour
+        },
+        set: function(c) {
+          if (this.featureEditing) {
+            this.featureEditing.set('colour', c)
+          } else {
+            this._colour = c
+          }
+        }
+      },
+      size: {
+        cache: false,
+        get: function() {
+          if (this.featureEditing) {
+            return this.featureEditing.get('size')
+          }
+          return this._size
+        },
+        set: function(s) {
+          this._size = s
+          if (this.featureEditing) {
+            this.featureEditing.set('size', s)
+          }
+        }
+      }
+    },
     methods: {
       icon: function (t) {
         if (t.icon.startsWith('fa-')) {
@@ -215,7 +251,24 @@
           return '<svg class="icon"><use xlink:href="' + t.icon + '"></use></svg>'
         }
       },
+      getTool: function (toolName) {
+        return this.tools.filter(function (t) {
+          return t.name === toolName
+        })[0]
+      },
+      editFeature: function (f) {
+        this.featureEditing = f
+        // set note so edit context makes sense
+        if (f.get('note')) {
+          this.drawNote(f.get('note'))
+          this.note = $.extend({}, f.get('note'))
+        }
+        this.setTool(this.getTool(f.get('toolName')))
+      },
       setTool: function (t) {
+        if (!this.featureEditing || t.name !== this.featureEditing.get('toolName')) {
+          this.featureEditing = false
+        }
         var map = this.$root.map
         // remove all custom tool interactions from map
         this.tools.forEach(function (tool) {
@@ -250,13 +303,18 @@
         this.selectedFeatures.clear()
       },
       updateNote: function (save) {
-        this.note.text = this.$els.notecontent.value
-        this.note.width = $(this.$els.notecontent).width()
-        this.note.height = $(this.$els.notecontent).height()
-        this.note.colour = this.colour
-        this.drawNote(this.note, save)
+        var note = this.note
+        if (this.featureEditing) {
+          note = this.featureEditing.get('note') || note
+        }
+        note.text = this.$els.notecontent.value
+        note.width = $(this.$els.notecontent).width()
+        note.height = $(this.$els.notecontent).height()
+        note.colour = this.colour
+        this.drawNote(note, save)
       },
       drawNote: function (note, save) {
+        if (!note) { return }
         var vm = this
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
@@ -274,7 +332,15 @@
               // switch for actual image
               vm.notes[key] = window.URL.createObjectURL(blob)
               // FIXME: redraw stuff when saving blobs (broken in chrome)
-              global.debounce(function () { vm.$root.map.olmap.updateSize() }, 100)
+              window.setTimeout(function () {
+                vm.features.getArray().forEach(function(f) {
+                  if (JSON.stringify(f.get('note')) === key) {
+                    f.changed()
+                  }
+                })
+              }, 200)
+              // Set canvas back to the vm's note
+              vm.drawNote(vm.note, false)
             }, 'image/png')
           }
         }
@@ -295,9 +361,7 @@
         var feature = ev.element
         var tool = null
         if (feature.get('toolName')) {
-          tool = vm.tools.filter(function (t) {
-            return t.name === feature.get('toolName')
-          })[0]
+          tool = vm.getTool(feature.get('toolName'))
         } else {
           feature.set('toolName', vm.tool.name)
           tool = vm.tool

@@ -4,7 +4,6 @@
       <div class="columns">
         <ul class="tabs" data-tabs id="tracking-tabs">
           <li class="tabs-title is-active"><a href="#tracking-list-tab" aria-selected="true">Resource Tracking</a></li>
-          <li class="tabs-title"><a href="#tracking-groups-tab" aria-selected="true">Device Groups</a></li>
         </ul>
       </div>
     </div>
@@ -116,9 +115,6 @@
               </div>
             </div>
 
-          </div>
-          <div id="tracking-groups-tab" class="tabs-panel">
-            Group search shortcuts here
           </div>
         </div>
       </div>
