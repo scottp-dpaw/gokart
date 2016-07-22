@@ -19,7 +19,7 @@
                   <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
                     @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
                   <a class="button button-tool" v-bind:class="{'disabled': selectedFeatures.getArray().length !== 1}"
-                    @click="editFeature(selectedFeatures.getArray()[0])" title="Edit selected feature"><i class="fa fa-pencil"></i></a>
+                    @click="editFeature(selectedFeatures.getArray()[0])" title="Edit selected feature"><i class="fa fa-pencil-square-o"></i></a>
                 </div>
                 <div class="row resetmargin">
                   <div class="small-6 rightmargin">
@@ -258,12 +258,12 @@
       },
       editFeature: function (f) {
         this.featureEditing = f
+        this.setTool(this.getTool(f.get('toolName')))
         // set note so edit context makes sense
         if (f.get('note')) {
-          this.drawNote(f.get('note'))
           this.note = $.extend({}, f.get('note'))
+          this.drawNote(f.get('note'))
         }
-        this.setTool(this.getTool(f.get('toolName')))
       },
       setTool: function (t) {
         if (!this.featureEditing || t.name !== this.featureEditing.get('toolName')) {
@@ -340,13 +340,11 @@
               // switch for actual image
               vm.notes[key] = window.URL.createObjectURL(blob)
               // FIXME: redraw stuff when saving blobs (broken in chrome)
-              window.setTimeout(function () {
-                vm.features.getArray().forEach(function(f) {
-                  if (JSON.stringify(f.get('note')) === key) {
-                    f.changed()
-                  }
-                })
-              }, 200)
+              vm.features.getArray().forEach(function(f) {
+                if (JSON.stringify(f.get('note')) === key) {
+                  f.changed()
+                }
+              })
               // Set canvas back to the vm's note
               vm.drawNote(vm.note, false)
             }, 'image/png')
