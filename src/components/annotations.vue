@@ -242,6 +242,12 @@
         }
         this.tool = t
       },
+      selectAll: function () {
+        var vm = this
+        this.features.forEach(function (feature) {
+          vm.selectedFeatures.push(feature)
+        })
+      },
       deleteSelected: function () {
         var vm = this
         this.selectedFeatures.forEach(function (feature) {
@@ -383,13 +389,25 @@
           var stopEvent = false
           if (mapBrowserEvent.type === ol.events.EventType.KEYDOWN) {
             var keyEvent = mapBrowserEvent.originalEvent
+            console.log(keyEvent)
             switch (keyEvent.keyCode) {
+              case 65: // a
+                if (keyEvent.ctrlKey) {
+                  vm.selectAll()
+                  stopEvent = true
+                }
+                break
               case 46: // Delete
                 vm.deleteSelected()
+                stopEvent = true
                 break
               default:
                 break
             }
+          }
+          // if we intercept a key combo, disable any browser behaviour
+          if (stopEvent) {
+            keyEvent.preventDefault()
           }
           return !stopEvent
         }
