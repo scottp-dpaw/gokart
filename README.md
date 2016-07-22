@@ -1,6 +1,6 @@
 # gokart
 
-> A Vue.js project
+An engine for specialty mapping applications written with [OpenLayers 3](http://openlayers.org) and [Vue.js](https://vuejs.org/).
 
 ## Build Setup
 
@@ -13,6 +13,9 @@ npm run dev
 
 # build for production with minification
 npm run build
+git commit -am "new point release"
+git tag -a "vX.XX"
+git push --tags
 
 # lint all *.js and *.vue files
 npm run lint
@@ -21,4 +24,3 @@ npm run lint
 npm test
 ```
 
-For more information see the [docs for vueify](https://github.com/vuejs/vueify).

@@ -20,7 +20,7 @@
                   </select>
           </div>
           <div class="small-6 columns">
-            <input type="search" v-model="search" placeholder="Find a layer">
+            <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
           </div>
         </div>
         <div id="layers-catalogue-list">
@@ -54,8 +54,7 @@
 </style>
 
 <script>
-  import ol from '../../ol-extras.js'
-  import { $ } from 'src/vendor.js'
+  import { $, ol } from 'src/vendor.js'
   export default {
     data: function () {
       return {
@@ -125,7 +124,7 @@
         }
       },
       // helper to populate the catalogue from a remote service
-      loadRemoteCatalogue: function (url) {
+      loadRemoteCatalogue: function (url, callback) {
         var vm = this
         var req = new window.XMLHttpRequest()
         req.withCredentials = true
@@ -133,6 +132,7 @@
           JSON.parse(this.responseText).forEach(function (l) {
             vm.catalogue.push(l)
           })
+          callback()
         }
         req.open('GET', url)
         req.send()
@@ -144,7 +144,7 @@
           return layer.id === id
         })
       },
-      getMapLayer: function(id) {
+      getMapLayer: function (id) {
         return this.$root.map.getMapLayer(id)
       }
     },

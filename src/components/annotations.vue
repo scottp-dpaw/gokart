@@ -51,7 +51,7 @@
               </div>
             </div>
 
-            <div v-if="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+            <div v-show="tool.name.startsWith('Custom')" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
@@ -61,25 +61,29 @@
                 </div>
               </div>
             </div>
-            <div v-if="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+            <div v-show="tool.name.startsWith('Custom') || tool.name.startsWith('Text')" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
-                <div class="expanded button-group">
+                <div @click="updateNote(false)" class="expanded button-group">
                   <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}"
                     v-bind:style="{ backgroundColor: c[1] }"></a>
                 </div>
               </div>
             </div>
 
-            <div v-if="tool.name == 'Text Note'" class="tool-slice row collapse">
+            <div v-show="tool.name == 'Text Note'" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
-                <textarea style="width:{{ note.width }}px;height:{{ note.height }}px;" @blur="drawNote(note, true)" class="notecontent" v-el:notecontent @keyup="updateNote($event.target)" @mouseup="updateNote($event.target)">{{ note.text }}</textarea>
+                <select name="select" @change="note.text = $event.target.value.split('<br>').join('\n')">
+                  <option value="" selected>Text Templates</option> 
+                  <option value="Sector Alpha<br>Channel: <br>Commander: ">Sector Details</option>
+                </select>
+                <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote()" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">
               <div class="small-12 canvaspane">
-                <canvas width="1000" height="1000" v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
+                <canvas v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
               </div>
             </div>
 
@@ -93,6 +97,10 @@
 </template>
 
 <style>
+  .notecontent {
+    width: 256px;
+    height: 100px;
+  }
   .canvaspane {
     overflow: hidden;
     width: 100px;
@@ -117,8 +125,7 @@
 </style>
 
 <script>
-  import { Vue } from 'src/vendor.js'
-  import ol from '../ol-extras.js'
+  import { $, ol, Vue } from 'src/vendor.js'
 
   Vue.filter('filterIf', function (list, prop, value) {
     if (!list) { return }
@@ -126,6 +133,43 @@
       return val && val[prop] === value
     })
   })
+
+  var noteOffset = 20
+  var notePadding = 10
+
+  var noteStyles = {
+    'general': function(note) {
+      var pathTmpl = {
+        strokeCap: 'round',
+        p1: {
+          type: 'line',
+          x1: 2.0, y1: note.height + noteOffset - 2.0,
+          x2: noteOffset, y2: note.height
+        },
+        p2: {
+          type: 'line',
+          x1: noteOffset, y1: 2.0,
+          x2: noteOffset, y2: note.height,
+          x3: note.width + noteOffset, y3: note.height
+        }
+      }
+      var textTmpl = {
+        fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
+        text: note.text,
+        x: noteOffset + notePadding, y: notePadding,
+        align: 'left',
+        maxWidth: note.width + notePadding * -2,
+        fromCenter: false
+      }
+      return [
+        ['drawPath', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, pathTmpl)],
+        ['drawPath', $.extend({strokeWidth: 2.0, strokeStyle: note.colour}, pathTmpl)],
+        ['drawText', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, textTmpl)],
+        ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
+      ]
+    }
+  }
+
 
   export default {
     data: function () {
@@ -138,43 +182,11 @@
         featureOverlay: {},
         note: {
           style: 'general',
-          text: "A cool note",
+          text: 'Insert note here',
           width: 236,
           height: 100
         },
         notes: {},
-        noteStyles: {
-          'general': [
-            ['drawRect', {
-              fillStyle: '#fef6bb',
-              strokeStyle: '#c4a000',
-              x: 20, y: 20,
-              width: '$eval:note.width',
-              height: '$eval:note.height',
-              cornerRadius: 4,
-              fromCenter: false
-            }],
-            ['drawPath', {
-              fillStyle: '#fef6bb',
-              strokeStyle: '#c4a000',
-              p1: {
-                type: 'line',
-                x1: 20.5, y1: 27.5,
-                x2: 2.5, y2: 2.5,
-                x3: 27.5, y3: 20.5
-              }
-            }],
-            ['drawText', {
-              fillStyle: '#000',
-              fontSize: '12pt',
-              text: '$eval:note.text',
-              x: 30, y: 30,
-              align: 'left',
-              maxWidth: '$eval:note.width - 20',
-              fromCenter: false
-            }]
-          ]
-        },
         size: 2,
         colour: '#cc0000',
         colours: [
@@ -237,42 +249,40 @@
         })
         this.selectedFeatures.clear()
       },
-      updateNote: function(textarea) {
-        this.note.text = textarea.value
-        this.note.width = textarea.clientWidth
-        this.note.height = textarea.clientHeight
-        this.drawNote()
+      updateNote: function (save) {
+        this.note.text = this.$els.notecontent.value
+        this.note.width = $(this.$els.notecontent).width()
+        this.note.height = $(this.$els.notecontent).height()
+        this.note.colour = this.colour
+        this.drawNote(this.note, save)
       },
-      drawNote: function(save) {
+      drawNote: function (note, save) {
         var vm = this
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
-        this.noteStyles[this.note.style].forEach(function(cmd) {
-          var params = $.extend({}, cmd[1])
-          Object.keys(params).forEach(function(key) {
-            if (typeof params[key] === 'string' && params[key].startsWith('$eval:')) {
-              params[key] = vm.$eval(params[key].replace('$eval:',''))
-            }
+        if ((note.style) && (note.style in noteStyles)) {
+          $(noteCanvas).attr("height", note.height + noteOffset)
+          $(noteCanvas).attr("width", note.width + noteOffset)
+          noteStyles[note.style](note).forEach(function (cmd) {
+            $(noteCanvas)[cmd[0]](cmd[1])
           })
-          $(noteCanvas)[cmd[0]](params)
-        })
-        if (save) {
-          var key = JSON.stringify(this.note)
-          // temp placeholder
-          this.notes[key] = 'dist/static/images/placeholder.svg'
-          noteCanvas.toBlob(function (blob) {
-            // switch for actual image
-            vm.notes[key] = window.URL.createObjectURL(blob)
-            // FIXME: redraw stuff when savin blobs (broken in chrome)
-            global.debounce(function() { vm.$root.map.olmap.updateSize() }, 100)
-          }, 'image/png')
+          if (save) {
+            var key = JSON.stringify(note)
+            // temp placeholder
+            this.notes[key] = 'dist/static/images/placeholder.svg'
+            noteCanvas.toBlob(function (blob) {
+              // switch for actual image
+              vm.notes[key] = window.URL.createObjectURL(blob)
+              // FIXME: redraw stuff when saving blobs (broken in chrome)
+              global.debounce(function () { vm.$root.map.olmap.updateSize() }, 100)
+            }, 'image/png')
+          }
         }
       },
-      getNoteUrl: function(note) {
+      getNoteUrl: function (note) {
         var key = JSON.stringify(note)
         if (!this.notes[key]) {
-          this.note = $.extend({}, note)
-          this.drawNote(true)
+          this.drawNote(note, true)
         }
         return this.notes[key]
       }
@@ -283,7 +293,7 @@
       // collection to store all annotation features
       this.features.on('add', function (ev) {
         var feature = ev.element
-        var style = null
+        var tool = null
         if (feature.get('toolName')) {
           tool = vm.tools.filter(function (t) {
             return t.name === feature.get('toolName')
@@ -411,7 +421,7 @@
       ]
 
       var noteStyleCache = {}
-      var noteStyle = function(res) {
+      var noteStyle = function (res) {
         var f = this
         var url = 'dist/static/images/placeholder.svg'
         if (f) {
@@ -420,10 +430,8 @@
         if (!noteStyleCache[url]) {
           noteStyleCache[url] = new ol.style.Style({
             image: new ol.style.Icon({
+              anchorOrigin: 'bottom-left',
               anchor: [0, 0],
-              anchorXUnits: 'fraction',
-              anchorYUnits: 'fraction',
-              opacity: 0.8,
               src: url
             })
           })
@@ -441,30 +449,33 @@
         interactions: [noteDraw],
         showName: true,
         onAdd: function (f) {
+          if (f.get('note')) { return }
           f.set('note', $.extend({}, vm.note))
         }
       }
       var customAdd = function (f) {
-        f.set('size', vm.size),
+        if (f.get('size')) { return }
+        f.set('size', vm.size)
+        if (f.get('colour')) { return }
         f.set('colour', vm.colour)
       }
       var vectorStyleCache = {
         'default': ol.style.defaultStyleFunction()
       }
-      var vectorStyle = function(res) {
+      var vectorStyle = function (res) {
         var f = this
-        var key = "default"
+        var key = 'default'
         if (f) {
           key = f.get('size') + f.get('colour')
         }
         if (!vectorStyleCache[key]) {
           vectorStyleCache[key] = new ol.style.Style({
             fill: new ol.style.Fill({
-                color: "rgba(255, 255, 255, 0.2)"
+              color: 'rgba(255, 255, 255, 0.2)'
             }),
             stroke: new ol.style.Stroke({
-                color: f.get("colour"),
-                width: 2 * f.get("size")
+              color: f.get('colour'),
+              width: 2 * f.get('size')
             })
           })
         }

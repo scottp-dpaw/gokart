@@ -24,13 +24,13 @@
             <div class="row collapse">
               <div class="small-6 columns">
                 <select name="select" v-model="cql" @change="updateCQLFilter">
-                <option value="" selected>All resources</option> 
-                <option value="symbolid LIKE '%comms_bus'">Communications Bus</option>
-                <option value="symbolid LIKE '%gang_truck'">Gang Truck</option>
-                <option value="symbolid LIKE '%heavy_duty'">Heavy Duty</option>
-                <option value="(symbolid LIKE '%heavy_duty' OR symbolid LIKE '%gang_truck')">GT and HD</option>
-                <option value="symbolid LIKE '%aircraft'">Aircraft</option>
-              </select>
+                  <option value="" selected>All resources</option> 
+                  <option value="symbolid LIKE '%comms_bus'">Communications Bus</option>
+                  <option value="symbolid LIKE '%gang_truck'">Gang Truck</option>
+                  <option value="symbolid LIKE '%heavy_duty'">Heavy Duty</option>
+                  <option value="(symbolid LIKE '%heavy_duty' OR symbolid LIKE '%gang_truck')">GT and HD</option>
+                  <option value="symbolid LIKE '%aircraft'">Aircraft</option>
+                </select>
               </div>
               <div class="small-6 columns">
                 <input type="search" v-model="search" placeholder="Find a resource">
@@ -126,8 +126,7 @@
   </div>
 </template>
 <script>
-  import { moment, saveAs } from 'src/vendor.js'
-  import ol from '../../ol-extras.js'
+  import { ol, moment, saveAs } from 'src/vendor.js'
   export default {
     data: function () {
       return {
@@ -186,7 +185,7 @@
       selected: function (f) {
         return this.$root.info.selected(f)
       },
-      downloadList: function() {
+      downloadList: function () {
         var result = this.$root.geojson.writeFeatures(this.features.filter(this.resourceFilter).sort(this.resourceOrder))
         var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
         saveAs(blob, 'tracking_data_' + moment().toLocaleString() + '_.geo.json')
@@ -271,6 +270,22 @@
         var map = this.$root.map.olmap
         map.getView().fit(extent, map.getSize())
       }
+    },
+    ready: function () {
+      var vm = this
+      var map = this.$root.map
+      // post init event hookup
+      this.$on('gk-init', function () {
+        var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
+        var renderTracking = global.debounce(function () {
+          if (!map.getMapLayer(trackingLayer)) { return }
+          vm.extentFeatures = map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent)
+          vm.allFeatures = map.getMapLayer(trackingLayer).getSource().getFeatures()
+        }, 100)
+
+        map.olmap.getLayerGroup().on('change', renderTracking)
+        map.olmap.getView().on('propertychange', renderTracking)
+      })
     }
   }
 </script>

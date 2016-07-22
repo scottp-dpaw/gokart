@@ -2,13 +2,16 @@
 import {
   $,
   svg4everybody,
+  ol,
   moment,
   localforage,
   Vue,
   VueStash
 } from 'src/vendor.js'
-import ol from '../ol-extras.js'
 import App from './sss.vue'
+import tour from './sss-tour.js'
+
+global.tour = tour
 
 global.debounce = function (func, wait, immediate) {
   // Returns a function, that, as long as it continues to be invoked, will not
@@ -32,6 +35,7 @@ global.debounce = function (func, wait, immediate) {
 }
 
 var defaultStore = {
+  tourVersion: null,
   whoami: { email: null },
   remoteCatalogue: 'https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss',
   // overridable defaults for WMTS and WFS loading
@@ -82,7 +86,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       // store contains state we want to reload/persist
       store: $.extend(defaultStore, store || {}),
       pngs: {},
-      saved: null
+      saved: null,
+      touring: false
     },
     computed: {
       map: function () { return this.$refs.app.$refs.map },
@@ -427,21 +432,17 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.annotations.tools.push(tool)
       })
 
-      var renderTracking = global.debounce(function () {
-        if ((!self.map.getMapLayer(trackingLayer)) || (self.map.getMapLayer(trackingLayer).getSource().getFeatures().length === 0)) {
-          return
-        }
-        self.tracking.extentFeatures = self.map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(self.export.mapLayout.extent)
-        self.tracking.allFeatures = self.map.getMapLayer(trackingLayer).getSource().getFeatures()
-      }, 100)
-
       // load map with default layers
       this.map.init(catalogue, this.store.activeLayers)
-      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue)
-      var trackingLayer = this.catalogue.getLayer('dpaw:resource_tracking_live')
-
-      this.map.olmap.getLayerGroup().on('change', renderTracking)
-      this.map.olmap.getView().on('propertychange', renderTracking)
+      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue, function() {
+        // after catalogue load trigger a tour
+        if (self.store.tourVersion !== tour.version) {
+          self.store.tourVersion = tour.version
+          self.export.saveState()
+          self.touring = true
+          tour.start()
+        }
+      })
     }
   })
 })
