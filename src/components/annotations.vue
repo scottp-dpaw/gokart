@@ -245,7 +245,9 @@
       selectAll: function () {
         var vm = this
         this.features.forEach(function (feature) {
-          vm.selectedFeatures.push(feature)
+          if (!(feature in vm.selectedFeatures)) {
+            vm.selectedFeatures.push(feature)
+          }
         })
       },
       deleteSelected: function () {
@@ -358,7 +360,16 @@
         features: this.features
       })
 
-      // next three interacts are bundled into the Select tool
+      // the following interacts are bundled into the Select and Edit tools.
+      // main difference is that Select allows movement of whole features around the map,
+      // whereas Edit is for movement of individual nodes
+
+      // allow translating of features by click+dragging
+      this.ui.translateInter = new ol.interaction.Translate({
+        layers: [this.featureOverlay],
+        features: this.selectedFeatures
+      })
+
       // allow modifying features by click+dragging
       this.ui.modifyInter = new ol.interaction.Modify({
         features: this.features
@@ -389,7 +400,7 @@
           var stopEvent = false
           if (mapBrowserEvent.type === ol.events.EventType.KEYDOWN) {
             var keyEvent = mapBrowserEvent.originalEvent
-            console.log(keyEvent)
+            //console.log(keyEvent)
             switch (keyEvent.keyCode) {
               case 65: // a
                 if (keyEvent.ctrlKey) {
@@ -430,12 +441,23 @@
           this.ui.keyboardInter,
           this.ui.selectInter,
           this.ui.dragSelectInter,
+          this.ui.translateInter
+        ]
+      }
+      this.ui.defaultEdit = {
+        name: 'Edit',
+        icon: 'fa-pencil',
+        interactions: [
+          this.ui.keyboardInter,
+          this.ui.selectInter,
+          this.ui.dragSelectInter,
           this.ui.modifyInter
         ]
       }
       this.tools = [
         this.ui.defaultPan,
-        this.ui.defaultSelect
+        this.ui.defaultSelect,
+        this.ui.defaultEdit
       ]
 
       var noteStyleCache = {}
