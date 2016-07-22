@@ -57,9 +57,9 @@
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
-                  <a @click="size = 1" v-bind:class="{'selected': size == 1}" class="button"><small>Small</small></a>
-                  <a @click="size = 2" v-bind:class="{'selected': size == 2}" class="button">Medium</a>
-                  <a @click="size = 4" v-bind:class="{'selected': size == 4}" class="button"><big>Large</big></a>
+                  <a @click="setProp('size', 1)" v-bind:class="{'selected': size == 1}" class="button"><small>Small</small></a>
+                  <a @click="setProp('size', 2)" v-bind:class="{'selected': size == 2}" class="button">Medium</a>
+                  <a @click="setProp('size', 4)" v-bind:class="{'selected': size == 4}" class="button"><big>Large</big></a>
                 </div>
               </div>
             </div>
@@ -67,7 +67,7 @@
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
                 <div @click="updateNote(false)" class="expanded button-group">
-                  <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}"
+                  <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="setProp('colour', c[1])" v-bind:class="{'selected': c[1] == colour}"
                     v-bind:style="{ backgroundColor: c[1] }"></a>
                 </div>
               </div>
@@ -181,7 +181,7 @@
         features: new ol.Collection(),
         selectedFeatures: new ol.Collection(),
         featureOverlay: {},
-        featureEditing: false,
+        featureEditing: {},
         note: {
           style: 'general',
           text: 'Insert note here',
@@ -190,8 +190,8 @@
           colour: '#000000'
         },
         notes: {},
-        _size: 2,
-        _colour: '#000000',
+        size: 2,
+        colour: '#000000',
         colours: [
           ['red', '#cc0000'],
           ['orange', '#f57900'],
@@ -206,39 +206,6 @@
         advanced: false
       }
     },
-    computed: {
-      colour: {
-        cache: false,
-        get: function() {
-          if (this.featureEditing) {
-            return this.featureEditing.get('colour')
-          }
-          return this._colour
-        },
-        set: function(c) {
-          if (this.featureEditing) {
-            this.featureEditing.set('colour', c)
-          } else {
-            this._colour = c
-          }
-        }
-      },
-      size: {
-        cache: false,
-        get: function() {
-          if (this.featureEditing) {
-            return this.featureEditing.get('size')
-          }
-          return this._size
-        },
-        set: function(s) {
-          this._size = s
-          if (this.featureEditing) {
-            this.featureEditing.set('size', s)
-          }
-        }
-      }
-    },
     methods: {
       icon: function (t) {
         if (t.icon.startsWith('fa-')) {
@@ -249,6 +216,12 @@
         } else {
           // svg reference
           return '<svg class="icon"><use xlink:href="' + t.icon + '"></use></svg>'
+        }
+      },
+      setProp: function (prop, value) {
+        this[prop] = value
+        if (this.featureEditing instanceof ol.Feature) {
+          this.featureEditing.set(prop, value)
         }
       },
       getTool: function (toolName) {
@@ -264,10 +237,16 @@
           this.note = $.extend({}, f.get('note'))
           this.drawNote(f.get('note'))
         }
+        if (f.get('size')) {
+          this.size = f.get('size')
+        }
+        if (f.get('colour')) {
+          this.colour = f.get('colour')
+        }
       },
       setTool: function (t) {
-        if (!this.featureEditing || t.name !== this.featureEditing.get('toolName')) {
-          this.featureEditing = false
+        if (!this.featureEditing.get || t.name !== this.featureEditing.get('toolName')) {
+          this.featureEditing = {}
         }
         var map = this.$root.map
         // remove all custom tool interactions from map
@@ -312,7 +291,7 @@
       },
       updateNote: function (save) {
         var note = this.note
-        if (this.featureEditing) {
+        if (this.featureEditing.get) {
           note = this.featureEditing.get('note') || note
         }
         note.text = this.$els.notecontent.value
