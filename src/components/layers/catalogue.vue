@@ -15,7 +15,7 @@
           <div class="small-6 columns">
             <select name="select" v-model="search">
               <option value="" selected>All layers</option> 
-              <option value="himawari">Himawari</option>
+              <option v-for="filter in catalogueFilters" v-bind:value="filter[0]">{{ filter[1] }}</option>
               <option v-bind:value="search">Custom search:</option>
             </select>
           </div>
@@ -23,7 +23,7 @@
             <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
           </div>
         </div>
-        <div v-show="catalogue.getArray() | filterBy search in searchAttrs | lessThan 11" class="row">
+        <div v-show="search.length > 0" class="row">
           <div class="columns text-right">
             <label for="switchBaseLayers" class="side-label">Toggle all</label>
           </div>
@@ -72,13 +72,14 @@
     return value.length < length
   })
   export default {
+    store: ['catalogueFilters'],
     data: function () {
       return {
         layer: {},
         catalogue: new ol.Collection(),
         swapBaseLayers: true,
         search: '',
-        searchAttrs: ['name', 'id'],
+        searchAttrs: ['name', 'id', 'tags'],
         overview: false
       }
     },
@@ -124,6 +125,8 @@
         }
         // make the layer match the state
         if (checked) {
+          var olLayer = map['create' + layer.type](layer)
+          olLayer.setOpacity(layer.opacity || 1)
           if (layer.base) {
             // "Switch out base layers automatically" is enabled, remove
             // all other layers with the "base" option set.
@@ -135,9 +138,9 @@
               })
             }
             // add new base layer to bottom
-            map.olmap.getLayers().insertAt(0, map['create' + layer.type](layer))
+            map.olmap.getLayers().insertAt(0, olLayer)
           } else {
-            map.olmap.addLayer(map['create' + layer.type](layer))
+            map.olmap.addLayer(olLayer)
           }
         } else {
           active.removeLayer(map.getMapLayer(layer))
@@ -150,6 +153,13 @@
         req.withCredentials = true
         req.onload = function () {
           JSON.parse(this.responseText).forEach(function (l) {
+            if (vm.getLayer(l.identifier)) {
+                vm.catalogue.remove(vm.getLayer(l.identifier))
+            }
+            l.base = l.tags.some(function (t) {return t.name === 'basemap'})
+            if (l.tags.some(function (t) { return t.name === 'relief' })) {
+                l.opacity = 0.5
+            }
             vm.catalogue.push(l)
           })
           callback()

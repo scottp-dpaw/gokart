@@ -38,6 +38,18 @@ var defaultStore = {
   tourVersion: null,
   whoami: { email: null },
   remoteCatalogue: 'https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss',
+  // filters for finding layers
+  catalogueFilters: [
+    ['basemap', 'Base Imagery'],
+    ['boundaries', 'Admin Boundaries'],
+    ['communications', 'Communications'],
+    ['operations', 'DPaW Operations'],
+    ['bushfire', 'Fire'],
+    ['infrastructure', 'Infrastructure'],
+    ['meteorology', 'Meteorology'],
+    ['relief', 'Relief'],
+    ['sensitive', 'Sensitive Sites']
+  ],
   // overridable defaults for WMTS and WFS loading
   defaultWMTSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts',
   defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
@@ -338,7 +350,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       })
 
       var sectorStyle = function (feat, res) {
-        console.log(feat, res)
+        //console.log(feat, res)
         var rot = feat.get('rotation') || 1.0
         return new ol.style.Style({
           image: new ol.style.Icon({
@@ -358,7 +370,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: sectorStyle
       })
       sectorDraw.on('drawstart', function (ev) {
-         console.log(ev)
+         //console.log(ev)
       })
 
       var fireBoundaryStyle = new ol.style.Style({
