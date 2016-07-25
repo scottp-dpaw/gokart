@@ -337,19 +337,28 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: divisionStyle
       })
 
-      var sectorStyle = new ol.style.Style({
-        image: new ol.style.Icon({
-          anchor: [0.5, 0.5],
-          anchorXUnits: 'fraction',
-          anchorYUnits: 'fraction',
-          src: 'dist/static/symbols/svgs/sss/sector.svg'
+      var sectorStyle = function (feat, res) {
+        console.log(feat, res)
+        var rot = feat.get('rotation') || 1.0
+        return new ol.style.Style({
+          image: new ol.style.Icon({
+            anchor: [0.5, 0.5],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'fraction',
+            src: 'dist/static/symbols/svgs/sss/sector.svg',
+            rotation: rot,
+            rotateWithView: true
+          })
         })
-      })
+      }
 
       var sectorDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
         style: sectorStyle
+      })
+      sectorDraw.on('drawstart', function (ev) {
+         console.log(ev)
       })
 
       var fireLineStyle = new ol.style.Style({
@@ -414,7 +423,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           name: 'Sector',
           icon: 'dist/static/symbols/svgs/sss/sector.svg',
           interactions: [sectorDraw, snapToLines],
-          style: sectorStyle,
+          style: function (res) { return sectorStyle(this, res) },
           showName: true
         }, {
           name: 'Fire Boundary',
