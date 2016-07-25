@@ -18,6 +18,8 @@
                 <div class="expanded button-group">
                   <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
                     @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
+                  <a class="button button-tool" v-bind:class="{'disabled': selectedFeatures.getArray().length !== 1}"
+                    @click="editFeature(selectedFeatures.getArray()[0])" title="Edit selected feature"><i class="fa fa-pencil-square-o"></i></a>
                 </div>
                 <div class="row resetmargin">
                   <div class="small-6 rightmargin">
@@ -55,9 +57,9 @@
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
-                  <a @click="size = 1" v-bind:class="{'selected': size == 1}" class="button"><small>Small</small></a>
-                  <a @click="size = 2" v-bind:class="{'selected': size == 2}" class="button">Medium</a>
-                  <a @click="size = 4" v-bind:class="{'selected': size == 4}" class="button"><big>Large</big></a>
+                  <a @click="setProp('size', 1)" v-bind:class="{'selected': size == 1}" class="button"><small>Small</small></a>
+                  <a @click="setProp('size', 2)" v-bind:class="{'selected': size == 2}" class="button">Medium</a>
+                  <a @click="setProp('size', 4)" v-bind:class="{'selected': size == 4}" class="button"><big>Large</big></a>
                 </div>
               </div>
             </div>
@@ -65,7 +67,7 @@
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
                 <div @click="updateNote(false)" class="expanded button-group">
-                  <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="colour = c[1]" v-bind:class="{'selected': c[1] == colour}"
+                  <a v-for="c in colours" class="button" title="{{ c[0] }}" @click="setProp('colour', c[1])" v-bind:class="{'selected': c[1] == colour}"
                     v-bind:style="{ backgroundColor: c[1] }"></a>
                 </div>
               </div>
@@ -78,7 +80,7 @@
                   <option value="" selected>Text Templates</option> 
                   <option value="Sector Alpha<br>Channel: <br>Commander: ">Sector Details</option>
                 </select>
-                <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote()" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
+                <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote(false)" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
               </div>
             </div>
             <div class="tool-slice row collapse">
@@ -86,7 +88,6 @@
                 <canvas v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
               </div>
             </div>
-
           </div>
 
         </div>
@@ -98,8 +99,8 @@
 
 <style>
   .notecontent {
-    width: 256px;
-    height: 100px;
+    width: 300px;
+    height: 40px;
   }
   .canvaspane {
     overflow: hidden;
@@ -143,14 +144,14 @@
         strokeCap: 'round',
         p1: {
           type: 'line',
-          x1: 2.0, y1: note.height + noteOffset - 2.0,
-          x2: noteOffset, y2: note.height
+          x1: 2, y1: note.height + noteOffset - 2,
+          x2: noteOffset, y2: note.height + noteOffset/2
         },
         p2: {
           type: 'line',
-          x1: noteOffset, y1: 2.0,
-          x2: noteOffset, y2: note.height,
-          x3: note.width + noteOffset, y3: note.height
+          x1: noteOffset, y1: 2,
+          x2: noteOffset, y2: note.height + noteOffset/2,
+          x3: note.width + noteOffset - 2, y3: note.height + noteOffset/2
         }
       }
       var textTmpl = {
@@ -162,9 +163,9 @@
         fromCenter: false
       }
       return [
-        ['drawPath', $.extend({strokeWidth: 4.0, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, pathTmpl)],
-        ['drawPath', $.extend({strokeWidth: 2.0, strokeStyle: note.colour}, pathTmpl)],
-        ['drawText', $.extend({strokeWidth: 3.0, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
+        ['drawPath', $.extend({strokeWidth: 4, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, pathTmpl)],
+        ['drawPath', $.extend({strokeWidth: 2, strokeStyle: note.colour}, pathTmpl)],
+        ['drawText', $.extend({strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
         ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
       ]
     }
@@ -180,15 +181,17 @@
         features: new ol.Collection(),
         selectedFeatures: new ol.Collection(),
         featureOverlay: {},
+        featureEditing: {},
         note: {
           style: 'general',
           text: 'Insert note here',
-          width: 236,
-          height: 100
+          width: 300,
+          height: 40,
+          colour: '#000000'
         },
         notes: {},
         size: 2,
-        colour: '#cc0000',
+        colour: '#000000',
         colours: [
           ['red', '#cc0000'],
           ['orange', '#f57900'],
@@ -215,7 +218,36 @@
           return '<svg class="icon"><use xlink:href="' + t.icon + '"></use></svg>'
         }
       },
+      setProp: function (prop, value) {
+        this[prop] = value
+        if (this.featureEditing instanceof ol.Feature) {
+          this.featureEditing.set(prop, value)
+        }
+      },
+      getTool: function (toolName) {
+        return this.tools.filter(function (t) {
+          return t.name === toolName
+        })[0]
+      },
+      editFeature: function (f) {
+        this.featureEditing = f
+        this.setTool(this.getTool(f.get('toolName')))
+        // set note so edit context makes sense
+        if (f.get('note')) {
+          this.note = $.extend({}, f.get('note'))
+          this.drawNote(f.get('note'))
+        }
+        if (f.get('size')) {
+          this.size = f.get('size')
+        }
+        if (f.get('colour')) {
+          this.colour = f.get('colour')
+        }
+      },
       setTool: function (t) {
+        if (!this.featureEditing.get || t.name !== this.featureEditing.get('toolName')) {
+          this.featureEditing = {}
+        }
         var map = this.$root.map
         // remove all custom tool interactions from map
         this.tools.forEach(function (tool) {
@@ -258,13 +290,18 @@
         this.selectedFeatures.clear()
       },
       updateNote: function (save) {
-        this.note.text = this.$els.notecontent.value
-        this.note.width = $(this.$els.notecontent).width()
-        this.note.height = $(this.$els.notecontent).height()
-        this.note.colour = this.colour
-        this.drawNote(this.note, save)
+        var note = this.note
+        if (this.featureEditing.get) {
+          note = this.featureEditing.get('note') || note
+        }
+        note.text = this.$els.notecontent.value
+        note.width = $(this.$els.notecontent).width()
+        note.height = $(this.$els.notecontent).height()
+        note.colour = this.colour
+        this.drawNote(note, save)
       },
       drawNote: function (note, save) {
+        if (!note) { return }
         var vm = this
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
@@ -282,7 +319,13 @@
               // switch for actual image
               vm.notes[key] = window.URL.createObjectURL(blob)
               // FIXME: redraw stuff when saving blobs (broken in chrome)
-              global.debounce(function () { vm.$root.map.olmap.updateSize() }, 100)
+              vm.features.getArray().forEach(function(f) {
+                if (JSON.stringify(f.get('note')) === key) {
+                  f.changed()
+                }
+              })
+              // Set canvas back to the vm's note
+              vm.drawNote(vm.note, false)
             }, 'image/png')
           }
         }
@@ -303,9 +346,7 @@
         var feature = ev.element
         var tool = null
         if (feature.get('toolName')) {
-          tool = vm.tools.filter(function (t) {
-            return t.name === feature.get('toolName')
-          })[0]
+          tool = vm.getTool(feature.get('toolName'))
         } else {
           feature.set('toolName', vm.tool.name)
           tool = vm.tool

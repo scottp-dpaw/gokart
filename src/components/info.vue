@@ -9,8 +9,8 @@
     <div class="row">
       <div class="columns content">
         <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)" track-by="get('id')">
-          <div v-if="f.get('partialId') == 'featureInfo'" class="columns">{{ f.getId() }}</div>
-          <div v-if="f.get('partialId') == 'resourceInfo'" class="columns">
+          <div v-if="f.get('partialId') !== 'resourceInfo'" class="columns">{{ f.getId() }}</div>
+          <div v-if="f.get('partialId') === 'resourceInfo'" class="columns">
             <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
           </div>
         </div>
