@@ -480,8 +480,8 @@
         icon: 'fa-mouse-pointer',
         interactions: [
           this.ui.keyboardInter,
-          this.ui.selectInter,
           this.ui.dragSelectInter,
+          this.ui.selectInter,
           this.ui.translateInter
         ]
       }
