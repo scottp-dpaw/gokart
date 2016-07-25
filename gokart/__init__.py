@@ -61,9 +61,11 @@ def gdal(fmt):
     workdir = tempfile.mkdtemp()
     path = os.path.join(workdir, jpg.filename)
     jpg.save(workdir)
+    extra = []
     if fmt == "tif":
         of = "GTiff"
         ct = "image/tiff"
+        extra = ["-co", "COMPRESS=JPEG", "-co" "PHOTOMETRIC=YCBCR", "-co", "JPEG_QUALITY=95"]
     elif fmt == "pdf":
         of = "PDF"
         ct = "application/pdf"
@@ -75,7 +77,7 @@ def gdal(fmt):
         "-co", "PRODUCER={}".format(subprocess.check_output(["gdalinfo", "--version"])),
         "-co", "SUBJECT={}".format(bottle.request.headers.get('Referer', "gokart")),
         "-co", "CREATION_DATE={}".format(datetime.strftime(datetime.utcnow(), "%Y%m%d%H%M%SZ'00'")),
-        path, path + "." + fmt
+        **extra, path, path + "." + fmt
     ])
     output = open(path + "." + fmt)
     shutil.rmtree(workdir)
@@ -84,36 +86,29 @@ def gdal(fmt):
     return output
 
 
-# Form emailer, needs wkhtmltopdf 0.12.3+
-@bottle.route("/postbox", method="POST")
-def postbox():
+# Vector translation using ogr
+@bottle.route("/ogr/<fmt>", method="POST")
+def ogr(fmt):
+    # needs gdal 1.10+
+    json = bottle.request.files.get("json")
     workdir = tempfile.mkdtemp()
-    path = os.path.join(workdir, "email.html")
-    pdfpath = path.replace(".html", ".pdf")
-    emailhtml = bottle.jinja2_template('email.html', **{
-        "htmlclone": bottle.request.forms.get("_htmlclone").decode("utf-8")
-    })
-    with open(path, "w") as htmlfile:
-        htmlfile.write(emailhtml.encode("utf-8"))
-    subprocess.call(["wkhtmltopdf", "-q", path, pdfpath])
-    attachment = MIMEApplication(open(pdfpath).read())
+    path = os.path.join(workdir, json.filename)
+    json.save(workdir)
+    extra = []
+    if fmt == "shp":
+        of = "ESRI Shapefile"
+        ct = "application/zip"
+    subprocess.check_call([
+        "gdal_translate", "-f", of,
+        path + "." + fmt, path
+    ])
+    if fmt == "shp":
+        shutil.make_archive(path.replace('geojson', 'zip'), 'zip', workdir, workdir)
+        fmt = "zip"
+    output = open(path + "." + fmt)
     shutil.rmtree(workdir)
-    attachment.add_header('Content-Disposition', 'attachment', filename=bottle.request.forms.get("_filename", "form.pdf"))
-    text = "Submitted form data:\n\n"
-    for key, value in bottle.request.forms.iteritems():
-        if key.startswith("_") or not value or value == "0":
-            continue
-        text += '  {}: {}\n'.format(key, value)
-    msg = MIMEMultipart()
-    msg.attach(MIMEText(text, 'plain'))
-    msg["Subject"] = bottle.request.forms.get("_subject", "Form Email")
-    msg.attach(attachment)
-    mailer = smtplib.SMTP("smtp")
-    mailer.sendmail(bottle.request.forms.get("_replyto"), bottle.request.headers.get("X-Email"), msg.as_string())
-    mailer.close()
-    redirect = bottle.request.get("_next", False)
-    if redirect:
-        return bottle.redirect(redirect)
-    return "Email sent to {}".format(bottle.request.headers.get("X-Email"))
+    bottle.response.set_header("Content-Type", ct)
+    bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(jpg.filename.replace("geojson", fmt)))
+    return output
 
 application = bottle.default_app()

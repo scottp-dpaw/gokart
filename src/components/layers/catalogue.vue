@@ -6,8 +6,8 @@
           <div class="switch tiny">
             <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers" />
             <label class="switch-paddle" for="switchBaseLayers">
-                    <span class="show-for-sr">Switch out base layers</span>
-                  </label>
+              <span class="show-for-sr">Switch out base layers</span>
+            </label>
           </div>
           <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
         </div>
@@ -23,7 +23,7 @@
             <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
           </div>
         </div>
-        <div v-show="search.length > 0" class="row">
+        <div v-show="search.length > 0 && search !== 'basemap'" class="row">
           <div class="columns text-right">
             <label for="switchBaseLayers" class="side-label">Toggle all</label>
           </div>
