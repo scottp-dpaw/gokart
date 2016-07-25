@@ -162,9 +162,9 @@
         fromCenter: false
       }
       return [
-        ['drawPath', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, pathTmpl)],
+        ['drawPath', $.extend({strokeWidth: 4.0, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, pathTmpl)],
         ['drawPath', $.extend({strokeWidth: 2.0, strokeStyle: note.colour}, pathTmpl)],
-        ['drawText', $.extend({strokeWidth: 4.0, strokeStyle: '#fff'}, textTmpl)],
+        ['drawText', $.extend({strokeWidth: 3.0, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
         ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
       ]
     }
