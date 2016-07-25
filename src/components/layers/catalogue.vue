@@ -14,13 +14,26 @@
         <div class="row collapse">
           <div class="small-6 columns">
             <select name="select" v-model="search">
-                    <option value="" selected>All layers</option> 
-                    <option value="himawari">Himawari</option>
-                    <option v-bind:value="search">Custom search:</option>
-                  </select>
+              <option value="" selected>All layers</option> 
+              <option value="himawari">Himawari</option>
+              <option v-bind:value="search">Custom search:</option>
+            </select>
           </div>
           <div class="small-6 columns">
             <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
+          </div>
+        </div>
+        <div v-show="catalogue.getArray() | filterBy search in searchAttrs | lessThan 11" class="row">
+          <div class="columns text-right">
+            <label for="switchBaseLayers" class="side-label">Toggle all</label>
+          </div>
+          <div class="small-2 text-right">
+            <div class="switch tiny">
+              <input class="switch-input" title="Toggle all filtered layers" id="ctlgswall" @change="toggleAll($event.target.checked, $event)" type="checkbox" />
+              <label class="switch-paddle" for="ctlgswall">
+                <span class="show-for-sr">Toggle all</span>
+              </label>
+            </div>
           </div>
         </div>
         <div id="layers-catalogue-list">
@@ -32,11 +45,11 @@
             <div class="small-2">
               <div class="text-right">
                 <div class="switch tiny" @click.stop>
-                  <input class="switch-input" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="getMapLayer(l) !== undefined"
+                  <input class="switch-input ctlgsw" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="getMapLayer(l) !== undefined"
                     type="checkbox" />
                   <label class="switch-paddle" for="ctlgsw{{ $index }}">
-                        <span class="show-for-sr">Toggle layer</span>
-                      </label>
+                    <span class="show-for-sr">Toggle layer</span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -54,7 +67,10 @@
 </style>
 
 <script>
-  import { $, ol } from 'src/vendor.js'
+  import { $, ol, Vue } from 'src/vendor.js'
+  Vue.filter('lessThan', function(value, length) {
+    return value.length < length
+  })
   export default {
     data: function () {
       return {
@@ -88,6 +104,10 @@
         })
         layer.preview.setMap(this.$root.map.map)
         this.layer = layer
+      },
+      toggleAll: function (checked, event) {
+        var switches = $(this.$el).find('input.ctlgsw')
+        switches.attr('checked', !checked).trigger('click')
       },
       // helper function to simulate a <label> style click on a row
       onToggle: function (index) {

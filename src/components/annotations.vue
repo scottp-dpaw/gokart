@@ -48,7 +48,7 @@
                 </div>
                 <div class="expanded button-group">
                   <a class="button"><i class="fa fa-upload" aria-hidden="true"></i> Upload Boundary</a>
-                  <a class="button"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations</a>
+                  <a class="button" @click="downloadAnnotations()"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations</a>
                 </div>
               </div>
             </div>
@@ -206,6 +206,9 @@
       }
     },
     methods: {
+      downloadAnnotations: function() {
+        this.$root.export.exportVector(this.features.getArray(), 'annotations')
+      },
       icon: function (t) {
         if (t.icon.startsWith('fa-')) {
           return '<i class="fa ' + t.icon + '" aria-hidden="true"></i>'
