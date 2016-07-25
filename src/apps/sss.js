@@ -352,22 +352,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: sectorStyle
       })
 
-      var fireLineStyle = new ol.style.Style({
-        stroke: new ol.style.Stroke({
-          width: 4.0,
-          lineDash: [20, 20],
-          color: [0, 114, 0, 1.0],
-          lineCap: 'square',
-          lineJoin: 'bevel'
-        })
-      })
-
-      var fireLineDraw = new ol.interaction.Draw({
-        type: 'LineString',
-        features: this.annotations.features,
-        style: fireLineStyle
-      })
-
       var fireBoundaryStyle = new ol.style.Style({
         stroke: new ol.style.Stroke({
           width: 4.0,
@@ -434,7 +418,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       // load map with default layers
       this.map.init(catalogue, this.store.activeLayers)
-      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue, function() {
+      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue, function () {
         // after catalogue load trigger a tour
         if (self.store.tourVersion !== tour.version) {
           self.store.tourVersion = tour.version
