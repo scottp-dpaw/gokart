@@ -76,8 +76,8 @@ def gdal(fmt):
         "-co", "AUTHOR={}".format(bottle.request.forms.get("author", "Anonymous")),
         "-co", "PRODUCER={}".format(subprocess.check_output(["gdalinfo", "--version"])),
         "-co", "SUBJECT={}".format(bottle.request.headers.get('Referer', "gokart")),
-        "-co", "CREATION_DATE={}".format(datetime.strftime(datetime.utcnow(), "%Y%m%d%H%M%SZ'00'")),
-        **extra, path, path + "." + fmt
+        "-co", "CREATION_DATE={}".format(datetime.strftime(datetime.utcnow(), "%Y%m%d%H%M%SZ'00'"))] + extra + [
+        path, path + "." + fmt
     ])
     output = open(path + "." + fmt)
     shutil.rmtree(workdir)
