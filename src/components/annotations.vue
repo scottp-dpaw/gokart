@@ -139,19 +139,19 @@
   var notePadding = 10
 
   var noteStyles = {
-    'general': function(note) {
+    'general': function (note) {
       var pathTmpl = {
         strokeCap: 'round',
         p1: {
           type: 'line',
           x1: 2, y1: note.height + noteOffset - 2,
-          x2: noteOffset, y2: note.height + noteOffset/2
+          x2: noteOffset, y2: note.height + noteOffset / 2
         },
         p2: {
           type: 'line',
           x1: noteOffset, y1: 2,
-          x2: noteOffset, y2: note.height + noteOffset/2,
-          x3: note.width + noteOffset - 2, y3: note.height + noteOffset/2
+          x2: noteOffset, y2: note.height + noteOffset / 2,
+          x3: note.width + noteOffset - 2, y3: note.height + noteOffset / 2
         }
       }
       var textTmpl = {
@@ -170,7 +170,6 @@
       ]
     }
   }
-
 
   export default {
     data: function () {
@@ -306,8 +305,8 @@
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
         if ((note.style) && (note.style in noteStyles)) {
-          $(noteCanvas).attr("height", note.height + noteOffset)
-          $(noteCanvas).attr("width", note.width + noteOffset)
+          $(noteCanvas).attr('height', note.height + noteOffset)
+          $(noteCanvas).attr('width', note.width + noteOffset)
           noteStyles[note.style](note).forEach(function (cmd) {
             $(noteCanvas)[cmd[0]](cmd[1])
           })
@@ -319,7 +318,7 @@
               // switch for actual image
               vm.notes[key] = window.URL.createObjectURL(blob)
               // FIXME: redraw stuff when saving blobs (broken in chrome)
-              vm.features.getArray().forEach(function(f) {
+              vm.features.getArray().forEach(function (f) {
                 if (JSON.stringify(f.get('note')) === key) {
                   f.changed()
                 }
@@ -441,7 +440,6 @@
           var stopEvent = false
           if (mapBrowserEvent.type === ol.events.EventType.KEYDOWN) {
             var keyEvent = mapBrowserEvent.originalEvent
-            //console.log(keyEvent)
             switch (keyEvent.keyCode) {
               case 65: // a
                 if (keyEvent.ctrlKey) {

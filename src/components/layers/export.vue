@@ -234,7 +234,6 @@
       }
     },
     ready: function () {
-      var vm = this
       this.$on('gk-init', function () {
         // save state every render
         this.olmap.on('postrender', global.debounce(this.saveState, 250, true))
