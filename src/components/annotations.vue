@@ -48,7 +48,7 @@
                 </div>
                 <div class="expanded button-group">
                   <a class="button"><i class="fa fa-upload" aria-hidden="true"></i> Upload Boundary</a>
-                  <a class="button"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations</a>
+                  <a class="button" @click="downloadAnnotations()"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations</a>
                 </div>
               </div>
             </div>
@@ -139,19 +139,18 @@
   var notePadding = 10
 
   var noteStyles = {
-    'general': function(note) {
+    'general': function (note) {
       var pathTmpl = {
         strokeCap: 'round',
         p1: {
           type: 'line',
           x1: 2, y1: note.height + noteOffset - 2,
-          x2: noteOffset, y2: note.height + noteOffset/2
+          x2: noteOffset, y2: note.height + noteOffset / 2
         },
         p2: {
           type: 'line',
           x1: noteOffset, y1: 2,
-          x2: noteOffset, y2: note.height + noteOffset/2,
-          x3: note.width + noteOffset - 2, y3: note.height + noteOffset/2
+          x2: noteOffset, y2: note.height + noteOffset / 2
         }
       }
       var textTmpl = {
@@ -163,14 +162,13 @@
         fromCenter: false
       }
       return [
-        ['drawPath', $.extend({strokeWidth: 4, strokeStyle: '#fff'}, pathTmpl)],
+        ['drawPath', $.extend({strokeWidth: 4, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, pathTmpl)],
         ['drawPath', $.extend({strokeWidth: 2, strokeStyle: note.colour}, pathTmpl)],
-        ['drawText', $.extend({strokeWidth: 4, strokeStyle: '#fff'}, textTmpl)],
+        ['drawText', $.extend({strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
         ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
       ]
     }
   }
-
 
   export default {
     data: function () {
@@ -207,6 +205,9 @@
       }
     },
     methods: {
+      downloadAnnotations: function() {
+        this.$root.export.exportVector(this.features.getArray(), 'annotations')
+      },
       icon: function (t) {
         if (t.icon.startsWith('fa-')) {
           return '<i class="fa ' + t.icon + '" aria-hidden="true"></i>'
@@ -245,6 +246,9 @@
         }
       },
       setTool: function (t) {
+        if (typeof t == 'string') {
+          t = this.getTool(t)
+        }
         if (!this.featureEditing.get || t.name !== this.featureEditing.get('toolName')) {
           this.featureEditing = {}
         }
@@ -306,8 +310,8 @@
         var noteCanvas = this.$els.textpreview
         $(noteCanvas).clearCanvas()
         if ((note.style) && (note.style in noteStyles)) {
-          $(noteCanvas).attr("height", note.height + noteOffset)
-          $(noteCanvas).attr("width", note.width + noteOffset)
+          $(noteCanvas).attr('height', note.height + noteOffset)
+          $(noteCanvas).attr('width', note.width + noteOffset)
           noteStyles[note.style](note).forEach(function (cmd) {
             $(noteCanvas)[cmd[0]](cmd[1])
           })
@@ -319,7 +323,7 @@
               // switch for actual image
               vm.notes[key] = window.URL.createObjectURL(blob)
               // FIXME: redraw stuff when saving blobs (broken in chrome)
-              vm.features.getArray().forEach(function(f) {
+              vm.features.getArray().forEach(function (f) {
                 if (JSON.stringify(f.get('note')) === key) {
                   f.changed()
                 }
@@ -441,7 +445,6 @@
           var stopEvent = false
           if (mapBrowserEvent.type === ol.events.EventType.KEYDOWN) {
             var keyEvent = mapBrowserEvent.originalEvent
-            //console.log(keyEvent)
             switch (keyEvent.keyCode) {
               case 65: // a
                 if (keyEvent.ctrlKey) {
@@ -480,8 +483,8 @@
         icon: 'fa-mouse-pointer',
         interactions: [
           this.ui.keyboardInter,
-          this.ui.selectInter,
           this.ui.dragSelectInter,
+          this.ui.selectInter,
           this.ui.translateInter
         ]
       }

@@ -2,26 +2,39 @@
   <div class="tabs-panel" id="layers-catalogue" v-cloak>
     <div class="row">
       <div class="columns">
-        <div class="row">
-          <div class="switch tiny">
-            <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers" />
-            <label class="switch-paddle" for="switchBaseLayers">
-                    <span class="show-for-sr">Switch out base layers</span>
-                  </label>
-          </div>
-          <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
-        </div>
         <div class="row collapse">
           <div class="small-6 columns">
             <select name="select" v-model="search">
-                    <option value="" selected>All layers</option> 
-                    <option value="himawari">Himawari</option>
-                    <option v-bind:value="search">Custom search:</option>
-                  </select>
+              <option value="" selected>All layers</option> 
+              <option v-for="filter in catalogueFilters" v-bind:value="filter[0]">{{ filter[1] }}</option>
+              <option v-bind:value="search">Custom search:</option>
+            </select>
           </div>
           <div class="small-6 columns">
             <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
           </div>
+        </div>
+        <div v-show="search.length > 0 && search !== 'basemap'" class="row">
+          <div class="columns text-right">
+            <label for="switchBaseLayers" class="side-label">Toggle all</label>
+          </div>
+          <div class="small-2 text-right">
+            <div class="switch tiny">
+              <input class="switch-input" title="Toggle all filtered layers" id="ctlgswall" @change="toggleAll($event.target.checked, $event)" type="checkbox" />
+              <label class="switch-paddle" for="ctlgswall">
+                <span class="show-for-sr">Toggle all</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="row" v-show="search === 'basemap'" >
+          <div class="switch tiny">
+            <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers" />
+            <label class="switch-paddle" for="switchBaseLayers">
+              <span class="show-for-sr">Switch out base layers</span>
+            </label>
+          </div>
+          <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
         </div>
         <div id="layers-catalogue-list">
           <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @mouseleave="preview(false)" @click="onToggle($index)" track-by="id">
@@ -32,11 +45,11 @@
             <div class="small-2">
               <div class="text-right">
                 <div class="switch tiny" @click.stop>
-                  <input class="switch-input" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="getMapLayer(l) !== undefined"
+                  <input class="switch-input ctlgsw" id="ctlgsw{{ $index }}" @change="onLayerChange(l, $event.target.checked)" v-bind:checked="getMapLayer(l) !== undefined"
                     type="checkbox" />
                   <label class="switch-paddle" for="ctlgsw{{ $index }}">
-                        <span class="show-for-sr">Toggle layer</span>
-                      </label>
+                    <span class="show-for-sr">Toggle layer</span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -54,15 +67,19 @@
 </style>
 
 <script>
-  import { $, ol } from 'src/vendor.js'
+  import { $, ol, Vue } from 'src/vendor.js'
+  Vue.filter('lessThan', function(value, length) {
+    return value.length < length
+  })
   export default {
+    store: ['catalogueFilters'],
     data: function () {
       return {
         layer: {},
         catalogue: new ol.Collection(),
         swapBaseLayers: true,
         search: '',
-        searchAttrs: ['name', 'id'],
+        searchAttrs: ['name', 'id', 'tags'],
         overview: false
       }
     },
@@ -86,8 +103,12 @@
             projection: 'EPSG:4326'
           })
         })
-        layer.preview.setMap(this.$root.map.map)
+        layer.preview.setMap(this.$root.map.olmap)
         this.layer = layer
+      },
+      toggleAll: function (checked, event) {
+        var switches = $(this.$el).find('input.ctlgsw')
+        switches.attr('checked', !checked).trigger('click')
       },
       // helper function to simulate a <label> style click on a row
       onToggle: function (index) {
@@ -104,6 +125,8 @@
         }
         // make the layer match the state
         if (checked) {
+          var olLayer = map['create' + layer.type](layer)
+          olLayer.setOpacity(layer.opacity || 1)
           if (layer.base) {
             // "Switch out base layers automatically" is enabled, remove
             // all other layers with the "base" option set.
@@ -115,9 +138,9 @@
               })
             }
             // add new base layer to bottom
-            map.olmap.getLayers().insertAt(0, map['create' + layer.type](layer))
+            map.olmap.getLayers().insertAt(0, olLayer)
           } else {
-            map.olmap.addLayer(map['create' + layer.type](layer))
+            map.olmap.addLayer(olLayer)
           }
         } else {
           active.removeLayer(map.getMapLayer(layer))
@@ -130,6 +153,13 @@
         req.withCredentials = true
         req.onload = function () {
           JSON.parse(this.responseText).forEach(function (l) {
+            if (vm.getLayer(l.identifier)) {
+                vm.catalogue.remove(vm.getLayer(l.identifier))
+            }
+            l.base = l.tags.some(function (t) {return t.name === 'basemap'})
+            if (l.tags.some(function (t) { return t.name === 'relief' })) {
+                l.opacity = 0.5
+            }
             vm.catalogue.push(l)
           })
           callback()

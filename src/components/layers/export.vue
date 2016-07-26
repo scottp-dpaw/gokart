@@ -44,6 +44,20 @@
           </div>
         </div>
       </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Vector format:</label>
+        </div>
+        <div class="small-9">
+          <select name="select" v-model="vectorFormat">
+            <option value="json" selected>GeoJSON (web GIS)</option> 
+            <option value="kml">KML (Google Earth)</option>
+            <option value="geopkg">Geopackage (high performance)</option>
+            <option value="shapefile">Shapefile (legacy desktop GIS)</option>
+            <option value="csv">CSV (Spreadsheet/Excel)</option>
+          </select>
+        </div>
+      </div>
       <div class="hide" v-el:legendsvg>
         <gk-legend></gk-legend>
       </div>
@@ -69,7 +83,8 @@
         paperSize: 'A3',
         layout: {},
         title: 'Quick Print',
-        statefile: ''
+        statefile: '',
+        vectorFormat: 'json'
       }
     },
     // parts of the template to be computed live
@@ -108,6 +123,14 @@
           date: 'Printed ' + moment().toLocaleString()
         }
         return result
+      },
+      exportVector: function(features, name) {
+        var name = name || ''
+        var result = this.$root.geojson.writeFeatures(features)
+        var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
+        if (this.vectorFormat === 'json') {
+          saveAs(blob, name + '_' + moment().add(moment().utcOffset(), 'minutes').toISOString().split('.')[0] + '.geo.json')
+        }
       },
       // resize map to page dimensions (in mm) for printing, save layout
       setSize: function () {
@@ -234,7 +257,6 @@
       }
     },
     ready: function () {
-      var vm = this
       this.$on('gk-init', function () {
         // save state every render
         this.olmap.on('postrender', global.debounce(this.saveState, 250, true))

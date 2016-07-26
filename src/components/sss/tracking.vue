@@ -122,7 +122,7 @@
   </div>
 </template>
 <script>
-  import { ol, moment, saveAs } from 'src/vendor.js'
+  import { ol, moment } from 'src/vendor.js'
   export default {
     data: function () {
       return {
@@ -182,9 +182,7 @@
         return this.$root.info.selected(f)
       },
       downloadList: function () {
-        var result = this.$root.geojson.writeFeatures(this.features.filter(this.resourceFilter).sort(this.resourceOrder))
-        var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
-        saveAs(blob, 'tracking_data_' + moment().toLocaleString() + '_.geo.json')
+        this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'trackingdata')
       },
       updateCQLFilter: function () {
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')

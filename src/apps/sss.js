@@ -38,6 +38,18 @@ var defaultStore = {
   tourVersion: null,
   whoami: { email: null },
   remoteCatalogue: 'https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss',
+  // filters for finding layers
+  catalogueFilters: [
+    ['basemap', 'Base Imagery'],
+    ['boundaries', 'Admin Boundaries'],
+    ['communications', 'Communications'],
+    ['operations', 'DPaW Operations'],
+    ['bushfire', 'Fire'],
+    ['infrastructure', 'Infrastructure'],
+    ['meteorology', 'Meteorology'],
+    ['relief', 'Relief'],
+    ['sensitive', 'Sensitive Sites']
+  ],
   // overridable defaults for WMTS and WFS loading
   defaultWMTSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts',
   defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
@@ -337,35 +349,28 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: divisionStyle
       })
 
-      var sectorStyle = new ol.style.Style({
-        image: new ol.style.Icon({
-          anchor: [0.5, 0.5],
-          anchorXUnits: 'fraction',
-          anchorYUnits: 'fraction',
-          src: 'dist/static/symbols/svgs/sss/sector.svg'
+      var sectorStyle = function (feat, res) {
+        //console.log(feat, res)
+        var rot = feat.get('rotation') || 1.0
+        return new ol.style.Style({
+          image: new ol.style.Icon({
+            anchor: [0.5, 0.5],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'fraction',
+            src: 'dist/static/symbols/svgs/sss/sector.svg',
+            rotation: rot,
+            rotateWithView: true
+          })
         })
-      })
+      }
 
       var sectorDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
         style: sectorStyle
       })
-
-      var fireLineStyle = new ol.style.Style({
-        stroke: new ol.style.Stroke({
-          width: 4.0,
-          lineDash: [20, 20],
-          color: [0, 114, 0, 1.0],
-          lineCap: 'square',
-          lineJoin: 'bevel'
-        })
-      })
-
-      var fireLineDraw = new ol.interaction.Draw({
-        type: 'LineString',
-        features: this.annotations.features,
-        style: fireLineStyle
+      sectorDraw.on('drawstart', function (ev) {
+         //console.log(ev)
       })
 
       var fireBoundaryStyle = new ol.style.Style({
@@ -414,7 +419,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           name: 'Sector',
           icon: 'dist/static/symbols/svgs/sss/sector.svg',
           interactions: [sectorDraw, snapToLines],
-          style: sectorStyle,
+          style: function (res) { return sectorStyle(this, res) },
           showName: true
         }, {
           name: 'Fire Boundary',
@@ -434,7 +439,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       // load map with default layers
       this.map.init(catalogue, this.store.activeLayers)
-      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue, function() {
+      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue, function () {
         // after catalogue load trigger a tour
         if (self.store.tourVersion !== tour.version) {
           self.store.tourVersion = tour.version

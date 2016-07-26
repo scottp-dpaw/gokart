@@ -82,6 +82,9 @@
           this.features = features
           this.coordinate = ol.coordinate.toStringXY(this.$root.map.olmap.getCoordinateFromPixel(pixel), 3)
           this.pixel = pixel
+        } else {
+          // hide when no features
+          this.pixel.$set(0, 0)
         }
       },
       selected: function (f) {
