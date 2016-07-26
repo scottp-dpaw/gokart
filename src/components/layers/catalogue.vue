@@ -103,7 +103,7 @@
             projection: 'EPSG:4326'
           })
         })
-        layer.preview.setMap(this.$root.map.map)
+        layer.preview.setMap(this.$root.map.olmap)
         this.layer = layer
       },
       toggleAll: function (checked, event) {

@@ -65,7 +65,7 @@ def gdal(fmt):
     if fmt == "tif":
         of = "GTiff"
         ct = "image/tiff"
-        extra = ["-co", "COMPRESS=JPEG", "-co" "PHOTOMETRIC=YCBCR", "-co", "JPEG_QUALITY=95"]
+        extra = ["-co", "COMPRESS=JPEG", "-co", "PHOTOMETRIC=YCBCR", "-co", "JPEG_QUALITY=95"]
     elif fmt == "pdf":
         of = "PDF"
         ct = "application/pdf"
