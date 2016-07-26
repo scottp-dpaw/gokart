@@ -2,15 +2,6 @@
   <div class="tabs-panel" id="layers-catalogue" v-cloak>
     <div class="row">
       <div class="columns">
-        <div class="row">
-          <div class="switch tiny">
-            <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers" />
-            <label class="switch-paddle" for="switchBaseLayers">
-              <span class="show-for-sr">Switch out base layers</span>
-            </label>
-          </div>
-          <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
-        </div>
         <div class="row collapse">
           <div class="small-6 columns">
             <select name="select" v-model="search">
@@ -35,6 +26,15 @@
               </label>
             </div>
           </div>
+        </div>
+        <div class="row" v-show="search === 'basemap'" >
+          <div class="switch tiny">
+            <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers" />
+            <label class="switch-paddle" for="switchBaseLayers">
+              <span class="show-for-sr">Switch out base layers</span>
+            </label>
+          </div>
+          <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
         </div>
         <div id="layers-catalogue-list">
           <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @mouseleave="preview(false)" @click="onToggle($index)" track-by="id">
