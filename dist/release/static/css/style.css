@@ -76,16 +76,6 @@ body {
     outline: 0;
 }
 
-.ol-overviewmap .ol-overviewmap-map {
-    border: 0px;
-    margin: 0px;
-    width: 30vw;
-    height: 30vh;
-}
-
-.ol-overviewmap .ol-overviewmap-map .ol-overviewmap-box {
-    display: none;
-}
 /* position fixes for top-right OpenLayers map widgets */
 
 .ol-scale-line {

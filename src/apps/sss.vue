@@ -12,7 +12,7 @@
             <div class="off-canvas-content" data-off-canvas-content>
                 <ul class="tabs vertical map-widget" id="menu-tabs" data-tabs>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-layers" title="Map Layers">
+                        <a href="#menu-tab-layers" title="Map Layers" @click="$root.annotations.setTool('Pan')">
                             <svg class="icon">
                                 <use xlink:href="dist/static/images/iD-sprite.svg#icon-layers"></use>
                             </svg>
@@ -26,7 +26,7 @@
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-tracking" title="Vehicle Tracking">
+                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="$root.annotations.setTool('Pan')">
                             <svg class="icon">
                                 <use xlink:href="dist/static/images/iD-sprite.svg#icon-geolocate"></use>
                             </svg>

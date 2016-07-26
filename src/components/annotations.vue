@@ -150,8 +150,7 @@
         p2: {
           type: 'line',
           x1: noteOffset, y1: 2,
-          x2: noteOffset, y2: note.height + noteOffset / 2,
-          x3: note.width + noteOffset - 2, y3: note.height + noteOffset / 2
+          x2: noteOffset, y2: note.height + noteOffset / 2
         }
       }
       var textTmpl = {
@@ -247,6 +246,9 @@
         }
       },
       setTool: function (t) {
+        if (typeof t == 'string') {
+          t = this.getTool(t)
+        }
         if (!this.featureEditing.get || t.name !== this.featureEditing.get('toolName')) {
           this.featureEditing = {}
         }

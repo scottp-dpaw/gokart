@@ -2,15 +2,6 @@
   <div class="tabs-panel" id="layers-catalogue" v-cloak>
     <div class="row">
       <div class="columns">
-        <div class="row">
-          <div class="switch tiny">
-            <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers" />
-            <label class="switch-paddle" for="switchBaseLayers">
-                    <span class="show-for-sr">Switch out base layers</span>
-                  </label>
-          </div>
-          <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
-        </div>
         <div class="row collapse">
           <div class="small-6 columns">
             <select name="select" v-model="search">
@@ -23,7 +14,7 @@
             <input id="find-layer" type="search" v-model="search" placeholder="Find a layer">
           </div>
         </div>
-        <div v-show="search.length > 0" class="row">
+        <div v-show="search.length > 0 && search !== 'basemap'" class="row">
           <div class="columns text-right">
             <label for="switchBaseLayers" class="side-label">Toggle all</label>
           </div>
@@ -35,6 +26,15 @@
               </label>
             </div>
           </div>
+        </div>
+        <div class="row" v-show="search === 'basemap'" >
+          <div class="switch tiny">
+            <input class="switch-input" id="switchBaseLayers" type="checkbox" v-model="swapBaseLayers" />
+            <label class="switch-paddle" for="switchBaseLayers">
+              <span class="show-for-sr">Switch out base layers</span>
+            </label>
+          </div>
+          <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
         </div>
         <div id="layers-catalogue-list">
           <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @mouseleave="preview(false)" @click="onToggle($index)" track-by="id">
@@ -55,6 +55,13 @@
             </div>
           </div>
         </div>
+        <div v-el:layerdetails class="hide">
+          <div class="layerdetails">
+            {{ layer.name }}<br>
+            Details: TODO
+            <img src="{{ layer.legend }}"/>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -63,6 +70,21 @@
 <style>
 .short.button {
     margin: 0px;
+}
+
+.ol-overviewmap .ol-overviewmap-map {
+    border: 0px;
+    margin: 0px;
+    width: 30vw;
+    height: 40vh;
+}
+
+div.ol-overviewmap.ol-uncollapsible {
+  background-color: #424f5a;
+}
+
+.ol-overviewmap .ol-overviewmap-map .ol-overviewmap-box {
+    display: none;
 }
 </style>
 
@@ -80,7 +102,8 @@
         swapBaseLayers: true,
         search: '',
         searchAttrs: ['name', 'id', 'tags'],
-        overview: false
+        overview: false,
+        layerDetails: false
       }
     },
     methods: {
@@ -95,16 +118,24 @@
             return
           }
         }
-        layer.preview = new ol.control.OverviewMap({
-          layers: [this.$root.map['create' + layer.type](layer)],
-          collapsed: false,
-          collapsible: false,
-          view: new ol.View({
-            projection: 'EPSG:4326'
+        if (!layer.preview) {
+          layer.preview = new ol.control.OverviewMap({
+            layers: [this.$root.map['create' + layer.type](layer)],
+            collapsed: false,
+            collapsible: false,
+            view: new ol.View({
+              projection: 'EPSG:4326'
+            })
           })
-        })
-        layer.preview.setMap(this.$root.map.map)
+        }
+        layer.preview.setMap(this.$root.map.olmap)
+        var previewEl = $(layer.preview.getOverviewMap().getTargetElement())
         this.layer = layer
+        if (!previewEl.find('.layerdetails').length > 0) {
+          this.$nextTick(function() {
+            previewEl.prepend(this.$els.layerdetails.innerHTML)
+          })
+        }
       },
       toggleAll: function (checked, event) {
         var switches = $(this.$el).find('input.ctlgsw')
