@@ -64,7 +64,7 @@
         sliderOpacity: 0,
         layer: {},
         olLayers: [],
-        hoverInfoCache: true,
+        hoverInfoCache: false,
         timeIndex: 0
       }
     },
