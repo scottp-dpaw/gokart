@@ -334,14 +334,19 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: spotFireStyle
       })
 
-      var divisionStyle = new ol.style.Style({
-        image: new ol.style.Icon({
-          anchor: [0.5, 0.5],
-          anchorXUnits: 'fraction',
-          anchorYUnits: 'fraction',
-          src: 'dist/static/symbols/svgs/sss/division.svg'
+      var divisionStyle = function (feat, res) {
+        var rot = feat.get('rotation') || 0.0
+        return new ol.style.Style({
+          image: new ol.style.Icon({
+            anchor: [0.5, 0.5],
+            anchorXUnits: 'fraction',
+            anchorYUnits: 'fraction',
+            src: 'dist/static/symbols/svgs/sss/division.svg',
+            rotation: rot,
+            rotateWithView: true
+          })
         })
-      })
+      }
 
       var divisionDraw = new ol.interaction.Draw({
         type: 'Point',
@@ -350,8 +355,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       })
 
       var sectorStyle = function (feat, res) {
-        //console.log(feat, res)
-        var rot = feat.get('rotation') || 1.0
+        var rot = feat.get('rotation') || 0.0
         return new ol.style.Style({
           image: new ol.style.Icon({
             anchor: [0.5, 0.5],
@@ -369,9 +373,49 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         features: this.annotations.features,
         style: sectorStyle
       })
-      sectorDraw.on('drawstart', function (ev) {
-         //console.log(ev)
-      })
+
+      var getPerpendicular = function (coords) {
+        // find the nearest Polygon or lineString in the annotations layer
+        var nearestFeature = gokart.annotations.featureOverlay.getSource().getClosestFeatureToCoordinate(
+          coords, function (feat) {
+            var geom = feat.getGeometry()
+            return ((geom instanceof ol.geom.Polygon) || (geom instanceof ol.geom.LineString))
+          }
+        )
+        var segments = []
+        var source = []
+        var segLength = 0
+        // if a Polygon, join the last segment to the first
+        if (nearestFeature.getGeometry() instanceof ol.geom.Polygon) {
+          source = nearestFeature.getGeometry().getCoordinates()[0]
+          segLength = source.length
+        } else {
+        // if a LineString, don't include the last segment
+          source = nearestFeature.getGeometry().getCoordinates()
+          segLength = source.length-1
+        }
+        for (var i=0; i < segLength; i++) {
+          segments.push([source[i], source[(i+1)%source.length]])
+        }
+        // sort segments by ascending distance from point
+        segments.sort(function (a, b) {
+          return ol.coordinate.squaredDistanceToSegment(coords, a) - ol.coordinate.squaredDistanceToSegment(coords, b)
+        })
+
+        // head of the list is our target segment. reverse this to get the normal angle
+        var offset = [segments[0][1][0] - segments[0][0][0], segments[0][1][1] - segments[0][0][1]]
+        var normal = Math.atan2(-offset[1], offset[0])
+        return normal
+      }
+
+      var rotateIcon = function (ev) {
+        var coords = ev.feature.getGeometry().getCoordinates()
+        ev.feature.set('rotation', getPerpendicular(coords))
+      }
+
+      sectorDraw.on('drawstart', rotateIcon)
+      divisionDraw.on('drawstart', rotateIcon)
+
 
       var fireBoundaryStyle = new ol.style.Style({
         stroke: new ol.style.Stroke({
@@ -413,7 +457,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           name: 'Division',
           icon: 'dist/static/symbols/svgs/sss/division.svg',
           interactions: [divisionDraw, snapToLines],
-          style: divisionStyle,
+          style: function (res) { return divisionStyle(this, res) },
           showName: true
         }, {
           name: 'Sector',

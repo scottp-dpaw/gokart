@@ -25,7 +25,7 @@
     store: ['sel'],
     data: function () {
       return {
-        enabled: true,
+        enabled: false,
         features: false,
         coordinate: '',
         offset: 20,

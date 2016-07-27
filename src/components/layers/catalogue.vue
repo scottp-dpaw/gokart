@@ -55,6 +55,13 @@
             </div>
           </div>
         </div>
+        <div v-el:layerdetails class="hide">
+          <div class="layerdetails">
+            {{ layer.name }}<br>
+            Details: TODO
+            <img src="{{ layer.legend }}"/>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -63,6 +70,21 @@
 <style>
 .short.button {
     margin: 0px;
+}
+
+.ol-overviewmap .ol-overviewmap-map {
+    border: 0px;
+    margin: 0px;
+    width: 30vw;
+    height: 40vh;
+}
+
+div.ol-overviewmap.ol-uncollapsible {
+  background-color: #424f5a;
+}
+
+.ol-overviewmap .ol-overviewmap-map .ol-overviewmap-box {
+    display: none;
 }
 </style>
 
@@ -80,7 +102,8 @@
         swapBaseLayers: true,
         search: '',
         searchAttrs: ['name', 'id', 'tags'],
-        overview: false
+        overview: false,
+        layerDetails: false
       }
     },
     methods: {
@@ -95,16 +118,24 @@
             return
           }
         }
-        layer.preview = new ol.control.OverviewMap({
-          layers: [this.$root.map['create' + layer.type](layer)],
-          collapsed: false,
-          collapsible: false,
-          view: new ol.View({
-            projection: 'EPSG:4326'
+        if (!layer.preview) {
+          layer.preview = new ol.control.OverviewMap({
+            layers: [this.$root.map['create' + layer.type](layer)],
+            collapsed: false,
+            collapsible: false,
+            view: new ol.View({
+              projection: 'EPSG:4326'
+            })
           })
-        })
+        }
         layer.preview.setMap(this.$root.map.olmap)
+        var previewEl = $(layer.preview.getOverviewMap().getTargetElement())
         this.layer = layer
+        if (!previewEl.find('.layerdetails').length > 0) {
+          this.$nextTick(function() {
+            previewEl.prepend(this.$els.layerdetails.innerHTML)
+          })
+        }
       },
       toggleAll: function (checked, event) {
         var switches = $(this.$el).find('input.ctlgsw')

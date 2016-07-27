@@ -30,6 +30,8 @@ import moment from 'moment'
 import dragula from 'dragula'
 // Data storage engine
 import localforage from 'localforage'
+// attach elements to eachother
+import Tether from 'tether'
 // Guided tour lib
 import Shepherd from 'tether-shepherd'
 
@@ -44,5 +46,6 @@ export {
   moment,
   dragula,
   localforage,
+  Tether,
   Shepherd
 }
