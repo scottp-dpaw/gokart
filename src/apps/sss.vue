@@ -66,7 +66,8 @@
             'selected': [[stroke,'#ffffff'], [fill,'#2199e8']]
           },
           svgTemplates: {},
-          svgBlobs: {}
+          svgBlobs: {},
+          styles: {}
         }
       },
       methods: {
@@ -76,16 +77,31 @@
           })
           return svgstring
         },
-        getBlob: function(url, tintKey) {
+        cacheStyle: function(styleFunc, feature, keys) {
+          var key = keys.map(function(k) {
+            return feature.get(k)
+          }).join(";")
+          var style = this.styles[key]
+          if (style) { return style }
+          style = styleFunc(feature)
+          if (style) {
+            this.styles[key] = style
+            return style
+          }
+          return ol.style.defaultStyleFunction()
+        },
+        getBlob: function(url, tintKey, feature) {
+          // method to precache SVGs as raster (PNGs)
+          // workaround for Firefox missing the SurfaceCache when blitting to canvas
           // returns a url or undefined if svg isn't baked yet
           var key = url + '#' + tintKey
           if (this.svgBlobs[key]) {
             return this.svgBlobs[key]
           } else {
-            this.addSVG(url)
+            this.addSVG(url, feature)
           }
         },
-        addSVG: function(url, tints, dims) {
+        addSVG: function(url, feature, tints, dims) {
           var vm = this
           if (!tints) {
             // tint everything if not specified
@@ -111,6 +127,7 @@
                 load: function () {
                   canvas.get(0).toBlob(function (blob) {
                     vm.svgBlobs[svg.url + '#' + tint] = window.URL.createObjectURL(blob)
+                    if (feature) { feature.changed() }
                   }, 'image/png')
                 }
               })
