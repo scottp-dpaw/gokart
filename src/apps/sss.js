@@ -124,9 +124,9 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         var ctx = canvas.getContext('2d')
         var img = new window.Image()
         img.onload = function () {
-          canvas.width = img.width
-          canvas.height = img.height
-          ctx.drawImage(img, 0, 0)
+          canvas.width = img.width*2
+          canvas.height = img.height*2
+          ctx.drawImage(img, 0, 0, img.width*2, img.height*2)
           canvas.toBlob(function (blob) {
             self.pngs[url] = window.URL.createObjectURL(blob)
           }, 'image/png')
@@ -188,6 +188,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       var initStyle = function (icon) {
         var imageicon = new ol.style.Icon({
           src: self.svgToPNG(icon),
+          scale: 0.5,
           opacity: 0.9
         })
         var style = new ol.style.Style({
