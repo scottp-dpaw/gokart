@@ -11,7 +11,7 @@
         <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)" track-by="get('id')">
           <div v-if="f.get('partialId') !== 'resourceInfo'" class="columns">{{ f.getId() }}</div>
           <div v-if="f.get('partialId') === 'resourceInfo'" class="columns">
-            <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f.get('icon'), f.get('tint'), f)" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
+            <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f.get('icon'), f.get('baseTint'), f)" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
           </div>
         </div>
       </div>
@@ -97,20 +97,20 @@
       selected: function (f) {
         var id = f.get('selectId') || f.getId()
         if (this.sel.indexOf(id) > -1) {
-          f.set('origTint', f.get('tint'))
           f.set('tint', 'selected')
           return true
+        } else {
+          f.set('tint', f.get('baseTint'))
+          return false
         }
-        return false
       },
       select: function (f) {
         var id = f.get('selectId') || f.getId()
         if (this.sel.indexOf(id) > -1) {
-          f.set('origTint', f.get('tint'))
           f.set('tint', 'selected')
           this.sel.$remove(id)
         } else {
-          f.set('tint', f.get('origTint'))
+          f.set('tint', f.get('baseTint'))
           this.sel.push(id)
         }
       }
