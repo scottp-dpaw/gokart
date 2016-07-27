@@ -77,6 +77,7 @@
           return svgstring
         },
         getBlob: function(url, tintKey) {
+          // returns a url or undefined if svg isn't baked yet
           var key = url + '#' + tintKey
           if (this.svgBlobs[key]) {
             return this.svgBlobs[key]
