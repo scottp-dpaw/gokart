@@ -189,7 +189,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         var imageicon = new ol.style.Icon({
           src: self.svgToPNG(icon),
           scale: 0.5,
-          opacity: 0.9
+          opacity: 1.0,
+          snapToPixel: true
         })
         var style = new ol.style.Style({
           image: imageicon,
