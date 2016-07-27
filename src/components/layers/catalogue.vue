@@ -37,7 +37,7 @@
           <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
         </div>
         <div id="layers-catalogue-list">
-          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @mouseleave="preview(false)" @click="onToggle($index)" track-by="id">
+          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @click="onToggle($index)" track-by="id">
             <div class="small-10">
               <a @click.stop href="https://oim.dpaw.wa.gov.au/django-admin/catalogue/record/?identifier={{ l.id }}" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
@@ -56,10 +56,12 @@
           </div>
         </div>
         <div v-el:layerdetails class="hide">
-          <div class="layerdetails">
-            {{ layer.name }}<br>
-            Details: TODO
-            <img src="{{ layer.legend }}"/>
+          <div class="layerdetails row">
+            <div class="columns small-12">
+              {{ layer.name }}<br>
+              Details: TODO
+              <img src="{{ layer.legend }}" class="cat-legend"/>
+            </div>
           </div>
         </div>
       </div>
@@ -72,19 +74,36 @@
     margin: 0px;
 }
 
+/* hide preview on tablets and mobile */
+@media screen and (max-width: 60em) {
+    .ol-overviewmap {
+        display: none;
+    }
+}
+
+.ol-overviewmap {
+    width: 424px;
+    height: 100vh;
+    z-index: 1;
+}
+
 .ol-overviewmap .ol-overviewmap-map {
+    width: 100%;
+    height: 100%;
     border: 0px;
     margin: 0px;
-    width: 30vw;
-    height: 40vh;
 }
 
 div.ol-overviewmap.ol-uncollapsible {
-  background-color: #424f5a;
+  background-color: rgba(51, 61, 70, 0.9);
 }
 
 .ol-overviewmap .ol-overviewmap-map .ol-overviewmap-box {
     display: none;
+}
+
+.cat-legend {
+    max-height: 50vh;
 }
 </style>
 
@@ -107,20 +126,20 @@ div.ol-overviewmap.ol-uncollapsible {
       }
     },
     methods: {
-      preview: function (layer) {
-        if (this.layer === layer) {
+      preview: function (l) {
+        if (this.layer === l) {
           return
         }
-        if (!layer && this.layer.preview) {
+        if (this.layer.preview) {
           this.layer.preview.setMap(null)
-          if (!layer) {
-            this.layer = {}
-            return
-          }
         }
-        if (!layer.preview) {
-          layer.preview = new ol.control.OverviewMap({
-            layers: [this.$root.map['create' + layer.type](layer)],
+        if (!l) {
+          this.layer = {}
+          return
+        }
+        if (!l.preview) {
+          l.preview = new ol.control.OverviewMap({
+            layers: [this.$root.map['create' + l.type](l)],
             collapsed: false,
             collapsible: false,
             view: new ol.View({
@@ -128,9 +147,9 @@ div.ol-overviewmap.ol-uncollapsible {
             })
           })
         }
-        layer.preview.setMap(this.$root.map.olmap)
-        var previewEl = $(layer.preview.getOverviewMap().getTargetElement())
-        this.layer = layer
+        l.preview.setMap(this.$root.map.olmap)
+        var previewEl = $(l.preview.getOverviewMap().getTargetElement())
+        this.layer = l
         if (!previewEl.find('.layerdetails').length > 0) {
           this.$nextTick(function() {
             previewEl.prepend(this.$els.layerdetails.innerHTML)
@@ -215,6 +234,12 @@ div.ol-overviewmap.ol-uncollapsible {
         l.id = l.id || l.identifier
         l.name = l.name || l.title
         l.type = l.type || 'TileLayer'
+      })
+      this.$on('gk-init', function() {
+        var vm = this;
+        $(this.$root.map.olmap.getTargetElement()).on('mouseleave', '.ol-overviewmap', function() {
+            vm.preview(false)
+        })
       })
     }
   }
