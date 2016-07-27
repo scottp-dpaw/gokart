@@ -22,6 +22,8 @@ import 'foundation-sites'
 import svg4everybody from 'svg4everybody'
 // Cross-browser support for saving blobs from a webpage
 import { saveAs } from 'filesaverjs'
+// Cross-browser polyfill for canvas.toBlob
+require('blueimp-canvas-to-blob')
 // QR code generator
 import kjua from 'kjua'
 // Timestamp parsing library

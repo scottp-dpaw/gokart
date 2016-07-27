@@ -43,6 +43,7 @@
     }
   },
   "dependencies": {
+    "blueimp-canvas-to-blob": "^3.3.0",
     "dexie": "^1.4.1",
     "dragula": "^3.7.1",
     "filesaverjs": "^0.2.2",
