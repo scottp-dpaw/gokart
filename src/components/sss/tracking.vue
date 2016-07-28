@@ -109,7 +109,7 @@
                 @click="select(f)" track-by="get('id')">
                 <div class="columns">
                   <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button small secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img v-bind:src="f.get('icon')" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
+                  <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f.get('icon'), f.get('baseTint'), f)" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
                   <small>{{ f.get('time') }}</small>
                 </div>
               </div>

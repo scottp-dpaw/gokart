@@ -113,31 +113,10 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       geojson: function () { return new ol.format.GeoJSON() },
       wgs84Sphere: function () { return new ol.Sphere(6378137) }
     },
-    methods: {
-      // method to precache SVGs as raster (PNGs)
-      // workaround for Firefox missing the SurfaceCache when blitting to canvas
-      svgToPNG: function (url) {
-        var self = this
-        if (self.pngs[url]) {
-          return self.pngs[url]
-        }
-        var canvas = $('<canvas>').get(0)
-        var ctx = canvas.getContext('2d')
-        var img = new window.Image()
-        img.onload = function () {
-          canvas.width = img.width*2
-          canvas.height = img.height*2
-          ctx.drawImage(img, 0, 0, img.width*2, img.height*2)
-          canvas.toBlob(function (blob) {
-            self.pngs[url] = window.URL.createObjectURL(blob)
-          }, 'image/png')
-        }
-        img.src = url
-        return url
-      }
-    },
     ready: function () {
       var self = this
+      var getBlob = this.$refs.app.getBlob
+      var cacheStyle = this.$refs.app.cacheStyle
       // setup foundation, svg url support
       $(document).foundation()
       svg4everybody()
@@ -176,46 +155,20 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.map.olmap.updateSize()
       })
 
-      var stylecache = {}
-      var textStyle = new ol.style.Text({
-        offsetX: 12,
-        textAlign: 'left',
-        font: '12px Helvetica,Roboto,Arial,sans-serif',
-        stroke: new ol.style.Stroke({
-          color: '#fff',
-          width: 4
-        })
-      })
-      var initStyle = function (icon) {
-        var imageicon = new ol.style.Icon({
-          src: self.svgToPNG(icon),
-          scale: 0.5,
-          opacity: 1.0,
-          snapToPixel: true
-        })
-        var style = new ol.style.Style({
-          image: imageicon,
-          text: textStyle,
-          stroke: new ol.style.Stroke({
-            color: [52, 101, 164, 0.6],
-            width: 4.0
-          })
-        })
-        stylecache[icon] = style
-        return style
-      }
       var addResource = function (f) {
-        var color = '_red'
+        var tint = 'red'
         if (f.get('age') < 24) {
-          color = '_orange'
+          tint = 'orange'
         };
         if (f.get('age') < 3) {
-          color = '_yellow'
+          tint = 'yellow'
         };
         if (f.get('age') <= 1) {
-          color = '_green'
+          tint = 'green'
         };
-        f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + color + '.svg')
+        f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + '.svg')
+        f.set('tint', tint)
+        f.set('baseTint', tint)
         f.set('label', f.get('name') || f.get('callsign') || f.get('rego') || f.get('deviceid'))
         f.set('time', moment(f.get('seen')).toLocaleString())
         // Set a different vue template for rendering
@@ -223,15 +176,40 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         // Set id for select tools
         f.set('selectId', f.get('deviceid'))
       }
+
       var resourceTrackingStyle = function (f, res) {
-        var style = stylecache[f.get('icon')] || initStyle(f.get('icon'))
-        if (self.pngs[style.getImage().iconImage_.src_]) {
-          style = initStyle(f.get('icon'))
-        };
-        if (res < 0.002) {
-          style.getText().setText(f.get('label'))
-        } else {
-          style.getText().setText('')
+        // cache styles for performance
+        var style = cacheStyle(function(f) {
+          var src = getBlob(f.get('icon'), f.get('tint'), f)
+          if (!src) { return false }
+          return new ol.style.Style({
+            image: new ol.style.Icon({
+              src: src,
+              scale: 0.5,
+              opacity: 1.0,
+              snapToPixel: true
+            }),
+            text: new ol.style.Text({
+              offsetX: 12,
+              textAlign: 'left',
+              font: '12px Helvetica,Roboto,Arial,sans-serif',
+              stroke: new ol.style.Stroke({
+                color: '#fff',
+                width: 4
+              })
+            }),
+            stroke: new ol.style.Stroke({
+              color: [52, 101, 164, 0.6],
+              width: 4.0
+            })
+          })
+        }, f, ['icon', 'tint'])
+        if (style.getText) {
+          if (res < 0.002) {
+            style.getText().setText(f.get('label'))
+          } else {
+            style.getText().setText('')
+          }
         }
         return style
       }
@@ -327,7 +305,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           anchor: [0.5, 0.5],
           anchorXUnits: 'fraction',
           anchorYUnits: 'fraction',
-          src: 'dist/static/symbols/svgs/sss/spotfire.svg'
+          src: 'dist/static/symbols/fire/spotfire.svg'
         })
       })
 
@@ -344,7 +322,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
             anchor: [0.5, 0.5],
             anchorXUnits: 'fraction',
             anchorYUnits: 'fraction',
-            src: 'dist/static/symbols/svgs/sss/division.svg',
+            src: 'dist/static/symbols/fire/division.svg',
             rotation: rot,
             rotateWithView: true
           })
@@ -364,7 +342,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
             anchor: [0.5, 0.5],
             anchorXUnits: 'fraction',
             anchorYUnits: 'fraction',
-            src: 'dist/static/symbols/svgs/sss/sector.svg',
+            src: 'dist/static/symbols/fire/sector.svg',
             rotation: rot,
             rotateWithView: true
           })
@@ -452,19 +430,19 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           showName: true
         }, {
           name: 'Spot Fire',
-          icon: 'dist/static/symbols/svgs/sss/spotfire.svg',
+          icon: 'dist/static/symbols/fire/spotfire.svg',
           interactions: [spotFireDraw],
           style: spotFireStyle,
           showName: true
         }, {
           name: 'Division',
-          icon: 'dist/static/symbols/svgs/sss/division.svg',
+          icon: 'dist/static/symbols/fire/division.svg',
           interactions: [divisionDraw, snapToLines],
           style: function (res) { return divisionStyle(this, res) },
           showName: true
         }, {
           name: 'Sector',
-          icon: 'dist/static/symbols/svgs/sss/sector.svg',
+          icon: 'dist/static/symbols/fire/sector.svg',
           interactions: [sectorDraw, snapToLines],
           style: function (res) { return sectorStyle(this, res) },
           showName: true
