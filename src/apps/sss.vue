@@ -59,6 +59,7 @@
         var fill = '#7c3100'
         return {
           tints: {
+            'default': [],
             'red': [[stroke,'#ed2727'], [fill,'#480000']],
             'orange': [[stroke,'#ff6600'], [fill,'#562200']],
             'yellow': [[stroke,'#ffd700'], [fill,'#413104']],
@@ -94,6 +95,7 @@
           // method to precache SVGs as raster (PNGs)
           // workaround for Firefox missing the SurfaceCache when blitting to canvas
           // returns a url or undefined if svg isn't baked yet
+          
           var key = url + '#' + tintKey
           if (this.svgBlobs[key]) {
             return this.svgBlobs[key]
@@ -127,7 +129,7 @@
                 load: function () {
                   canvas.get(0).toBlob(function (blob) {
                     vm.svgBlobs[svg.url + '#' + tint] = window.URL.createObjectURL(blob)
-                    if (feature) { feature.changed() }
+                    if (feature && feature.get('tint') === tint) { feature.changed() }
                   }, 'image/png')
                 }
               })

@@ -177,16 +177,15 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         f.set('selectId', f.get('deviceid'))
       }
 
-      var resourceTrackingStyle = function (f, res) {
+      var resourceTrackingStyle = function (feat, res) {
         // cache styles for performance
-        var style = cacheStyle(function(f) {
-          var src = getBlob(f.get('icon'), f.get('tint'), f)
+        var style = cacheStyle(function (feat) {
+          var src = getBlob(feat.get('icon'), feat.get('tint'), feat)
           if (!src) { return false }
           return new ol.style.Style({
             image: new ol.style.Icon({
               src: src,
               scale: 0.5,
-              opacity: 1.0,
               snapToPixel: true
             }),
             text: new ol.style.Text({
@@ -203,16 +202,81 @@ localforage.getItem('sssOfflineStore').then(function (store) {
               width: 4.0
             })
           })
-        }, f, ['icon', 'tint'])
+        }, feat, ['icon', 'tint'])
         if (style.getText) {
           if (res < 0.002) {
-            style.getText().setText(f.get('label'))
+            style.getText().setText(feat.get('label'))
           } else {
             style.getText().setText('')
           }
         }
         return style
       }
+
+      var iconStyle = function (feat, res) {
+        var style = cacheStyle(function (feat) {
+          var src = getBlob(feat.get('icon'), feat.get('tint'), feat)
+          if (!src) { return false }
+          var rot = feat.get('rotation') || 0.0
+          return new ol.style.Style({
+            image: new ol.style.Icon({
+              src: src,
+              scale: 0.5,
+              rotation: rot,
+              rotateWithView: true,
+              snapToPixel: true
+            })
+          })
+        }, feat, ['icon', 'tint', 'rotation', 'selected'])
+        return style
+      }
+
+      var setIcon = function (path) {
+        return function (ev) {
+          ev.feature.set('tint', 'default')
+          ev.feature.set('icon', path)
+        }
+      }
+
+      var getPerpendicular = function (coords) {
+        // find the nearest Polygon or lineString in the annotations layer
+        var nearestFeature = gokart.annotations.featureOverlay.getSource().getClosestFeatureToCoordinate(
+          coords, function (feat) {
+            var geom = feat.getGeometry()
+            return ((geom instanceof ol.geom.Polygon) || (geom instanceof ol.geom.LineString))
+          }
+        )
+        var segments = []
+        var source = []
+        var segLength = 0
+        // if a Polygon, join the last segment to the first
+        if (nearestFeature.getGeometry() instanceof ol.geom.Polygon) {
+          source = nearestFeature.getGeometry().getCoordinates()[0]
+          segLength = source.length
+        } else {
+        // if a LineString, don't include the last segment
+          source = nearestFeature.getGeometry().getCoordinates()
+          segLength = source.length-1
+        }
+        for (var i=0; i < segLength; i++) {
+          segments.push([source[i], source[(i+1)%source.length]])
+        }
+        // sort segments by ascending distance from point
+        segments.sort(function (a, b) {
+          return ol.coordinate.squaredDistanceToSegment(coords, a) - ol.coordinate.squaredDistanceToSegment(coords, b)
+        })
+
+        // head of the list is our target segment. reverse this to get the normal angle
+        var offset = [segments[0][1][0] - segments[0][0][0], segments[0][1][1] - segments[0][0][1]]
+        var normal = Math.atan2(-offset[1], offset[0])
+        return normal
+      }
+
+      var rotateIcon = function (ev) {
+        var coords = ev.feature.getGeometry().getCoordinates()
+        ev.feature.set('rotation', getPerpendicular(coords))
+      }
+      
 
       // pack-in catalogue
       var catalogue = [{
@@ -300,102 +364,33 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: hotSpotStyle
       })
 
-      var spotFireStyle = new ol.style.Style({
-        image: new ol.style.Icon({
-          anchor: [0.5, 0.5],
-          anchorXUnits: 'fraction',
-          anchorYUnits: 'fraction',
-          src: 'dist/static/symbols/fire/spotfire.svg'
-        })
+      var spotFireDefault = new ol.Feature({
+        'icon': 'dist/static/symbols/fire/spotfire.svg',
+        'tint': 'default'
       })
-
       var spotFireDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
-        style: spotFireStyle
+        style: function (feat, res) { return iconStyle(spotFireDefault, res) }
       })
-
-      var divisionStyle = function (feat, res) {
-        var rot = feat.get('rotation') || 0.0
-        return new ol.style.Style({
-          image: new ol.style.Icon({
-            anchor: [0.5, 0.5],
-            anchorXUnits: 'fraction',
-            anchorYUnits: 'fraction',
-            src: 'dist/static/symbols/fire/division.svg',
-            rotation: rot,
-            rotateWithView: true
-          })
-        })
-      }
+      spotFireDraw.on('drawstart', setIcon('dist/static/symbols/fire/spotfire.svg'))
 
       var divisionDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
-        style: divisionStyle
+        style: iconStyle
       })
-
-      var sectorStyle = function (feat, res) {
-        var rot = feat.get('rotation') || 0.0
-        return new ol.style.Style({
-          image: new ol.style.Icon({
-            anchor: [0.5, 0.5],
-            anchorXUnits: 'fraction',
-            anchorYUnits: 'fraction',
-            src: 'dist/static/symbols/fire/sector.svg',
-            rotation: rot,
-            rotateWithView: true
-          })
-        })
-      }
+      divisionDraw.on('drawstart', setIcon('dist/static/symbols/fire/division.svg'))
+      divisionDraw.on('drawstart', rotateIcon)
 
       var sectorDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
-        style: sectorStyle
+        style: iconStyle
       })
-
-      var getPerpendicular = function (coords) {
-        // find the nearest Polygon or lineString in the annotations layer
-        var nearestFeature = gokart.annotations.featureOverlay.getSource().getClosestFeatureToCoordinate(
-          coords, function (feat) {
-            var geom = feat.getGeometry()
-            return ((geom instanceof ol.geom.Polygon) || (geom instanceof ol.geom.LineString))
-          }
-        )
-        var segments = []
-        var source = []
-        var segLength = 0
-        // if a Polygon, join the last segment to the first
-        if (nearestFeature.getGeometry() instanceof ol.geom.Polygon) {
-          source = nearestFeature.getGeometry().getCoordinates()[0]
-          segLength = source.length
-        } else {
-        // if a LineString, don't include the last segment
-          source = nearestFeature.getGeometry().getCoordinates()
-          segLength = source.length-1
-        }
-        for (var i=0; i < segLength; i++) {
-          segments.push([source[i], source[(i+1)%source.length]])
-        }
-        // sort segments by ascending distance from point
-        segments.sort(function (a, b) {
-          return ol.coordinate.squaredDistanceToSegment(coords, a) - ol.coordinate.squaredDistanceToSegment(coords, b)
-        })
-
-        // head of the list is our target segment. reverse this to get the normal angle
-        var offset = [segments[0][1][0] - segments[0][0][0], segments[0][1][1] - segments[0][0][1]]
-        var normal = Math.atan2(-offset[1], offset[0])
-        return normal
-      }
-
-      var rotateIcon = function (ev) {
-        var coords = ev.feature.getGeometry().getCoordinates()
-        ev.feature.set('rotation', getPerpendicular(coords))
-      }
-
+      sectorDraw.on('drawstart', setIcon('dist/static/symbols/fire/sector.svg'))
       sectorDraw.on('drawstart', rotateIcon)
-      divisionDraw.on('drawstart', rotateIcon)
+    
 
 
       var fireBoundaryStyle = new ol.style.Style({
@@ -432,19 +427,19 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           name: 'Spot Fire',
           icon: 'dist/static/symbols/fire/spotfire.svg',
           interactions: [spotFireDraw],
-          style: spotFireStyle,
+          style: function (res) { return iconStyle(this, res) },
           showName: true
         }, {
           name: 'Division',
           icon: 'dist/static/symbols/fire/division.svg',
           interactions: [divisionDraw, snapToLines],
-          style: function (res) { return divisionStyle(this, res) },
+          style: function (res) { return iconStyle(this, res) },
           showName: true
         }, {
           name: 'Sector',
           icon: 'dist/static/symbols/fire/sector.svg',
           interactions: [sectorDraw, snapToLines],
-          style: function (res) { return sectorStyle(this, res) },
+          style: function (res) { return iconStyle(this, res) },
           showName: true
         }, {
           name: 'Fire Boundary',
