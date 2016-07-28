@@ -355,6 +355,7 @@
           feature.set('toolName', vm.tool.name)
           tool = vm.tool
         }
+        feature.set('tint', tool.tint || 'default')
         if (tool.onAdd) {
           tool.onAdd(feature)
         }
@@ -366,18 +367,22 @@
           this.features.extend(savedFeatures)
         }
       })
-      // NASTYHACK: add/remove default style based on select status
+      // add/remove selected property
       this.selectedFeatures.on('add', function (ev) {
         var feature = ev.element
-        feature.preSelectStyle = feature.getStyle()
-        feature.setStyle(null)
+        feature.set('baseTint', feature.get('tint'))
+        var tool = vm.getTool(feature.get('toolName'))
+        if (tool) {
+            feature.set('tint', tool.selectedTint || 'selected')
+        } else {
+            feature.set('tint', 'selected')
+        }
       })
       this.selectedFeatures.on('remove', function (ev) {
         var feature = ev.element
-        feature.setStyle(feature.preSelectStyle)
-        delete feature.preSelectStyle
+        feature.set('tint', feature.get('baseTint'))
       })
-      // layer/source for modiftying annotation features
+      // layer/source for modifying annotation features
       this.featureOverlay = new ol.layer.Vector({
         source: new ol.source.Vector({
           features: this.features
@@ -435,7 +440,7 @@
       })
       // allow selecting multiple features by clicking
       this.ui.selectInter = new ol.interaction.Select({
-        layers: [this.featureOverlay],
+        //layers: [this.featureOverlay],
         features: this.selectedFeatures
       })
 

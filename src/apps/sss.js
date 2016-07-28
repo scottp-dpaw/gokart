@@ -155,32 +155,11 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.map.olmap.updateSize()
       })
 
-      var addResource = function (f) {
-        var tint = 'red'
-        if (f.get('age') < 24) {
-          tint = 'orange'
-        };
-        if (f.get('age') < 3) {
-          tint = 'yellow'
-        };
-        if (f.get('age') <= 1) {
-          tint = 'green'
-        };
-        f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + '.svg')
-        f.set('tint', tint)
-        f.set('baseTint', tint)
-        f.set('label', f.get('name') || f.get('callsign') || f.get('rego') || f.get('deviceid'))
-        f.set('time', moment(f.get('seen')).toLocaleString())
-        // Set a different vue template for rendering
-        f.set('partialId', 'resourceInfo')
-        // Set id for select tools
-        f.set('selectId', f.get('deviceid'))
-      }
-
-      var resourceTrackingStyle = function (feat, res) {
+      var resourceTrackingStyle = function (res) {
+        var feat = this
         // cache styles for performance
         var style = cacheStyle(function (feat) {
-          var src = getBlob(feat.get('icon'), feat.get('tint'), feat)
+          var src = getBlob(feat, ['icon', 'tint'])
           if (!src) { return false }
           return new ol.style.Style({
             image: new ol.style.Icon({
@@ -213,9 +192,32 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         return style
       }
 
+      var addResource = function (f) {
+        var tint = 'red'
+        if (f.get('age') < 24) {
+          tint = 'orange'
+        };
+        if (f.get('age') < 3) {
+          tint = 'yellow'
+        };
+        if (f.get('age') <= 1) {
+          tint = 'green'
+        };
+        f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + '.svg')
+        f.set('tint', tint)
+        f.set('baseTint', tint)
+        f.set('label', f.get('name') || f.get('callsign') || f.get('rego') || f.get('deviceid'))
+        f.set('time', moment(f.get('seen')).toLocaleString())
+        // Set a different vue template for rendering
+        f.set('partialId', 'resourceInfo')
+        // Set id for select tools
+        f.set('selectId', f.get('deviceid'))
+        f.setStyle(resourceTrackingStyle)
+      }
+
       var iconStyle = function (feat, res) {
         var style = cacheStyle(function (feat) {
-          var src = getBlob(feat.get('icon'), feat.get('tint'), feat)
+          var src = getBlob(feat, ['icon', 'tint'])
           if (!src) { return false }
           var rot = feat.get('rotation') || 0.0
           return new ol.style.Style({
@@ -227,15 +229,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
               snapToPixel: true
             })
           })
-        }, feat, ['icon', 'tint', 'rotation', 'selected'])
+        }, feat, ['icon', 'tint', 'rotation'])
         return style
-      }
-
-      var setIcon = function (path) {
-        return function (ev) {
-          ev.feature.set('tint', 'default')
-          ev.feature.set('icon', path)
-        }
       }
 
       var getPerpendicular = function (coords) {
@@ -272,25 +267,18 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         return normal
       }
 
-      var rotateIcon = function (ev) {
-        var coords = ev.feature.getGeometry().getCoordinates()
-        ev.feature.set('rotation', getPerpendicular(coords))
-      }
       
-
       // pack-in catalogue
       var catalogue = [{
         type: 'WFSLayer',
         name: 'Resource Tracking',
         id: 'dpaw:resource_tracking_live',
-        style: resourceTrackingStyle,
         onadd: addResource,
         refresh: 30
       }, {
         type: 'WFSLayer',
         name: 'Resource Tracking History',
         id: 'dpaw:resource_tracking_history',
-        style: resourceTrackingStyle,
         onadd: addResource,
         cql_filter: false
       }, {
@@ -358,39 +346,49 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         })
       })
 
+      var iconDrawFactory = function (options) {
+        var defaultFeat = new ol.Feature({
+          'icon': options.icon,
+        })
+        var draw =  new ol.interaction.Draw({
+          type: 'Point',
+          features: options.features,
+          style: function (feat, res) { return iconStyle(defaultFeat, res) }
+        })
+        draw.on('drawstart', function (ev) {
+          // set parameters
+          ev.feature.set('icon', options.icon)
+          if (options.perpendicular) {
+            var coords = ev.feature.getGeometry().getCoordinates()
+            ev.feature.set('rotation', getPerpendicular(coords))
+          }
+        })
+        return draw
+      }
+
       var hotSpotDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
         style: hotSpotStyle
       })
 
-      var spotFireDefault = new ol.Feature({
-        'icon': 'dist/static/symbols/fire/spotfire.svg',
-        'tint': 'default'
+      var spotFireDraw = iconDrawFactory({
+        icon: 'dist/static/symbols/fire/spotfire.svg',
+        features:  this.annotations.features,
+        tint: 'default',
       })
-      var spotFireDraw = new ol.interaction.Draw({
-        type: 'Point',
-        features: this.annotations.features,
-        style: function (feat, res) { return iconStyle(spotFireDefault, res) }
+      var divisionDraw = iconDrawFactory({
+        icon: 'dist/static/symbols/fire/division.svg',
+        features:  this.annotations.features,
+        tint: 'default',
+        perpendicular: true
       })
-      spotFireDraw.on('drawstart', setIcon('dist/static/symbols/fire/spotfire.svg'))
-
-      var divisionDraw = new ol.interaction.Draw({
-        type: 'Point',
-        features: this.annotations.features,
-        style: iconStyle
+      var sectorDraw = iconDrawFactory({
+        icon: 'dist/static/symbols/fire/sector.svg',
+        features:  this.annotations.features,
+        tint: 'default',
+        perpendicular: true
       })
-      divisionDraw.on('drawstart', setIcon('dist/static/symbols/fire/division.svg'))
-      divisionDraw.on('drawstart', rotateIcon)
-
-      var sectorDraw = new ol.interaction.Draw({
-        type: 'Point',
-        features: this.annotations.features,
-        style: iconStyle
-      })
-      sectorDraw.on('drawstart', setIcon('dist/static/symbols/fire/sector.svg'))
-      sectorDraw.on('drawstart', rotateIcon)
-    
 
 
       var fireBoundaryStyle = new ol.style.Style({
@@ -428,7 +426,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           icon: 'dist/static/symbols/fire/spotfire.svg',
           interactions: [spotFireDraw],
           style: function (res) { return iconStyle(this, res) },
-          showName: true
+          showName: true,
+          selectedTint: [['#b43232','#2199e8']]
         }, {
           name: 'Division',
           icon: 'dist/static/symbols/fire/division.svg',

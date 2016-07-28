@@ -55,16 +55,15 @@
     export default { 
       components: { gkMap, gkLayers, gkAnnotations, gkTracking },
       data: function() {
-        var stroke = '#ff6600'
-        var fill = '#7c3100'
+        var fill = '#ff6600'
+        var stroke = '#7c3100'
         return {
           tints: {
-            'default': [],
-            'red': [[stroke,'#ed2727'], [fill,'#480000']],
-            'orange': [[stroke,'#ff6600'], [fill,'#562200']],
-            'yellow': [[stroke,'#ffd700'], [fill,'#413104']],
-            'green': [[stroke,'#71c837'], [fill,'#1b310d']],
-            'selected': [[stroke,'#ffffff'], [fill,'#2199e8']]
+            'red': [[fill,'#ed2727'], [stroke,'#480000']],
+            'orange': [[fill,'#ff6600'], [stroke,'#562200']],
+            'yellow': [[fill,'#ffd700'], [stroke,'#413104']],
+            'green': [[fill,'#71c837'], [stroke,'#1b310d']],
+            'selected': [['#000000', '#2199e8'], [stroke,'#2199e8'], [fill, '#ffffff']]
           },
           svgTemplates: {},
           svgBlobs: {},
@@ -72,8 +71,8 @@
         }
       },
       methods: {
-        tintSVG: function(svgstring, tintKey) {
-          this.tints[tintKey].forEach(function(colour) {
+        tintSVG: function(svgstring, tints) {
+          tints.forEach(function(colour) {
             svgstring = svgstring.split(colour[0]).join(colour[1])
           })
           return svgstring
@@ -91,51 +90,59 @@
           }
           return ol.style.defaultStyleFunction()
         },
-        getBlob: function(url, tintKey, feature) {
+        getBlob: function(feature, keys) {
           // method to precache SVGs as raster (PNGs)
           // workaround for Firefox missing the SurfaceCache when blitting to canvas
           // returns a url or undefined if svg isn't baked yet
-          
-          var key = url + '#' + tintKey
+
+          var key = keys.map(function(k) {
+            return feature.get(k)
+          }).join(";")
           if (this.svgBlobs[key]) {
             return this.svgBlobs[key]
           } else {
-            this.addSVG(url, feature)
+            this.addSVG(feature, key)
           }
         },
-        addSVG: function(url, feature, tints, dims) {
+        drawSVG: function(key, svgstring, tints, dims, feature) {
           var vm = this
-          if (!tints) {
-            // tint everything if not specified
-            var tints = Object.keys(this.tints)
-          }
-          if (!dims) {
-            dims = [48, 48]
+          var canvas = $('<canvas>')
+          canvas.attr({width: dims[0], height: dims[1]})
+          canvas.drawImage({
+            source: 'data:image/svg+xml;utf8,' + encodeURIComponent(vm.tintSVG(svgstring, tints)),
+            fromCenter: false, x: 0, y: 0, width: dims[0], height: dims[1],
+            load: function () {
+              canvas.get(0).toBlob(function (blob) {
+                vm.svgBlobs[key] = window.URL.createObjectURL(blob)
+                feature.changed()
+              }, 'image/png')
+            }
+          })
+        },
+        addSVG: function(feature, key) {
+          var vm = this
+          var dims = feature.get('dims') || [48, 48]
+          var tint = feature.get('tint')
+          var url = feature.get('icon')
+          if (typeof tint === 'string') {
+            tint = this.tints[tint] || []
           }
           if (this.svgTemplates[url]) {
-            return
+            // render from loaded svg
+            vm.drawSVG(key, this.svgTemplates[url], tint, dims, feature)
           }
-          var svg = this.svgTemplates[url] = { url: url, tints: tints, dims: dims }
+          // load svg
           var req = new window.XMLHttpRequest()
           req.withCredentials = true
           req.onload = function () {
-            var svgstring = this.responseText
-            svg.tints.forEach(function(tint) {
-              var canvas = $('<canvas>')
-              canvas.attr({width: svg.dims[0], height: svg.dims[1]})
-              canvas.drawImage({
-                source: 'data:image/svg+xml;utf8,' + encodeURIComponent(vm.tintSVG(svgstring, tint)),
-                fromCenter: false, x: 0, y: 0, width: dims[0], height: dims[1],
-                load: function () {
-                  canvas.get(0).toBlob(function (blob) {
-                    vm.svgBlobs[svg.url + '#' + tint] = window.URL.createObjectURL(blob)
-                    if (feature && feature.get('tint') === tint) { feature.changed() }
-                  }, 'image/png')
-                }
-              })
-            })
+            if (!this.responseText) {
+              console.log(url)
+              return 
+            }
+            vm.svgTemplates[url] = this.responseText
+            vm.drawSVG(key, this.responseText, tint, dims, feature)
           }
-          req.open('GET', svg.url)
+          req.open('GET', url)
           req.send()
         }
       }
