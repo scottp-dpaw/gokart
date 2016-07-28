@@ -60,7 +60,7 @@
             <div class="columns small-12">
               {{ layer.name }}<br>
               Details: TODO
-              <img src="{{ layer.legend }}" class="cat-legend"/>
+              <img v-if="layer.legend" src="{{ layer.legend }}" class="cat-legend"/>
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@ div.ol-overviewmap.ol-uncollapsible {
     return value.length < length
   })
   export default {
-    store: ['catalogueFilters'],
+    store: ['catalogueFilters', 'defaultLegendSrc'],
     data: function () {
       return {
         layer: {},
@@ -203,13 +203,17 @@ div.ol-overviewmap.ol-uncollapsible {
         req.withCredentials = true
         req.onload = function () {
           JSON.parse(this.responseText).forEach(function (l) {
+            // overwrite layers in the catalogue with the same identifier
             if (vm.getLayer(l.identifier)) {
                 vm.catalogue.remove(vm.getLayer(l.identifier))
             }
+            // add the base flag for layers tagged 'basemap'
             l.base = l.tags.some(function (t) {return t.name === 'basemap'})
+            // set the opacity to 50% for layers tagged 'relief'
             if (l.tags.some(function (t) { return t.name === 'relief' })) {
                 l.opacity = 0.5
             }
+            // 
             vm.catalogue.push(l)
           })
           callback()
@@ -229,14 +233,18 @@ div.ol-overviewmap.ol-uncollapsible {
       }
     },
     ready: function () {
+      var vm = this
       this.catalogue.on('add', function (event) {
         var l = event.element
         l.id = l.id || l.identifier
         l.name = l.name || l.title
         l.type = l.type || 'TileLayer'
+        if (l.type === 'TileLayer') {
+          l.legend = l.legend || (vm.defaultLegendSrc + l.id)
+        }
       })
       this.$on('gk-init', function() {
-        var vm = this;
+        var vm = this
         $(this.$root.map.olmap.getTargetElement()).on('mouseleave', '.ol-overviewmap', function() {
             vm.preview(false)
         })

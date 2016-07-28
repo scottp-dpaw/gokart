@@ -53,6 +53,7 @@ var defaultStore = {
   // overridable defaults for WMTS and WFS loading
   defaultWMTSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts',
   defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
+  defaultLegendSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&LAYER=',
   // default matrix from KMI
   resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
   // fixed scales for the scale selector (1:1K increments)
