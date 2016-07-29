@@ -215,6 +215,22 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         f.setStyle(resourceTrackingStyle)
       }
 
+      // preload resource tracking imagery
+      var addSVG = this.$refs.app.addSVG
+      var deviceIds = [
+        '2wd', '4_wheel_drive_passenger', '4_wheel_drive_ute', 'boat', 'comms_bus', 
+        'dozer', 'fixed_wing_aircraft', 'float', 'gang_truck', 'grader', 'heavy_duty',
+        'light_unit', 'loader', 'other', 'person', 'rotary_aircraft', 'snorkel', 'tender',
+        'vehicle_control_point'
+      ]
+      var deviceTints = ['red', 'orange', 'yellow', 'green', 'selected']
+      for (var tint in deviceTints) {
+        for (var device in deviceIds) {
+          var icon = 'dist/static/symbols/device/' + deviceIds[device] + '.svg'
+          addSVG(icon+';'+deviceTints[tint], icon, deviceTints[tint], [48,48])
+        }
+      }
+
       var iconStyle = function (feat, res) {
         var style = cacheStyle(function (feat) {
           var src = getBlob(feat, ['icon', 'tint'])
