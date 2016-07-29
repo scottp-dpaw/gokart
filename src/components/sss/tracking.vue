@@ -173,6 +173,9 @@
       },
       trackingLayer: function() {
         return this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
+      },
+      trackingMapLayer: function() {
+        return this.$root.map.getMapLayer(this.trackingLayer)
       }
     },
     methods: {
@@ -209,7 +212,7 @@
         } else {
           this.trackingLayer.cql_filter = groupFilter
         }
-        this.$root.map.getMapLayer(this.trackingLayer).getSource().loadSource()
+        this.trackingMapLayer.getSource().loadSource()
       },
       historyCQLFilter: function () {
         var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
@@ -263,7 +266,6 @@
         return found
       },
       resourceOrder: function (f1, f2) {
-        console.log(f1.get('seen'), f2.get('seen'), (f2.get('seen') > f1.get('seen')))
         return f2.get('seen') > f1.get('seen')
       },
       zoomToSelected: function () {
@@ -275,7 +277,7 @@
         map.getView().fit(extent, map.getSize())
       },
       init: function() {
-        this.$root.annotations.selectable = [this.$root.map.getMapLayer(this.trackingLayer)]
+        this.$root.annotations.selectable = [this.trackingMapLayer]
         this.$root.annotations.setTool('Select')
       }
     },

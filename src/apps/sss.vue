@@ -19,9 +19,9 @@
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-annotations" title="Annotations">
+                        <a href="#menu-tab-annotations" title="Annotations" @click="$root.annotations.init()">
                             <svg class="icon">
-                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-data"  @click="$root.annotations.init()"></use>
+                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-data"  ></use>
                             </svg>
                         </a>
                     </li>
