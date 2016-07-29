@@ -185,10 +185,10 @@
       toggleSelect: function (f) {
         if (this.selected(f)) {
           this.$root.annotations.selectedFeatures.remove(f)
-          delete this.sel[f.get('deviceid')]
+          this.sel.$remove(f.get('deviceid'))
         } else {
           this.$root.annotations.selectedFeatures.push(f)
-          this.sel[f.get('deviceid')] = true
+          this.sel.push(f.get('deviceid'))
         }
       },
       selected: function (f) {

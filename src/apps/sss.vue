@@ -94,58 +94,67 @@
           // method to precache SVGs as raster (PNGs)
           // workaround for Firefox missing the SurfaceCache when blitting to canvas
           // returns a url or undefined if svg isn't baked yet
-
+          var vm = this
           var key = keys.map(function(k) {
             return feature.get(k)
           }).join(";")
-          if (this.svgBlobs[key]) {
+          if (this.svgBlobs[key] && !this.svgBlobs[key].then) {
             return this.svgBlobs[key]
           } else {
             var dims = feature.get('dims') || [48, 48]
             var tint = feature.get('tint')
             var url = feature.get('icon')
-            this.addSVG(key, url, tint, dims, feature)
+            new Promise(function(resolve, reject) {
+              vm.addSVG(key, url, tint, dims, resolve)
+            }).then(function() {
+              feature.changed()
+            })
           }
         },
-        addSVG: function(key, url, tint, dims, feature) {
+        addSVG: function(key, url, tint, dims, pResolve) {
           var vm = this
-          var prom = new Promise( function (resolve, reject) { 
-            if (typeof tint === 'string') {
-              tint = vm.tints[tint] || []
+          if (typeof tint === 'string') {
+            tint = vm.tints[tint] || []
+          }
+          var draw = function() {
+            if (vm.svgBlobs[key]) { pResolve() }
+            vm.svgBlobs[key] = new Promise(function(resolve, reject) {
+              vm.drawSVG(key, vm.svgTemplates[url], tint, dims, resolve, reject)
+            }).then(function() {
+              pResolve()
+            })
+          }
+          if (vm.svgTemplates[url]) {
+            // render from loaded svg or queue render post load promise
+            if (vm.svgTemplates[url].then) {
+              vm.svgTemplates[url].then(draw)
+            } else {
+              draw()
             }
-            if (vm.svgTemplates[url]) {
-              // render from loaded svg
-              //console.log('addSVG: Cache hit for '+key)
-              vm.drawSVG(key, vm.svgTemplates[url], tint, dims, feature, resolve, reject)
-              return
-            }
-            // load svg
-            //console.log('addSVG: Cache miss for '+key)
-            var req = new window.XMLHttpRequest()
-            req.withCredentials = true
-            req.onload = function () {
-              if (!this.responseText) {
-                return 
+          } else {
+            vm.svgTemplates[url] = new Promise(function (resolve, reject) { 
+              // load svg
+              //console.log('addSVG: Cache miss for '+key)
+              var req = new window.XMLHttpRequest()
+              req.withCredentials = true
+              req.onload = function () {
+                if (!this.responseText) {
+                  return
+                }
+                vm.svgTemplates[url] = this.responseText
+                resolve()
               }
-              vm.svgTemplates[url] = this.responseText
-              vm.drawSVG(key, this.responseText, tint, dims, feature, resolve, reject)
-            }
-            req.onerror = function() {
-              reject()
-            }
-            req.open('GET', url)
-            req.send()
-          } )
-          return prom
-        },
-        drawSVG: function(key, svgstring, tints, dims, feature, resolve, reject) {
-          var vm = this
-          if (key in vm.svgBlobs) {
-            //console.log('drawSVG: Cache hit for '+key)
-            return
+              req.onerror = function() {
+                reject()
+              }
+              req.open('GET', url)
+              req.send()
+            }).then(draw)
           }
+        },
+        drawSVG: function(key, svgstring, tints, dims, resolve, reject) {
+          var vm = this
           //console.log('drawSVG: Cache miss for '+key)
-          vm.svgBlobs[key] = ''
           var canvas = $('<canvas>')
           canvas.attr({width: dims[0], height: dims[1]})
           canvas.drawImage({
@@ -154,9 +163,6 @@
             load: function () {
               canvas.get(0).toBlob(function (blob) {
                 vm.svgBlobs[key] = window.URL.createObjectURL(blob)
-                if (feature) {
-                  feature.changed()
-                }
                 resolve()
               }, 'image/png')
             }

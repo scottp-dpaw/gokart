@@ -213,25 +213,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         f.setStyle(resourceTrackingStyle)
       }
 
-      // preload resource tracking imagery
-      var deviceIds = [
-        '2wd', '4_wheel_drive_passenger', '4_wheel_drive_ute', 'boat', 'comms_bus', 
-        'dozer', 'fixed_wing_aircraft', 'float', 'gang_truck', 'grader', 'heavy_duty',
-        'light_unit', 'loader', 'other', 'person', 'rotary_aircraft', 'snorkel', 'tender',
-        'vehicle_control_point'
-      ]
-      var deviceTints = ['red', 'orange', 'yellow', 'green', 'selected']
-      var deviceProms = []
-      for (var tint in deviceTints) {
-        for (var device in deviceIds) {
-          var icon = 'dist/static/symbols/device/' + deviceIds[device] + '.svg'
-          deviceProms.push(this.$refs.app.addSVG(icon+';'+deviceTints[tint], icon, deviceTints[tint], [48,48]))
-        }
-      }
-      Promise.all(deviceProms).then(function (deviceProms) {
-        self.active.mapLayer('dpaw:resource_tracking_live').changed()
-      })
-
       var iconStyle = function (feat, res) {
         var style = self.$refs.app.cacheStyle(function (feat) {
           var src = self.$refs.app.getBlob(feat, ['icon', 'tint'])
