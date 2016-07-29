@@ -106,7 +106,7 @@
             </div>
             <div id="tracking-list">
               <div v-for="f in features | filterBy resourceFilter | orderBy resourceOrder" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
-                @click="select(f)" track-by="get('id')">
+                @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
                   <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button small secondary float-right"><i class="fa fa-pencil"></i></a>
                   <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
@@ -124,6 +124,7 @@
 <script>
   import { ol, moment } from 'src/vendor.js'
   export default {
+    store: ['sel'],
     data: function () {
       return {
         viewportOnly: true,
@@ -169,38 +170,46 @@
           this.historyFromDate = fromDate.format('YYYY-MM-DD')
           this.historyFromTime = fromDate.format('HH:mm')
         }
+      },
+      trackingLayer: function() {
+        return this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
       }
     },
     methods: {
       ago: function (time) {
         return moment(time).fromNow()
       },
-      select: function (f) {
-        this.$root.info.select(f)
+      toggleSelect: function (f) {
+        if (this.selected(f)) {
+          this.$root.annotations.selectedFeatures.remove(f)
+          delete this.sel[f.get('deviceid')]
+        } else {
+          this.$root.annotations.selectedFeatures.push(f)
+          this.sel[f.get('deviceid')] = true
+        }
       },
       selected: function (f) {
-        return this.$root.info.selected(f)
+        return this.$root.annotations.selectedFeatures.getArray().indexOf(f) > -1
       },
       downloadList: function () {
         this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'trackingdata')
       },
       updateCQLFilter: function () {
-        var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
         var groupFilter = this.cql
         var deviceFilter = ''
         // filter by specific devices if "Show selected only" is enabled
-        if ((this.$root.info.sel.length > 0) && (this.selectedOnly)) {
-          deviceFilter = 'deviceid in (' + this.$root.info.sel.join(',') + ')'
+        if ((this.sel.length > 0) && (this.selectedOnly)) {
+          deviceFilter = 'deviceid in (' + this.sel.join(',') + ')'
         }
         // CQL statement assembling logic
         if (groupFilter && deviceFilter) {
-          trackingLayer.cql_filter = '(' + groupFilter + ') and (' + deviceFilter + ')'
+          this.trackingLayer.cql_filter = '(' + groupFilter + ') and (' + deviceFilter + ')'
         } else if (deviceFilter) {
-          trackingLayer.cql_filter = deviceFilter
+          this.trackingLayer.cql_filter = deviceFilter
         } else {
-          trackingLayer.cql_filter = groupFilter
+          this.trackingLayer.cql_filter = groupFilter
         }
-        this.$root.map.getMapLayer(trackingLayer).getSource().loadSource()
+        this.$root.map.getMapLayer(this.trackingLayer).getSource().loadSource()
       },
       historyCQLFilter: function () {
         var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
@@ -263,6 +272,10 @@
         })
         var map = this.$root.map.olmap
         map.getView().fit(extent, map.getSize())
+      },
+      init: function() {
+        this.$root.annotations.selectable = [this.$root.map.getMapLayer(this.trackingLayer)]
+        this.$root.annotations.setTool('Select')
       }
     },
     ready: function () {

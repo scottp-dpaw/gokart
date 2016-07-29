@@ -130,6 +130,16 @@
         var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
         if (this.vectorFormat === 'json') {
           saveAs(blob, name + '_' + moment().add(moment().utcOffset(), 'minutes').toISOString().split('.')[0] + '.geo.json')
+        } else {
+          var formData = new window.FormData()
+          formData.append('json', blob, name + '.json')
+          var req = new window.XMLHttpRequest()
+          req.open('POST', '/ogr/' + this.vectorFormat)
+          req.responseType = 'blob'
+          req.onload = function (event) {
+            saveAs(req.response, name + '.' + format)
+          }
+          req.send(formData)
         }
       },
       // resize map to page dimensions (in mm) for printing, save layout

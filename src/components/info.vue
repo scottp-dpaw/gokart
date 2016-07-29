@@ -8,7 +8,7 @@
     </div>
     <div class="row">
       <div class="columns content">
-        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" @click="select(f)" track-by="get('id')">
+        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" track-by="get('id')">
           <div v-if="f.get('partialId') !== 'resourceInfo'" class="columns">{{ f.getId() }}</div>
           <div v-if="f.get('partialId') === 'resourceInfo'" class="columns">
             <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
@@ -29,7 +29,6 @@
 <script>
   import { ol, moment } from 'src/vendor.js'
   export default {
-    store: ['sel'],
     data: function () {
       return {
         enabled: false,
@@ -95,24 +94,7 @@
         }
       },
       selected: function (f) {
-        var id = f.get('selectId') || f.getId()
-        if (this.sel.indexOf(id) > -1) {
-          f.set('tint', 'selected')
-          return true
-        } else {
-          f.set('tint', f.get('baseTint'))
-          return false
-        }
-      },
-      select: function (f) {
-        var id = f.get('selectId') || f.getId()
-        if (this.sel.indexOf(id) > -1) {
-          f.set('tint', 'selected')
-          this.sel.$remove(id)
-        } else {
-          f.set('tint', f.get('baseTint'))
-          this.sel.push(id)
-        }
+        return this.$root.annotations.selectedFeatures.getArray().indexOf(f) > -1
       }
     },
     ready: function () {

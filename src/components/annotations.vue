@@ -178,6 +178,8 @@
         tools: [],
         features: new ol.Collection(),
         selectedFeatures: new ol.Collection(),
+        // array of layers that are selectable
+        selectable: [],
         featureOverlay: {},
         featureEditing: {},
         note: {
@@ -340,6 +342,11 @@
           this.drawNote(note, true)
         }
         return this.notes[key]
+      },
+      init: function() {
+        // runs on switch to this tab
+        this.selectable = [this.featureOverlay]
+        this.setTool('Edit')
       }
     },
     ready: function () {
@@ -430,8 +437,10 @@
       // modify selectedFeatures after dragging a box
       this.ui.dragSelectInter.on('boxend', function (event) {
         var extent = event.target.getGeometry().getExtent()
-        vm.featureOverlay.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
-          vm.selectedFeatures.push(feature)
+        vm.selectable.forEach(function(layer) {
+          layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+            vm.selectedFeatures.push(feature)
+          })
         })
       })
       // clear selectedFeatures before dragging a box
@@ -440,7 +449,9 @@
       })
       // allow selecting multiple features by clicking
       this.ui.selectInter = new ol.interaction.Select({
-        //layers: [this.featureOverlay],
+        layers: function(layer) { 
+          return vm.selectable.indexOf(layer) > -1
+        },
         features: this.selectedFeatures
       })
 

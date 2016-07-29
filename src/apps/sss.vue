@@ -21,12 +21,12 @@
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-annotations" title="Annotations">
                             <svg class="icon">
-                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-data"></use>
+                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-data"  @click="$root.annotations.init()"></use>
                             </svg>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="$root.annotations.setTool('Pan')">
+                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="$root.tracking.init()">
                             <svg class="icon">
                                 <use xlink:href="dist/static/images/iD-sprite.svg#icon-geolocate"></use>
                             </svg>
