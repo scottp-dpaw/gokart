@@ -263,6 +263,7 @@
         return found
       },
       resourceOrder: function (f1, f2) {
+        console.log(f1.get('seen'), f2.get('seen'), (f2.get('seen') > f1.get('seen')))
         return f2.get('seen') > f1.get('seen')
       },
       zoomToSelected: function () {

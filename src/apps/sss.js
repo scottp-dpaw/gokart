@@ -115,8 +115,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
     },
     ready: function () {
       var self = this
-      var getBlob = this.$refs.app.getBlob
-      var cacheStyle = this.$refs.app.cacheStyle
       // setup foundation, svg url support
       $(document).foundation()
       svg4everybody()
@@ -158,8 +156,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       var resourceTrackingStyle = function (res) {
         var feat = this
         // cache styles for performance
-        var style = cacheStyle(function (feat) {
-          var src = getBlob(feat, ['icon', 'tint'])
+        var style = self.$refs.app.cacheStyle(function (feat) {
+          var src = self.$refs.app.getBlob(feat, ['icon', 'tint'])
           if (!src) { return false }
           return new ol.style.Style({
             image: new ol.style.Icon({
@@ -216,7 +214,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       }
 
       // preload resource tracking imagery
-      var addSVG = this.$refs.app.addSVG
       var deviceIds = [
         '2wd', '4_wheel_drive_passenger', '4_wheel_drive_ute', 'boat', 'comms_bus', 
         'dozer', 'fixed_wing_aircraft', 'float', 'gang_truck', 'grader', 'heavy_duty',
@@ -224,16 +221,20 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         'vehicle_control_point'
       ]
       var deviceTints = ['red', 'orange', 'yellow', 'green', 'selected']
+      var deviceProms = []
       for (var tint in deviceTints) {
         for (var device in deviceIds) {
           var icon = 'dist/static/symbols/device/' + deviceIds[device] + '.svg'
-          addSVG(icon+';'+deviceTints[tint], icon, deviceTints[tint], [48,48])
+          deviceProms.push(this.$refs.app.addSVG(icon+';'+deviceTints[tint], icon, deviceTints[tint], [48,48]))
         }
       }
+      Promise.all(deviceProms).then(function (deviceProms) {
+        self.active.mapLayer('dpaw:resource_tracking_live').changed()
+      })
 
       var iconStyle = function (feat, res) {
-        var style = cacheStyle(function (feat) {
-          var src = getBlob(feat, ['icon', 'tint'])
+        var style = self.$refs.app.cacheStyle(function (feat) {
+          var src = self.$refs.app.getBlob(feat, ['icon', 'tint'])
           if (!src) { return false }
           var rot = feat.get('rotation') || 0.0
           return new ol.style.Style({

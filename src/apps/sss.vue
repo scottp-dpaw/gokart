@@ -109,33 +109,38 @@
         },
         addSVG: function(key, url, tint, dims, feature) {
           var vm = this
-          if (typeof tint === 'string') {
-            tint = this.tints[tint] || []
-          }
-          if (this.svgTemplates[url]) {
-            // render from loaded svg
-            //console.log('addSVG: Cache hit for '+key)
-            vm.drawSVG(key, this.svgTemplates[url], tint, dims, feature)
-            return
-          }
-          // load svg
-          //console.log('addSVG: Cache miss for '+key)
-          var req = new window.XMLHttpRequest()
-          req.withCredentials = true
-          req.onload = function () {
-            if (!this.responseText) {
-              console.log(url)
-              return 
+          var prom = new Promise( function (resolve, reject) { 
+            if (typeof tint === 'string') {
+              tint = vm.tints[tint] || []
             }
-            vm.svgTemplates[url] = this.responseText
-            vm.drawSVG(key, this.responseText, tint, dims, feature)
-          }
-          req.open('GET', url)
-          req.send()
+            if (vm.svgTemplates[url]) {
+              // render from loaded svg
+              //console.log('addSVG: Cache hit for '+key)
+              vm.drawSVG(key, vm.svgTemplates[url], tint, dims, feature, resolve, reject)
+              return
+            }
+            // load svg
+            //console.log('addSVG: Cache miss for '+key)
+            var req = new window.XMLHttpRequest()
+            req.withCredentials = true
+            req.onload = function () {
+              if (!this.responseText) {
+                return 
+              }
+              vm.svgTemplates[url] = this.responseText
+              vm.drawSVG(key, this.responseText, tint, dims, feature, resolve, reject)
+            }
+            req.onerror = function() {
+              reject()
+            }
+            req.open('GET', url)
+            req.send()
+          } )
+          return prom
         },
-        drawSVG: function(key, svgstring, tints, dims, feature) {
+        drawSVG: function(key, svgstring, tints, dims, feature, resolve, reject) {
           var vm = this
-          if (key in this.svgBlobs) {
+          if (key in vm.svgBlobs) {
             //console.log('drawSVG: Cache hit for '+key)
             return
           }
@@ -152,6 +157,7 @@
                 if (feature) {
                   feature.changed()
                 }
+                resolve()
               }, 'image/png')
             }
           })
