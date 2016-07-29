@@ -101,37 +101,25 @@
           if (this.svgBlobs[key]) {
             return this.svgBlobs[key]
           } else {
-            this.addSVG(feature, key)
+            var dims = feature.get('dims') || [48, 48]
+            var tint = feature.get('tint')
+            var url = feature.get('icon')
+            this.addSVG(key, url, tint, dims, feature)
           }
         },
-        drawSVG: function(key, svgstring, tints, dims, feature) {
+        addSVG: function(key, url, tint, dims, feature) {
           var vm = this
-          var canvas = $('<canvas>')
-          canvas.attr({width: dims[0], height: dims[1]})
-          canvas.drawImage({
-            source: 'data:image/svg+xml;utf8,' + encodeURIComponent(vm.tintSVG(svgstring, tints)),
-            fromCenter: false, x: 0, y: 0, width: dims[0], height: dims[1],
-            load: function () {
-              canvas.get(0).toBlob(function (blob) {
-                vm.svgBlobs[key] = window.URL.createObjectURL(blob)
-                feature.changed()
-              }, 'image/png')
-            }
-          })
-        },
-        addSVG: function(feature, key) {
-          var vm = this
-          var dims = feature.get('dims') || [48, 48]
-          var tint = feature.get('tint')
-          var url = feature.get('icon')
           if (typeof tint === 'string') {
             tint = this.tints[tint] || []
           }
           if (this.svgTemplates[url]) {
             // render from loaded svg
+            //console.log('addSVG: Cache hit for '+key)
             vm.drawSVG(key, this.svgTemplates[url], tint, dims, feature)
+            return
           }
           // load svg
+          //console.log('addSVG: Cache miss for '+key)
           var req = new window.XMLHttpRequest()
           req.withCredentials = true
           req.onload = function () {
@@ -144,6 +132,29 @@
           }
           req.open('GET', url)
           req.send()
+        },
+        drawSVG: function(key, svgstring, tints, dims, feature) {
+          var vm = this
+          if (key in this.svgBlobs) {
+            //console.log('drawSVG: Cache hit for '+key)
+            return
+          }
+          //console.log('drawSVG: Cache miss for '+key)
+          vm.svgBlobs[key] = ''
+          var canvas = $('<canvas>')
+          canvas.attr({width: dims[0], height: dims[1]})
+          canvas.drawImage({
+            source: 'data:image/svg+xml;utf8,' + encodeURIComponent(vm.tintSVG(svgstring, tints)),
+            fromCenter: false, x: 0, y: 0, width: dims[0], height: dims[1],
+            load: function () {
+              canvas.get(0).toBlob(function (blob) {
+                vm.svgBlobs[key] = window.URL.createObjectURL(blob)
+                if (feature) {
+                  feature.changed()
+                }
+              }, 'image/png')
+            }
+          })
         }
       }
     }
