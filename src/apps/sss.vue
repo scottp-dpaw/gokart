@@ -98,7 +98,7 @@
           var key = keys.map(function(k) {
             return feature.get(k)
           }).join(";")
-          if (this.svgBlobs[key] && !this.svgBlobs[key].then) {
+          if (this.svgBlobs[key] && !(typeof this.svgBlobs[key] != 'string')) {
             return this.svgBlobs[key]
           } else {
             var dims = feature.get('dims') || [48, 48]
@@ -113,6 +113,7 @@
         },
         addSVG: function(key, url, tint, dims, pResolve) {
           var vm = this
+          tint = tint || []
           if (typeof tint === 'string') {
             tint = vm.tints[tint] || []
           }
