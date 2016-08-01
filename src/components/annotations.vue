@@ -57,9 +57,9 @@
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
-                  <a @click="setProp('size', 1)" v-bind:class="{'selected': size == 1}" class="button"><small>Small</small></a>
-                  <a @click="setProp('size', 2)" v-bind:class="{'selected': size == 2}" class="button">Medium</a>
-                  <a @click="setProp('size', 4)" v-bind:class="{'selected': size == 4}" class="button"><big>Large</big></a>
+                  <a @click="setProp('size', 1)" v-bind:class="{'selected': size == 1}" class="button"><img src="dist/static/images/thick-1.svg"/></a>
+                  <a @click="setProp('size', 2)" v-bind:class="{'selected': size == 2}" class="button"><img src="dist/static/images/thick-2.svg"/></a>
+                  <a @click="setProp('size', 4)" v-bind:class="{'selected': size == 4}" class="button"><img src="dist/static/images/thick-4.svg"/></a>
                 </div>
               </div>
             </div>
@@ -101,6 +101,7 @@
   .notecontent {
     width: 300px;
     height: 40px;
+
   }
   .canvaspane {
     overflow: hidden;
