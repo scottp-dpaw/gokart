@@ -18,10 +18,19 @@
       return {
         scale: 0,
         graticule: new ol.LabelGraticule(),
-        dragPanInter: new ol.interaction.DragPan(),
+        dragPanInter: new ol.interaction.DragPan({
+          condition: function (mapBrowserEvent) {
+            return (mapBrowserEvent.pointerEvent && (mapBrowserEvent.pointerEvent.button === 0))
+          }
+        }),
         doubleClickZoomInter: new ol.interaction.DoubleClickZoom(),
         keyboardPanInter: new ol.interaction.KeyboardPan(),
-        keyboardZoomInter: new ol.interaction.KeyboardZoom()
+        keyboardZoomInter: new ol.interaction.KeyboardZoom(),
+        middleDragPanInter: new ol.interaction.DragPan({
+          condition: function (mapBrowserEvent) {
+            return (mapBrowserEvent.pointerEvent && (mapBrowserEvent.pointerEvent.button === 1))
+          }
+        })
       }
     },
     // parts of the template to be computed live
@@ -406,6 +415,7 @@
         this.olmap.addInteraction(this.doubleClickZoomInter)
         this.olmap.addInteraction(this.keyboardPanInter)
         this.olmap.addInteraction(this.keyboardZoomInter)
+        this.olmap.addInteraction(this.middleDragPanInter)
 
         // Create the graticule component
         this.graticule.setMap(this.olmap)
