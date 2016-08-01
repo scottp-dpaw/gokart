@@ -20,7 +20,10 @@
         graticule: new ol.LabelGraticule(),
         dragPanInter: new ol.interaction.DragPan({
           condition: function (mapBrowserEvent) {
-            return (mapBrowserEvent.pointerEvent && (mapBrowserEvent.pointerEvent.button === 0))
+            if (mapBrowserEvent.pointerEvent && (mapBrowserEvent.pointerEvent.button === 1)) {
+              return false
+            }
+            return ol.events.condition.noModifierKeys(mapBrowserEvent)
           }
         }),
         doubleClickZoomInter: new ol.interaction.DoubleClickZoom(),
@@ -28,7 +31,11 @@
         keyboardZoomInter: new ol.interaction.KeyboardZoom(),
         middleDragPanInter: new ol.interaction.DragPan({
           condition: function (mapBrowserEvent) {
-            return (mapBrowserEvent.pointerEvent && (mapBrowserEvent.pointerEvent.button === 1))
+            if (mapBrowserEvent.pointerEvent && (mapBrowserEvent.pointerEvent.button === 1)) {
+              mapBrowserEvent.preventDefault()
+              return true
+            }
+            return false
           }
         })
       }
