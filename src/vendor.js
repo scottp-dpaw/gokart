@@ -10,6 +10,12 @@ import 'dragula/dist/dragula.css'
 import $ from 'jquery'
 // jCanvas mod to canvas operations
 require('jcanvas')($, window)
+// Cross-browser support for saving blobs from a webpage
+import { saveAs } from 'filesaverjs'
+// Cross-browser polyfill for canvas.toBlob
+require('blueimp-canvas-to-blob')
+// Cross-browser polyfill for ES6
+import 'babel-polyfill'
 // OpenLayers 3 map widget, including our extensions
 import ol from 'src/ol-extras.js'
 // Vue.js template engine
@@ -20,10 +26,6 @@ import VueStash from 'vue-stash'
 import 'foundation-sites'
 // IE9+ support for SVG sprites
 import svg4everybody from 'svg4everybody'
-// Cross-browser support for saving blobs from a webpage
-import { saveAs } from 'filesaverjs'
-// Cross-browser polyfill for canvas.toBlob
-require('blueimp-canvas-to-blob')
 // QR code generator
 import kjua from 'kjua'
 // Timestamp parsing library
