@@ -105,7 +105,7 @@
               </div>
             </div>
             <div id="tracking-list">
-              <div v-for="f in features | filterBy resourceFilter | orderBy resourceOrder" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
+              <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
                   <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button small secondary float-right"><i class="fa fa-pencil"></i></a>
@@ -215,6 +215,7 @@
         this.trackingMapLayer.getSource().loadSource()
       },
       historyCQLFilter: function () {
+        var vm = this
         var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
         historyLayer.cql_filter = 'deviceid in (' + this.$root.info.sel.join(',') + ") and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
@@ -232,16 +233,7 @@
           })
           Object.keys(devices).forEach(function (device) {
             // sort by timestamp
-            devices[device].sort(function (a, b) {
-              var as = a.get('seen')
-              var bs = b.get('seen')
-              if (as < bs) {
-                return -1
-              } else if (as > bs) {
-                return 1
-              }
-              return 0
-            })
+            devices[device].sort(vm.resourceOrder)
             // pull the coordinates
             var coords = devices[device].map(function (point) {
               return point.getGeometry().getCoordinates()
@@ -265,8 +257,15 @@
         };
         return found
       },
-      resourceOrder: function (f1, f2) {
-        return f2.get('seen') > f1.get('seen')
+      resourceOrder: function (a, b) {
+        var as = a.get('seen')
+        var bs = b.get('seen')
+        if (as < bs) {
+          return 1
+        } else if (as > bs) {
+          return -1
+        }
+        return 0
       },
       zoomToSelected: function () {
         var extent = ol.extent.createEmpty()
@@ -289,8 +288,11 @@
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
         var renderTracking = global.debounce(function () {
           if (!map.getMapLayer(trackingLayer)) { return }
-          vm.extentFeatures = map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent)
-          vm.allFeatures = map.getMapLayer(trackingLayer).getSource().getFeatures()
+          vm.extentFeatures = map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent).filter(vm.resourceFilter)
+          vm.extentFeatures.sort(vm.resourceOrder)
+          vm.allFeatures = map.getMapLayer(trackingLayer).getSource().getFeatures().filter(vm.resourceFilter)
+          vm.allFeatures.sort(vm.resourceOrder)
+          console.log('update features')
         }, 100)
 
         map.olmap.getLayerGroup().on('change', renderTracking)
