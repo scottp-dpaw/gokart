@@ -1,7 +1,12 @@
 .DS_Store
 node_modules
 dist/dev
+dist/www/dist
+dist/www/gokart.html
+dist/platforms
+*.log
 *.sw*
 *.pyc
 .env
+.build.sh
 venv/

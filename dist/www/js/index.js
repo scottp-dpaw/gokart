@@ -28,24 +28,45 @@ var app = {
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
     },
+    getUserTask :null,
+    loginWindow :null,
     // deviceready Event Handler
     //
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
-        document.location = "/release/index.html"
+    },
+
+    getUser: function() {
+        app.loginWindow.executeScript({code:"[document.location,document.getElementById(\"whoami\").innerText]"},function(values){
+            docLocation = values[0][0];
+            if (docLocation.host != 'static.dpaw.wa.gov.au') {
+                return;
+            }
+            user = values[0][1].trim();
+            if (user.length > 0) {
+                try {
+                    window.login(JSON.parse(user))
+                    app.loginWindow.close()
+                } catch(ex) {
+                    alert("Login failed");
+                }
+            } else {
+                getUserTask = window.setTimeout(app.getUser,300);
+            }
+        })
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
+        app.loginWindow = cordova.InAppBrowser.open('https://static.dpaw.wa.gov.au/pages/login.html', '_blank', "location=no");
+        app.loginWindow.addEventListener("loadstop",function() {
+            if (app.getUserTask) {
+                clearTimeout(app.getUserTask);
+                app.getUserTask = null;
+            }
+            app.getUserTask = window.setTimeout(app.getUser,300);
+        });
     }
 };
 
