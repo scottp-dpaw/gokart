@@ -24,6 +24,14 @@
       [
         "babelify",
         {
+          "presets": ["es2015"],
+          "only": "src"
+        }
+      ],
+      [
+        "babelify",
+        {
+          "presets": ["es2015"],
           "only": "src"
         }
       ],
