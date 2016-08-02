@@ -39,14 +39,14 @@ def setUp():
     returncode = subprocess.call(['wget', 'localhost:8080/{}'.format(app), '-O', cordova_gokart_file])
     if returncode != 0:
         raise "Fail to load gokart.html from web server"
-    with open(cordova_gokart_file,'rb') as f:
-        file_content = f.read()
     print "Succeed to load gokart.html from web server"
     
     
     #Add javascript patch for cordova app
     if os.path.exists(patch_file_abs):
         print "Begin to add the patch file '{}'".format(patch_file_abs)
+        with open(cordova_gokart_file,'rb') as f:
+            file_content = f.read()
         cordova_js = """
           <script type="text/javascript" src="{}"></script>
         </body>
