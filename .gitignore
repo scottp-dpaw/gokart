@@ -4,9 +4,11 @@ dist/dev
 dist/www/dist
 dist/www/gokart.html
 dist/platforms
+
 *.log
 *.sw*
 *.pyc
 .env
-.build.sh
+.build_cordova.sh
+build_cordova.env
 venv/
