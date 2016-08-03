@@ -98,7 +98,7 @@
           var key = keys.map(function(k) {
             return feature.get(k)
           }).join(";")
-          if (this.svgBlobs[key] && !(typeof this.svgBlobs[key] != 'string')) {
+          if (this.svgBlobs[key]) {
             return this.svgBlobs[key]
           } else {
             var dims = feature.get('dims') || [48, 48]
@@ -118,8 +118,13 @@
             tint = vm.tints[tint] || []
           }
           var draw = function() {
-            if (vm.svgBlobs[key]) { pResolve() }
-            vm.svgBlobs[key] = new Promise(function(resolve, reject) {
+            if (typeof vm.svgBlobs[key] !== 'undefined') { pResolve() }
+            // RACE CONDITION: MS edge inlines promises and callbacks!
+            // we can't set vm.svgBlobs[key] to be the Promise, as
+            // it's entirely possible for the whole thing to have been 
+            // completed in the constructor before the svgBlobs array is even set
+            vm.svgBlobs[key] = ''
+            var drawJob = new Promise(function(resolve, reject) {
               vm.drawSVG(key, vm.svgTemplates[url], tint, dims, resolve, reject)
             }).then(function() {
               pResolve()
@@ -139,6 +144,7 @@
               var req = new window.XMLHttpRequest()
               req.withCredentials = true
               req.onload = function () {
+                //console.log('addSVG: XHR returned for '+key)
                 if (!this.responseText) {
                   return
                 }
@@ -162,6 +168,7 @@
             source: 'data:image/svg+xml;utf8,' + encodeURIComponent(vm.tintSVG(svgstring, tints)),
             fromCenter: false, x: 0, y: 0, width: dims[0], height: dims[1],
             load: function () {
+              //console.log('drawSVG: Canvas drawn for '+key)
               canvas.get(0).toBlob(function (blob) {
                 vm.svgBlobs[key] = window.URL.createObjectURL(blob)
                 resolve()

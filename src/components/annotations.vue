@@ -555,10 +555,12 @@
         }
       }
       var customAdd = function (f) {
-        if (f.get('size')) { return }
-        f.set('size', vm.size)
-        if (f.get('colour')) { return }
-        f.set('colour', vm.colour)
+        if (!f.get('size')) { 
+          f.set('size', vm.size)
+        }
+        if (!f.get('colour')) { 
+          f.set('colour', vm.colour)
+        }
       }
       var vectorStyleCache = {
         'default': ol.style.defaultStyleFunction()
