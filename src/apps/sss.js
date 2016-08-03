@@ -75,8 +75,6 @@ var defaultStore = {
       }
     }
   },
-  // selected features
-  sel: [],
   mmPerInch: 25.4,
   // blank annotations
   annotations: {

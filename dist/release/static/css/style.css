@@ -74,6 +74,8 @@ body {
     background-position: center;
     position: relative;
     outline: 0;
+    /* disable history gestures on IE */
+    -ms-scroll-chaining: none;
 }
 
 /* position fixes for top-right OpenLayers map widgets */

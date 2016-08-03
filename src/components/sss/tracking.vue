@@ -124,7 +124,6 @@
 <script>
   import { ol, moment } from 'src/vendor.js'
   export default {
-    store: ['sel'],
     data: function () {
       return {
         viewportOnly: true,
@@ -136,6 +135,7 @@
         fields: ['id', 'name', 'callsign', 'make', 'model', 'rego', 'category', 'deviceid', 'symbol'],
         allFeatures: [],
         extentFeatures: [],
+        selectedDevices: [],
         historyFromDate: '',
         historyFromTime: '',
         historyToDate: '',
@@ -185,14 +185,12 @@
       toggleSelect: function (f) {
         if (this.selected(f)) {
           this.$root.annotations.selectedFeatures.remove(f)
-          this.sel.$remove(f.get('deviceid'))
         } else {
           this.$root.annotations.selectedFeatures.push(f)
-          this.sel.push(f.get('deviceid'))
         }
       },
       selected: function (f) {
-        return this.$root.annotations.selectedFeatures.getArray().indexOf(f) > -1
+        return f.get('deviceid') && (this.selectedDevices.indexOf(f.get('deviceid')) > -1)
       },
       downloadList: function () {
         this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'trackingdata')
@@ -201,8 +199,8 @@
         var groupFilter = this.cql
         var deviceFilter = ''
         // filter by specific devices if "Show selected only" is enabled
-        if ((this.sel.length > 0) && (this.selectedOnly)) {
-          deviceFilter = 'deviceid in (' + this.sel.join(',') + ')'
+        if ((this.selectedDevices.length > 0) && (this.selectedOnly)) {
+          deviceFilter = 'deviceid in (' + this.selectedDevices.join(',') + ')'
         }
         // CQL statement assembling logic
         if (groupFilter && deviceFilter) {
@@ -217,7 +215,8 @@
       historyCQLFilter: function () {
         var vm = this
         var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
-        historyLayer.cql_filter = 'deviceid in (' + this.$root.info.sel.join(',') + ") and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
+        var deviceFilter = 'deviceid in (' + this.selectedDevices.join(',') + ')'
+        historyLayer.cql_filter = deviceFilter + "and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
         var source = this.$root.map.getMapLayer(historyLayer).getSource()
         source.loadSource(function () {
@@ -286,17 +285,29 @@
       // post init event hookup
       this.$on('gk-init', function () {
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
+
+        // syncing of Resource Tracking features between Vue state and OL source
         var renderTracking = global.debounce(function () {
           if (!map.getMapLayer(trackingLayer)) { return }
           vm.extentFeatures = map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent).filter(vm.resourceFilter)
           vm.extentFeatures.sort(vm.resourceOrder)
           vm.allFeatures = map.getMapLayer(trackingLayer).getSource().getFeatures().filter(vm.resourceFilter)
           vm.allFeatures.sort(vm.resourceOrder)
-          console.log('update features')
+          //console.log('update features')
         }, 100)
 
         map.olmap.getLayerGroup().on('change', renderTracking)
         map.olmap.getView().on('propertychange', renderTracking)
+        this.$root.annotations.selectedFeatures.on('add', function (event) {
+          if (event.element.get('deviceid')) {
+            vm.selectedDevices.push(event.element.get('deviceid'))
+          }
+        })
+        this.$root.annotations.selectedFeatures.on('remove', function (event) {
+          if (event.element.get('deviceid')) {
+            vm.selectedDevices.$remove(event.element.get('deviceid'))
+          }
+        })
       })
     }
   }
