@@ -12,9 +12,8 @@ else
 fi
 
 if [ "$action" = "run" ] || [ "$action" = "build" ];  then
-    ./build_cordova.py $action $app setUp
-    ./.build_cordova.sh
-    ./build_cordova.py $action $app tearDown
+    script_path=`dirname "${BASH_SOURCE[0]}"`
+    cd $script_path && ./build_cordova.py $action $app setUp && ./.build_cordova.sh && ./build_cordova.py $action $app tearDown
 else
     cordova "$@"
 fi

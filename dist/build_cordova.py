@@ -58,7 +58,7 @@ def setUp():
     
     
     print "Begin to remove outdated gokart static resource from cordova project."
-    source_dist_dir = os.path.join(base_dir,"release")
+    source_dist_dir = os.path.join(base_dir,"release" if build_type == "release" else "dev")
     #copy related javascript files, staic files and 
     returncode = subprocess.call(["rm","-rf" ,cordova_dist_dir])
     if returncode != 0:
@@ -69,6 +69,12 @@ def setUp():
     returncode = subprocess.call(["cp","-rL",source_dist_dir, cordova_dist_dir])
     if returncode != 0:
         raise "Fail to copy gokart static resource into cordova project."
+    returncode = subprocess.call(["rm","-rf",os.path.join(cordova_dist_dir,"node_modules")])
+    if returncode != 0:
+        raise "Fail to remove node_modules folder."
+    returncode = subprocess.call(["rm","-f","*.js.map"])
+    if returncode != 0:
+        raise "Fail to remove map files."
     print "Succeed to copy gokart static resource into cordova project."
 
     #populate build command file
