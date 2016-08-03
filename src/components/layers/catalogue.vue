@@ -209,8 +209,8 @@ div.ol-overviewmap.ol-uncollapsible {
             }
             // add the base flag for layers tagged 'basemap'
             l.base = l.tags.some(function (t) {return t.name === 'basemap'})
-            // set the opacity to 50% for layers tagged 'relief'
-            if (l.tags.some(function (t) { return t.name === 'relief' })) {
+            // set the opacity to 50% for layers tagged 'overlaymap'
+            if (l.tags.some(function (t) { return t.name === 'overlaymap' })) {
                 l.opacity = 0.5
             }
             // 

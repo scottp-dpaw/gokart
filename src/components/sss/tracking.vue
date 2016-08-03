@@ -235,6 +235,7 @@
             devices[device].sort(vm.resourceOrder)
             // pull the coordinates
             var coords = devices[device].map(function (point) {
+              point.set('label', moment(point.get('seen')).format('MMM DD HH:mm')) 
               return point.getGeometry().getCoordinates()
             })
             // create a new linestring
