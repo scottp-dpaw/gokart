@@ -41,7 +41,7 @@
     </div>
     <div class="row collapse">
       <div id="layer-config" class="columns">
-        <h4>{{ layer.name }}</h4>
+        <h4 v-if="mapLayer()">{{ layer.name }}</h4>
         <div class="tool-slice row" v-if="mapLayer()">
           <div class="columns small-2"><label class="tool-label">Opacity:<br/>{{ layerOpacity }}%</label></div>
           <div class="columns small-10"><input class="layer-opacity" type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
