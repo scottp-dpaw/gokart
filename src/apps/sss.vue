@@ -132,13 +132,13 @@
           }
           if (vm.svgTemplates[url]) {
             // render from loaded svg or queue render post load promise
-            if (vm.svgTemplates[url].then) {
+            if (vm.svgTemplates[url] instanceof Promise) {
               vm.svgTemplates[url].then(draw)
             } else {
               draw()
             }
           } else {
-            vm.svgTemplates[url] = new Promise(function (resolve, reject) { 
+            var loadJob = new Promise(function (resolve, reject) { 
               // load svg
               //console.log('addSVG: Cache miss for '+key)
               var req = new window.XMLHttpRequest()
@@ -157,6 +157,9 @@
               req.open('GET', url)
               req.send()
             }).then(draw)
+            if (!(url in vm.svgTemplates)) {
+              vm.svgTemplates[url] = loadJob
+            }
           }
         },
         drawSVG: function(key, svgstring, tints, dims, resolve, reject) {
