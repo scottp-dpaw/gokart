@@ -574,18 +574,38 @@
         var f = this
         var key = 'default'
         if (f) {
-          key = f.get('size') + f.get('colour')
+          key = f.get('size') +';'+ f.get('colour') +';'+ f.get('tint')
         }
         if (!vectorStyleCache[key]) {
-          vectorStyleCache[key] = new ol.style.Style({
-            fill: new ol.style.Fill({
-              color: 'rgba(255, 255, 255, 0.2)'
-            }),
-            stroke: new ol.style.Stroke({
-              color: f.get('colour'),
-              width: 2 * f.get('size')
+          if (f.get('tint') === 'selected') {
+            vectorStyleCache[key] = [
+              new ol.style.Style({
+                fill: new ol.style.Fill({
+                  color: 'rgba(255, 255, 255, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                  color: '#2199e8',
+                  width: 2 * f.get('size') + 2
+                })
+              }),
+              new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                  color: '#ffffff',
+                  width: 2 * f.get('size')
+                })
+              }),
+           ]
+          } else {
+            vectorStyleCache[key] = new ol.style.Style({
+              fill: new ol.style.Fill({
+                color: 'rgba(255, 255, 255, 0.2)'
+              }),
+              stroke: new ol.style.Stroke({
+                color: f.get('colour'),
+                width: 2 * f.get('size')
+              })
             })
-          })
+          }
         }
         return vectorStyleCache[key]
       }
