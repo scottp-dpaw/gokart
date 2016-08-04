@@ -337,14 +337,14 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       }]
 
       // load custom annotation tools
-      var hotSpotStyle = new ol.style.Style({
+      /*var hotSpotStyle = new ol.style.Style({
         image: new ol.style.Circle({
           fill: new ol.style.Fill({
             color: '#b43232'
           }),
           radius: 8
         })
-      })
+      })*/
 
       var iconDrawFactory = function (options) {
         var defaultFeat = new ol.Feature({
@@ -366,12 +366,17 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         return draw
       }
 
-      var hotSpotDraw = new ol.interaction.Draw({
+      /*var hotSpotDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
         style: hotSpotStyle
-      })
+      })*/
 
+      var originPointDraw = iconDrawFactory({
+        icon: 'dist/static/symbols/fire/origin.svg',
+        features:  this.annotations.features,
+        tint: 'default',
+      })
       var spotFireDraw = iconDrawFactory({
         icon: 'dist/static/symbols/fire/spotfire.svg',
         features:  this.annotations.features,
@@ -416,11 +421,18 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       var sssTools = [
         {
-          name: 'Hot Spot',
+        /*  name: 'Hot Spot',
           icon: 'fa-circle red',
           interactions: [hotSpotDraw],
           style: hotSpotStyle,
           showName: true
+        }, {*/
+          name: 'Origin Point',
+          icon: 'dist/static/symbols/fire/origin.svg',
+          interactions: [originPointDraw],
+          style: function (res) { return iconStyle(this, res) },
+          showName: true,
+          selectedTint: [['#b43232','#2199e8']]
         }, {
           name: 'Spot Fire',
           icon: 'dist/static/symbols/fire/spotfire.svg',
