@@ -237,6 +237,10 @@ localforage.getItem('sssOfflineStore').then(function (store) {
             return ((geom instanceof ol.geom.Polygon) || (geom instanceof ol.geom.LineString))
           }
         )
+        if (!nearestFeature) {
+          // no feature == no rotation
+          return 0.0
+        }
         var segments = []
         var source = []
         var segLength = 0

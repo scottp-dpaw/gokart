@@ -275,6 +275,15 @@
         var map = this.$root.map.olmap
         map.getView().fit(extent, map.getSize())
       },
+      updateTracking: function() {
+        // syncing of Resource Tracking features between Vue state and OL source
+        var mapLayer = this.$root.map.getMapLayer(this.$root.catalogue.getLayer('dpaw:resource_tracking_live'))
+        if (!mapLayer) { return }
+        this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
+        this.extentFeatures.sort(this.resourceOrder)
+        this.allFeatures = mapLayer.getSource().getFeatures().filter(this.resourceFilter)
+        this.allFeatures.sort(this.resourceOrder)
+      },
       init: function() {
         this.$root.annotations.selectable = [this.trackingMapLayer]
         this.$root.annotations.setTool('Select')
@@ -287,18 +296,28 @@
       this.$on('gk-init', function () {
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
 
-        // syncing of Resource Tracking features between Vue state and OL source
+
         var renderTracking = global.debounce(function () {
-          if (!map.getMapLayer(trackingLayer)) { return }
-          vm.extentFeatures = map.getMapLayer(trackingLayer).getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent).filter(vm.resourceFilter)
-          vm.extentFeatures.sort(vm.resourceOrder)
-          vm.allFeatures = map.getMapLayer(trackingLayer).getSource().getFeatures().filter(vm.resourceFilter)
-          vm.allFeatures.sort(vm.resourceOrder)
+          var mapLayer = map.getMapLayer(trackingLayer)
+          if (!mapLayer) { return }
+          if (!mapLayer.get('tracking')) {
+            //console.log('setting tracking hook')
+            mapLayer.set('tracking', mapLayer.on('propertychange', function (event) {
+              //console.log('CHANGE fired on resource_tracking_live')
+              if (event.key === 'updated') {
+                vm.updateTracking()
+              }
+            }))
+            mapLayer.set('updated', moment().toLocaleString())
+          }
           //console.log('update features')
+        }, 100)
+        var viewChanged = global.debounce(function () {
+          vm.updateTracking()
         }, 100)
 
         map.olmap.getLayerGroup().on('change', renderTracking)
-        map.olmap.getView().on('propertychange', renderTracking)
+        map.olmap.getView().on('propertychange', viewChanged)
         this.$root.annotations.selectedFeatures.on('add', function (event) {
           if (event.element.get('deviceid')) {
             vm.selectedDevices.push(event.element.get('deviceid'))
