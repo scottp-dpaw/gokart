@@ -196,6 +196,7 @@
         this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'trackingdata')
       },
       updateCQLFilter: function () {
+        var vm = this
         var groupFilter = this.cql
         var deviceFilter = ''
         // filter by specific devices if "Show selected only" is enabled
@@ -210,7 +211,10 @@
         } else {
           this.trackingLayer.cql_filter = groupFilter
         }
-        this.trackingMapLayer.getSource().loadSource()
+        this.trackingMapLayer.set('updated', moment().toLocaleString())
+        this.trackingMapLayer.getSource().loadSource(function () {
+          vm.updateTracking()
+        })
       },
       historyCQLFilter: function () {
         var vm = this
