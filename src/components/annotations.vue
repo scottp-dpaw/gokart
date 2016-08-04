@@ -101,7 +101,10 @@
   .notecontent {
     width: 300px;
     height: 40px;
-
+    resize: both;
+    background-image: url('dist/static/images/boxresize.svg');
+    background-repeat: no-repeat;
+    background-position: right bottom;
   }
   .canvaspane {
     overflow: hidden;
@@ -321,7 +324,7 @@
           if (save) {
             var key = JSON.stringify(note)
             // temp placeholder
-            this.notes[key] = 'dist/static/images/placeholder.svg'
+            this.notes[key] = ''
             noteCanvas.toBlob(function (blob) {
               // switch for actual image
               vm.notes[key] = window.URL.createObjectURL(blob)
@@ -339,7 +342,7 @@
       },
       getNoteUrl: function (note) {
         var key = JSON.stringify(note)
-        if (!this.notes[key]) {
+        if (!(key in this.notes)) {
           this.drawNote(note, true)
         }
         return this.notes[key]
@@ -524,9 +527,11 @@
       var noteStyleCache = {}
       var noteStyle = function (res) {
         var f = this
-        var url = 'dist/static/images/placeholder.svg'
+        var url = ''
         if (f) {
           url = vm.getNoteUrl(f.get('note'))
+        } else {
+          return null
         }
         if (!noteStyleCache[url]) {
           noteStyleCache[url] = new ol.style.Style({
