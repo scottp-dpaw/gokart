@@ -54,6 +54,7 @@ var defaultStore = {
   defaultWMTSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts',
   defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
   defaultLegendSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&LAYER=',
+  gokartService: (window.location.protocol == "file:")?"https://gokart.dpaw.wa.gov.au" : "",
   // default matrix from KMI
   resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
   // fixed scales for the scale selector (1:1K increments)
@@ -291,7 +292,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         type: 'TimelineLayer',
         name: 'Himawari-8 Hotspots',
         id: 'himawari8:hotspots',
-        source: '/hi8/AHI_TKY_FHS',
+        source: this.store.gokartService + '/hi8/AHI_TKY_FHS',
         params: {
           FORMAT: 'image/png'
         },
@@ -300,28 +301,28 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         type: 'TimelineLayer',
         name: 'Himawari-8 True Colour',
         id: 'himawari8:bandtc',
-        source: '/hi8/AHI_TKY_b321',
+        source: this.store.gokartService + '/hi8/AHI_TKY_b321',
         refresh: 300,
         base: true
       }, {
         type: 'TimelineLayer',
         name: 'Himawari-8 Band 3',
         id: 'himawari8:band3',
-        source: '/hi8/AHI_TKY_b3',
+        source: this.store.gokartService + '/hi8/AHI_TKY_b3',
         refresh: 300,
         base: true
       }, {
         type: 'TimelineLayer',
         name: 'Himawari-8 Band 7',
         id: 'himawari8:band7',
-        source: '/hi8/AHI_TKY_b7',
+        source: this.store.gokartService + '/hi8/AHI_TKY_b7',
         refresh: 300,
         base: true
       }, {
         type: 'TimelineLayer',
         name: 'Himawari-8 Band 15',
         id: 'himawari8:band15',
-        source: '/hi8/AHI_TKY_b15',
+        source: this.store.gokartService + '/hi8/AHI_TKY_b15',
         refresh: 300,
         base: true
       }, {

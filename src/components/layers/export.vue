@@ -68,7 +68,7 @@
   import { kjua, saveAs, moment, $, localforage } from 'src/vendor.js'
   import gkLegend from './legend.vue'
   export default {
-    store: ['whoami', 'dpmm', 'view', 'mmPerInch'],
+    store: ['whoami', 'dpmm', 'view', 'mmPerInch','gokartService'],
     components: { gkLegend },
     data: function () {
       return {
@@ -134,7 +134,7 @@
           var formData = new window.FormData()
           formData.append('json', blob, name + '.json')
           var req = new window.XMLHttpRequest()
-          req.open('POST', '/ogr/' + this.vectorFormat)
+          req.open('POST', this.gokartService + '/ogr/' + this.vectorFormat)
           req.responseType = 'blob'
           req.onload = function (event) {
             saveAs(req.response, name + '.' + format)
@@ -173,7 +173,7 @@
         formData.append('title', this.title)
         formData.append('author', this.legendInfo().author)
         var req = new window.XMLHttpRequest()
-        req.open('POST', '/gdal/' + format)
+        req.open('POST', this.gokartService + '/gdal/' + format)
         req.responseType = 'blob'
         var vm = this
         req.onload = function (event) {
