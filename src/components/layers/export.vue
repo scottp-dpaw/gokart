@@ -61,7 +61,7 @@
         </div>
         <div class="small-9 columns">
           <div class="input-group">
-            <input id="saveStateName" class="input-group-field" type="text" placeholder="Name for saved state"/>
+            <input v-el:savestatename class="input-group-field" type="text" placeholder="Name for saved state"/>
             <div class="input-group-button">
               <a class="button" @click="saveStateButton()">Save</a>
             </div>
@@ -271,6 +271,7 @@
       },
       download: function (key) {
         if (key) {
+          // download JSON blob from the state store
           localforage.getItem('sssStateStore').then(function (store) {
             if (key in store) {
               var blob = new window.Blob([JSON.stringify(store[key], null, 2)], {type: 'application/json;charset=utf-8'})
@@ -278,6 +279,7 @@
             }
           })
         } else {
+          // download JSON blob of the current state
           localforage.getItem('sssOfflineStore').then(function (store) {
             var blob = new window.Blob([JSON.stringify(store, null, 2)], {type: 'application/json;charset=utf-8'})
             saveAs(blob, 'sss_state_' +moment().format('YYYY-MM-DD-HHmm')+'.sss.json')
@@ -285,6 +287,7 @@
         }
       },
       open: function (key) {
+        // load the JSON blob from the state store into the offline store
         localforage.getItem('sssStateStore').then(function (store) {
           if (key in store) {
             localforage.setItem('sssOfflineStore', store[key]).then(function (v) {
@@ -294,6 +297,7 @@
         })
       },
       remove: function (key) {
+        // if there's a key matching in the state store, remove it
         var vm = this
         localforage.getItem('sssStateStore').then(function (store) {
           if (key in store) {
@@ -304,6 +308,7 @@
         })
       },
       load: function () {
+        // upload JSON into a state slot 
         var vm = this
         var reader = new window.FileReader()
         var key = this.$els.statefile.files[0].name.split('.', 1)[0]
@@ -325,18 +330,19 @@
         }
       },
       saveStateButton: function () {
-        var key = document.getElementById("saveStateName").value
+        var key = this.$els.savestatename.value
         if (!key) {
           key = moment().format('DD/MM/YYYY HH:mm')
         }
         this.saveState(key)
       },
       saveState: function (key) {
-        console.log('savestate '+key)
         var vm = this
         var store = this.$root.store
         // don't save if user is in tour
         if (vm.$root.touring) { return }
+
+        // store attributes
         store.view.center = vm.olmap.getView().getCenter()
         store.view.scale = Math.round(vm.$root.map.getScale() * 1000)
         var activeLayers = vm.$root.active.activeLayers()
