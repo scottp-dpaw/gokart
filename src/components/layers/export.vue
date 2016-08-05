@@ -304,11 +304,15 @@
         })
       },
       load: function () {
+        var vm = this
         var reader = new window.FileReader()
+        var key = this.$els.statefile.files[0].name.split('.', 1)[0]
         reader.onload = function (e) {
-          //console.log(JSON.parse(e.target.result))
-          localforage.setItem('sssOfflineStore', JSON.parse(e.target.result)).then(function (v) {
-            document.location.reload()
+          localforage.getItem('sssStateStore').then(function(store) {
+            store[key] = JSON.parse(e.target.result)
+            localforage.setItem('sssStateStore', store).then(function (v) {
+              vm.states = Object.keys(store)
+            })
           })
         }
         reader.readAsText(this.$els.statefile.files[0])
