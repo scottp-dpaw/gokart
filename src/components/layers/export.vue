@@ -77,7 +77,7 @@
             <div class="float-right button-group small">
               <a class="button" title="Open state" @click="open(state)"><i class="fa fa-folder-open"></i></a>
               <a class="button" title="Download state" @click="download(state)"><i class="fa fa-download"></i></a>
-              <a class="button alert" title="Delete state">✕</a>
+              <a class="button alert" title="Delete state" @click="remove(state)">✕</a>
             </div>
             {{ state }}
           </div>
@@ -290,6 +290,16 @@
             localforage.setItem('sssOfflineStore', store[key]).then(function (v) {
               document.location.reload()
             })
+          }
+        })
+      },
+      remove: function (key) {
+        var vm = this
+        localforage.getItem('sssStateStore').then(function (store) {
+          if (key in store) {
+            delete store[key]
+            vm.states = Object.keys(store)
+            localforage.setItem('sssStateStore', store)
           }
         })
       },
