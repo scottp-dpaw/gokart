@@ -51,7 +51,7 @@
         </div>
         <div class="small-9 columns">
           <div class="expanded button-group">
-            <a class="button expanded" @click="save()"><i class="fa fa-download"></i> Download state as file</a>
+            <a class="button expanded" @click="download()"><i class="fa fa-download"></i> Download state as file</a>
           </div>
         </div>
       </div>
@@ -61,9 +61,9 @@
         </div>
         <div class="small-9 columns">
           <div class="input-group">
-            <input class="input-group-field" type="text" placeholder="Name for saved state"/>
+            <input id="saveStateName" class="input-group-field" type="text" placeholder="Name for saved state"/>
             <div class="input-group-button">
-              <a class="button">Save</a>
+              <a class="button" @click="saveStateButton()">Save</a>
             </div>
           </div>
         </div>
@@ -73,15 +73,15 @@
           <label class="tool-label">Load state:</label>
         </div>
         <div class="small-9 columns">
-          <div class="feature-row" style="overflow: hidden">
+          <div v-for="state in states" class="feature-row" style="overflow: hidden">
             <div class="float-right button-group small">
-              <a class="button" title="Open state"><i class="fa fa-folder-open"></i></a>
-              <a class="button" title="Download state"><i class="fa fa-download"></i></a>
+              <a class="button" title="Open state" @click="open(state)"><i class="fa fa-folder-open"></i></a>
+              <a class="button" title="Download state" @click="download(state)"><i class="fa fa-download"></i></a>
               <a class="button alert" title="Delete state">✕</a>
             </div>
-            Fire ops
+            {{ state }}
           </div>
-          <div class="feature-row">
+          <div v-if="states.length == 0" class="feature-row">
             No saved states yet
           </div>
           <div class="expanded button-group">
@@ -125,7 +125,8 @@
         layout: {},
         title: 'Quick Print',
         statefile: '',
-        vectorFormat: 'json'
+        vectorFormat: 'json',
+        states: []
       }
     },
     // parts of the template to be computed live
@@ -268,16 +269,34 @@
         })
         vm.olmap.renderSync()
       },
-      save: function () {
-        localforage.getItem('sssOfflineStore').then(function (store) {
-          var blob = new window.Blob([JSON.stringify(store, null, 2)], {type: 'application/json;charset=utf-8'})
-          saveAs(blob, 'sss_state_' + moment().toLocaleString() + '_.sss.json')
+      download: function (key) {
+        if (key) {
+          localforage.getItem('sssStateStore').then(function (store) {
+            if (key in store) {
+              var blob = new window.Blob([JSON.stringify(store[key], null, 2)], {type: 'application/json;charset=utf-8'})
+              saveAs(blob, key+'.sss.json')
+            }
+          })
+        } else {
+          localforage.getItem('sssOfflineStore').then(function (store) {
+            var blob = new window.Blob([JSON.stringify(store, null, 2)], {type: 'application/json;charset=utf-8'})
+            saveAs(blob, 'sss_state_' +moment().format('YYYY-MM-DD-HHmm')+'.sss.json')
+          })
+        }
+      },
+      open: function (key) {
+        localforage.getItem('sssStateStore').then(function (store) {
+          if (key in store) {
+            localforage.setItem('sssOfflineStore', store[key]).then(function (v) {
+              document.location.reload()
+            })
+          }
         })
       },
       load: function () {
         var reader = new window.FileReader()
         reader.onload = function (e) {
-          console.log(JSON.parse(e.target.result))
+          //console.log(JSON.parse(e.target.result))
           localforage.setItem('sssOfflineStore', JSON.parse(e.target.result)).then(function (v) {
             document.location.reload()
           })
@@ -291,7 +310,15 @@
           })
         }
       },
-      saveState: function () {
+      saveStateButton: function () {
+        var key = document.getElementById("saveStateName").value
+        if (!key) {
+          key = moment().format('DD/MM/YYYY HH:mm')
+        }
+        this.saveState(key)
+      },
+      saveState: function (key) {
+        console.log('savestate '+key)
         var vm = this
         var store = this.$root.store
         // don't save if user is in tour
@@ -304,15 +331,38 @@
         }
         store.activeLayers = activeLayers || []
         store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
+
+        // save in the offline store
         localforage.setItem('sssOfflineStore', store).then(function (value) {
           vm.$root.saved = moment().toLocaleString()
         })
+
+        // if key is defined, store in state store
+        if (key) {
+          localforage.getItem('sssStateStore', function (err, value) {
+            var states = {}
+            if (value) {
+              states = value
+            }
+            states[key] = store
+            localforage.setItem('sssStateStore', states).then(function (value) {
+              vm.states = Object.keys(states)
+            })
+            
+          })
+        }
       }
     },
     ready: function () {
       this.$on('gk-init', function () {
+        var vm = this
         // save state every render
-        this.olmap.on('postrender', global.debounce(this.saveState, 250, true))
+        this.olmap.on('postrender', global.debounce(function (ev) {vm.saveState()}, 1000, true))
+        var stateStore = localforage.getItem('sssStateStore', function (err, value) {
+          if (value) {
+            vm.states = Object.keys(value)
+          }
+        })
       })
     }
   }
