@@ -202,7 +202,7 @@
             tileSource.setUrls(data.servers)
             options.timeline = data.layers.reverse()
             tileLayer.set('timeIndex', options.timeIndex || options.timeline.length - 1)
-            vm.$root.gkLayers.update()
+            vm.$root.active.update()
           })
         }
 
