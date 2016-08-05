@@ -200,7 +200,8 @@ body {
 
 .tool-slice input,
 .tool-slice select,
-.tool-slice button {
+.tool-slice button,
+.tool-slice .input-group {
     margin: 0px;
 }
 

@@ -28,19 +28,6 @@
             <a class="button" title="JPG for quick and easy printing" @click="print('jpg')"><i class="fa fa-file-image-o"></i><br>JPG</a>
             <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i><br>PDF</a>
             <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i><br>GeoTIFF</a>
-            <a class="button" title="JSON bundle of SSS config and annotations" @click="save()"><i class="fa fa-cloud-download"></i><br>SSS</a>
-          </div>
-        </div>
-      </div>
-      <div class="tool-slice row collapse">
-        <div class="small-3">
-          <label class="tool-label">Upload:</label>
-        </div>
-        <div class="small-9">
-          <input type="file" name="statefile" accept="application/json" v-model="statefile" v-el:statefile>
-          <div class="expanded button-group">
-            <a class="button" title="JSON bundle of SSS config and annotations" @click="load()"><i class="fa fa-cloud-upload"></i><br>Upload bundle</a>
-            <a id="reset-sss" class="button" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i><br>Reset SSS</a>
           </div>
         </div>
       </div>
@@ -56,6 +43,60 @@
             <option value="shapefile">Shapefile (legacy desktop GIS)</option>
             <option value="csv">CSV (Spreadsheet/Excel)</option>
           </select>
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Export state:</label>
+        </div>
+        <div class="small-9 columns">
+          <div class="expanded button-group">
+            <a class="button expanded" @click="save()"><i class="fa fa-download"></i> Download state as file</a>
+          </div>
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Save state:</label>
+        </div>
+        <div class="small-9 columns">
+          <div class="input-group">
+            <input class="input-group-field" type="text" placeholder="Name for saved state"/>
+            <div class="input-group-button">
+              <a class="button">Save</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Load state:</label>
+        </div>
+        <div class="small-9 columns">
+          <div class="feature-row" style="overflow: hidden">
+            <div class="float-right button-group small">
+              <a class="button" title="Open state"><i class="fa fa-folder-open"></i></a>
+              <a class="button" title="Download state"><i class="fa fa-download"></i></a>
+              <a class="button alert" title="Delete state">✕</a>
+            </div>
+            Fire ops
+          </div>
+          <div class="feature-row">
+            No saved states yet
+          </div>
+          <div class="expanded button-group">
+            <label class="button expanded" for="uploadFile"><i class="fa fa-upload"></i> Upload state file</label><input type="file" id="uploadFile" class="show-for-sr" name="statefile" accept="application/json" v-model="statefile" v-el:statefile @change="load()"/>
+          </div>
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Reset:</label>
+        </div>
+        <div class="small-9">
+          <div class="expanded button-group">
+            <a id="reset-sss" class="button alert" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i> Reset SSS</a>
+          </div>
         </div>
       </div>
       <div class="hide" v-el:legendsvg>
@@ -244,9 +285,11 @@
         reader.readAsText(this.$els.statefile.files[0])
       },
       reset: function () {
-        localforage.removeItem('sssOfflineStore').then(function (v) {
-          document.location.reload()
-        })
+        if (window.confirm('This will clear all of your selected layers and annotations. Are you sure?')) {
+          localforage.removeItem('sssOfflineStore').then(function (v) {
+            document.location.reload()
+          })
+        }
       },
       saveState: function () {
         var vm = this
