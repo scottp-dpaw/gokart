@@ -326,7 +326,7 @@
         // possible, we rig it here to always round up.
         tileGrid.origGetZForResolution = tileGrid.getZForResolution
         tileGrid.getZForResolution = function (resolution, optDirection) {
-          return tileGrid.origGetZForResolution(resolution, -1)
+          return tileGrid.origGetZForResolution(resolution*1.05, -1)
         }
 
         // create a tile source
