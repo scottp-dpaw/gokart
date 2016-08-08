@@ -40,7 +40,7 @@
                 <div class="columns">
                   <div class="row">
                     <div class="switch tiny">
-                      <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory" />
+                      <input class="switch-input" id="resourceHistory" type="checkbox" v-model="toggleHistory" @change="clearHistory" />
                       <label class="switch-paddle" for="resourceHistory">
                     <span class="show-for-sr">Query history</span>
                   </label>
@@ -194,6 +194,13 @@
       },
       downloadList: function () {
         this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'trackingdata')
+      },
+      clearHistory: function () {
+          if (!this.toggleHistory) {
+              var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
+              historyLayer.cql_filter = "clearhistorylayer"
+              this.$root.catalogue.onLayerChange(historyLayer, false)
+          }
       },
       updateCQLFilter: function () {
         var vm = this
