@@ -144,19 +144,6 @@
 
   var noteStyles = {
     'general': function (note) {
-      var pathTmpl = {
-        strokeCap: 'round',
-        p1: {
-          type: 'line',
-          x1: 2, y1: note.height + noteOffset - 2,
-          x2: noteOffset, y2: note.height + noteOffset / 2
-        },
-        p2: {
-          type: 'line',
-          x1: noteOffset, y1: 2,
-          x2: noteOffset, y2: note.height + noteOffset / 2
-        }
-      }
       var textTmpl = {
         fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
         text: note.text,
@@ -166,8 +153,6 @@
         fromCenter: false
       }
       return [
-        ['drawPath', $.extend({strokeWidth: 4, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, pathTmpl)],
-        ['drawPath', $.extend({strokeWidth: 2, strokeStyle: note.colour}, pathTmpl)],
         ['drawText', $.extend({strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
         ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
       ]
