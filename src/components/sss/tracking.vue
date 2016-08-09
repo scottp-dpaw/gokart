@@ -110,8 +110,7 @@
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
                   <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button small secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
-                  <small>{{ f.get('time') }}</small>
+                  <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
             </div>
@@ -181,7 +180,22 @@
     },
     methods: {
       ago: function (time) {
-        return moment(time).fromNow()
+        var now = moment()
+        if (now.diff(moment(time), 'days') == 1) {
+            return now.diff(moment(time), 'days') + ' day'
+        } else if ((now.diff(moment(time), 'days') > 1)) {
+            return now.diff(moment(time), 'days') + ' days'
+        } else if ((now.diff(moment(time), 'hours') == 1)) {
+            return now.diff(moment(time), 'hours') + ' hr'
+        } else if ((now.diff(moment(time), 'hours') > 1)) {
+            return now.diff(moment(time), 'hours') + ' hrs'
+        } else if ((now.diff(moment(time), 'minutes') == 1)) {
+            return now.diff(moment(time), 'minutes') + ' min'
+        } else if ((now.diff(moment(time), 'minutes') < 1)) {
+            return '<1 min'
+        } else {
+            return now.diff(moment(time), 'minutes') + ' mins'
+        }
       },
       toggleSelect: function (f) {
         if (this.selected(f)) {
