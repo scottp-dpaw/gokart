@@ -20,16 +20,12 @@
                     </li>
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-annotations" title="Annotations" @click="$root.annotations.init()">
-                            <svg class="icon">
-                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-data"  ></use>
-                            </svg>
+                            <i class="fa fa-pencil" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="$root.tracking.init()">
-                            <svg class="icon">
-                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-geolocate"></use>
-                            </svg>
+                            <i class="fa fa-truck" aria-hidden="true"></i>
                         </a>
                     </li>
                 </ul>

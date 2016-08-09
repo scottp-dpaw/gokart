@@ -77,8 +77,8 @@
               <div class="small-2">Note:</div>
               <div class="small-10">
                 <select name="select" @change="note.text = $event.target.value.split('<br>').join('\n')">
-                  <option value="" selected>Text Templates</option> 
-                  <option value="Sector Alpha<br>Channel: <br>Commander: ">Sector Details</option>
+                  <option value="">Text Templates</option> 
+                  <option value="Sector: <br>Channel: <br>Commander: " selected>Sector Details</option>
                 </select>
                 <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote(false)" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
               </div>
@@ -99,8 +99,8 @@
 
 <style>
   .notecontent {
-    width: 300px;
-    height: 40px;
+    width: 100%;
+    height: 100px;
     resize: both;
     background-image: url('dist/static/images/boxresize.svg');
     background-repeat: no-repeat;
@@ -188,9 +188,7 @@
         featureEditing: {},
         note: {
           style: 'general',
-          text: 'Insert note here',
-          width: 300,
-          height: 40,
+          text: 'Sector: \nChannel: \nCommander: ',
           colour: '#000000'
         },
         notes: {},

@@ -28,6 +28,7 @@
                   <option value="symbolid LIKE '%gang_truck'">Gang Truck</option>
                   <option value="symbolid LIKE '%heavy_duty'">Heavy Duty</option>
                   <option value="(symbolid LIKE '%heavy_duty' OR symbolid LIKE '%gang_truck')">GT and HD</option>
+                  <option value="(symbolid LIKE '%dozer' OR symbolid LIKE '%grader' OR symbolid LIKE '%loader')">Machinery</option>
                   <option value="symbolid LIKE '%aircraft'">Aircraft</option>
                 </select>
               </div>
