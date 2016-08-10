@@ -1,7 +1,7 @@
 <template>
     <div class="off-canvas-wrapper">
         <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
-            <div class="off-canvas position-left" id="offCanvasLeft" data-off-canvas>
+            <div class="off-canvas position-left reveal-responsive" id="offCanvasLeft" data-off-canvas>
                 <a id="side-pane-close" class="button alert hide-for-medium">&#x2715;</a>
                 <div class="tabs-content vertical" data-tabs-content="menu-tabs">
                     <gk-layers v-ref:layers></gk-layers>
@@ -11,7 +11,7 @@
             </div>
             <div class="off-canvas-content" data-off-canvas-content>
                 <ul class="tabs vertical map-widget" id="menu-tabs" data-tabs>
-                    <li class="tabs-title side-button">
+                    <li class="tabs-title side-button is-active">
                         <a href="#menu-tab-layers" title="Map Layers" @click="$root.annotations.setTool('Pan')">
                             <svg class="icon">
                                 <use xlink:href="dist/static/images/iD-sprite.svg#icon-layers"></use>
@@ -20,16 +20,12 @@
                     </li>
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-annotations" title="Annotations" @click="$root.annotations.init()">
-                            <svg class="icon">
-                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-data"  ></use>
-                            </svg>
+                            <i class="fa fa-pencil" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
                         <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="$root.tracking.init()">
-                            <svg class="icon">
-                                <use xlink:href="dist/static/images/iD-sprite.svg#icon-geolocate"></use>
-                            </svg>
+                            <i class="fa fa-truck" aria-hidden="true"></i>
                         </a>
                     </li>
                 </ul>

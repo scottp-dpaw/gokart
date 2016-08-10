@@ -1,5 +1,5 @@
 <template>
-  <div class="tabs-panel" id="menu-tab-layers">
+  <div class="tabs-panel is-active" id="menu-tab-layers">
     <div class="row collapse">
       <div class="columns">
         <ul class="tabs" data-tabs id="layers-tabs">

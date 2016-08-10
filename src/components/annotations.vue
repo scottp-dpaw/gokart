@@ -77,8 +77,8 @@
               <div class="small-2">Note:</div>
               <div class="small-10">
                 <select name="select" @change="note.text = $event.target.value.split('<br>').join('\n')">
-                  <option value="" selected>Text Templates</option> 
-                  <option value="Sector Alpha<br>Channel: <br>Commander: ">Sector Details</option>
+                  <option value="">Text Templates</option> 
+                  <option value="Sector: <br>Channel: <br>Commander: " selected>Sector Details</option>
                 </select>
                 <textarea @blur="updateNote(true)" class="notecontent" v-el:notecontent @keyup="updateNote(false)" @click="updateNote(true)" @mouseup="updateNote(false)">{{ note.text }}</textarea>
               </div>
@@ -99,8 +99,8 @@
 
 <style>
   .notecontent {
-    width: 300px;
-    height: 40px;
+    width: 100%;
+    height: 100px;
     resize: both;
     background-image: url('dist/static/images/boxresize.svg');
     background-repeat: no-repeat;
@@ -144,19 +144,6 @@
 
   var noteStyles = {
     'general': function (note) {
-      var pathTmpl = {
-        strokeCap: 'round',
-        p1: {
-          type: 'line',
-          x1: 2, y1: note.height + noteOffset - 2,
-          x2: noteOffset, y2: note.height + noteOffset / 2
-        },
-        p2: {
-          type: 'line',
-          x1: noteOffset, y1: 2,
-          x2: noteOffset, y2: note.height + noteOffset / 2
-        }
-      }
       var textTmpl = {
         fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
         text: note.text,
@@ -166,8 +153,6 @@
         fromCenter: false
       }
       return [
-        ['drawPath', $.extend({strokeWidth: 4, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, pathTmpl)],
-        ['drawPath', $.extend({strokeWidth: 2, strokeStyle: note.colour}, pathTmpl)],
         ['drawText', $.extend({strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
         ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
       ]
@@ -188,9 +173,7 @@
         featureEditing: {},
         note: {
           style: 'general',
-          text: 'Insert note here',
-          width: 300,
-          height: 40,
+          text: 'Sector: \nChannel: \nCommander: ',
           colour: '#000000'
         },
         notes: {},
