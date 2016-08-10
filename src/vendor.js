@@ -11,7 +11,7 @@ import $ from 'jquery'
 // jCanvas mod to canvas operations
 require('jcanvas')($, window)
 // Cross-browser support for saving blobs from a webpage
-import { saveAs } from 'filesaverjs'
+import { saveAs as fileSaveAs} from 'filesaverjs'
 // Cross-browser polyfill for canvas.toBlob
 require('blueimp-canvas-to-blob')
 // Cross-browser polyfill for ES6
@@ -38,6 +38,23 @@ import localforage from 'localforage'
 import Tether from 'tether'
 // Guided tour lib
 import Shepherd from 'tether-shepherd'
+
+var saveAs = function (blob,name,no_auto_bom) {
+    if (window.location.protocol == "file:") {
+        var formData = new window.FormData();
+        formData.append('file', blob, name);
+        var req = new window.XMLHttpRequest();
+        req.open('POST', gokartService + '/saveas');
+        req.responseType = 'text';
+        req.onload = function (event) {
+            var fetchUrl = req.responseText;
+            window.open(fetchUrl,"_system");
+        };
+        req.send(formData);
+    } else {
+        fileSaveAs(blob,name,no_auto_bom);
+    }
+}
 
 export {
   $,
