@@ -33,7 +33,7 @@
                 </select>
               </div>
               <div class="small-6 columns">
-                <input type="search" v-model="search" placeholder="Find a resource">
+                <input type="search" v-model="search" placeholder="Find a resource" @keyup="updateCQLFilter | debounce 700">
               </div>
             </div>
             <div class="row">

@@ -7,7 +7,7 @@
             <select name="select" v-model="search">
               <option value="" selected>All layers</option> 
               <option v-for="filter in catalogueFilters" v-bind:value="filter[0]">{{ filter[1] }}</option>
-              <option v-bind:value="search">Custom search:</option>
+              <option v-bind:value="search">Custom search</option>
             </select>
           </div>
           <div class="small-6 columns">
