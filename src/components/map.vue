@@ -9,10 +9,10 @@
 </template>
 
 <script>
-  import { $, ol, moment } from 'src/vendor.js'
+  import { $, ol, proj4, moment } from 'src/vendor.js'
   import gkInfo from './info.vue'
   export default {
-    store: ['defaultWMTSSrc', 'defaultWFSSrc', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm', 'view'],
+    store: ['defaultWMTSSrc', 'defaultWFSSrc', 'gokartService', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm', 'view'],
     components: { gkInfo },
     data: function () {
       return {
@@ -122,6 +122,180 @@
           return '1:' + (Math.round(scale / 10) / 100).toLocaleString() + 'M'
         }
         return '1:' + (Math.round(scale * 100) / 100).toLocaleString() + 'K'
+      },
+      // parse a string containing coordinates in decimal or DMS format
+      getMGA: function(coords) {
+        var results = {}
+        if ((coords[0] >= 108) && (coords[0] < 114)) {
+          results.mgaZone = 49
+        } else if ((coords[0] >= 114) && (coords[0] < 120)) {
+          results.mgaZone = 50
+        } else if ((coords[0] >= 120) && (coords[0] < 126)) {
+          results.mgaZone = 51
+        } else if ((coords[0] >= 126) && (coords[0] < 132)) {
+          results.mgaZone = 52
+        } else if ((coords[0] >= 132) && (coords[0] < 138)) {
+          results.mgaZone = 53
+        } else if ((coords[0] >= 138) && (coords[0] < 144)) {
+          results.mgaZone = 54
+        } else if ((coords[0] >= 144) && (coords[0] < 150)) {
+          results.mgaZone = 55
+        } else if ((coords[0] >= 150) && (coords[0] < 156)) {
+          results.mgaZone = 56
+        } else {
+          // fail if not in the bounding box for MGA
+          return null
+        }
+        var newCoords = proj4('EPSG:4326', 'EPSG:283'+results.mgaZone).forward(coords)
+        results.mgaEast = newCoords[0]
+        results.mgaNorth = newCoords[1]
+        return results
+      },
+      parseDMSString: function(dmsStr) {
+        var dmsRegex = /^\s*(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s*(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?[,:\s]+(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s?(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?$/gmi
+        
+        var groups = dmsRegex.exec(dmsStr)
+
+        if (!groups) {
+          return null
+        }
+
+        var dmsToDecimal = function(sign, deg, min, sec, dir) {
+          var sg = sign ? -1 : 1
+          sg = sg * (('wWsS'.indexOf(dir) >= 0) ? -1 : 1)
+          var d = Number(deg)
+          var m = min ? Number(min) : 0
+          var s = sec ? Number(sec) : 0
+          if (!(d >= 0 && d <= 180)) return null
+          if (!(m >= 0 && m <= 60)) return null
+          if (!(s >= 0 && s <= 60)) return null
+          return sg*(d+(m/60)+(s/3600))
+        }
+
+        var coords = [
+          dmsToDecimal(groups[1], groups[2], groups[3], groups[4], groups[5]),
+          dmsToDecimal(groups[6], groups[7], groups[8], groups[9], groups[10])
+        ]
+
+        if ((!coords[0]) || (!coords[1])) {
+          // one coordinate fails the sniff test
+          return null
+        }
+
+        // default EPSG:4326 order is easting, northing. 
+        // if only one is explicitly defined, swap if required
+        if ((!groups[5]) || (!groups[10])) {
+          if (groups[5] && ('nNsS'.indexOf(groups[5]) >=0)) {
+            coords = coords.reverse()
+          } else if (groups[10] && ('wWeE'.indexOf(groups[10]) >=0)) {
+            coords = coords.reverse()
+          }
+        // both are explicitly defined
+        } else {
+          // bomb out if someone describes two of the same
+          if (('nNsS'.indexOf(groups[5]) >=0) && ('nNsS'.indexOf(groups[10]) >=0)) {
+            return null
+          } else if (('wWeE'.indexOf(groups[5]) >=0) && ('wWeE'.indexOf(groups[10]) >=0)) {
+            return null
+          }
+          // swap if defined around the other way
+          if (('nNsS'.indexOf(groups[5]) >=0) && ('wWeE'.indexOf(groups[10]) >=0)) {
+            coords = coords.reverse()
+          }
+        }
+        return coords 
+      },
+      parseMGAString: function(mgaStr) {
+        var mgaRegex = /MGA\s*(49|50|51|52|53|54|55|56)\s*(\d{3,7})\s*[mM]{0,1}\s*([nNeE]{0,1})\s*,*\s*(\d{4,7})\s*[mM]{0,1}\s*([nNeE]{0,1})/gi
+        var groups = mgaRegex.exec(mgaStr)
+        
+        if (!groups) {
+          return null
+        }
+
+        var results = {
+          mgaZone: parseInt(groups[1]),
+          mgaEast: groups[2],
+          mgaNorth: groups[4],
+        }
+        if ((groups[5] === "E") && (groups[3] === "N")) {
+          results.mgaEast = groups[4]
+          results.mgaNorth = groups[2]
+        }
+        if ((results.mgaEast.length === 3) && (results.mgaNorth.length === 4)) {
+          results.mgaEast = results.mgaEast + '000'
+          results.mgaNorth = results.mgaNorth + '000'
+        } else if ((results.mgaEast.length === 6) && (results.mgaNorth.length === 7)) {
+          // full length MGA coords
+        } else {
+          return null  // invalid MGA length
+        }
+        results.mgaEast = parseInt(results.mgaEast)
+        results.mgaNorth = parseInt(results.mgaNorth)
+
+        var coords = proj4('EPSG:283'+groups[1], 'EPSG:4326').forward([results.mgaEast, results.mgaNorth])
+        results.coords = coords
+        
+        return results
+      },
+      // parse a string containing a FD Grid reference
+      parseFDString: function(fdStr) {
+        var fdRegex = /FD\s*([a-zA-Z]{2})\s*([0-9]{1,5})/gi
+        var groups = fdRegex.exec(fdStr)
+        if (!groups) {
+          return null
+        }
+        var results = {
+          fdNorth: groups[1],
+          fdEast: groups[2]
+        }
+        return results
+      },
+      getFD: function(fdStr) {
+        var fd = this.parseFDString(fdStr)
+        if (!fd) {
+          return null
+        }
+        $.ajax({
+          url: this.defaultWFSSrc + '?' + $.param({
+            version: '1.1.0',
+            service: 'WFS',
+            request: 'GetFeature',
+            outputFormat: 'application/json',
+            srsname: 'EPSG:4326',
+            typename: 'cddp:fd_grid_points_mapping',
+            cql_filter: '(fdgrid = \''+fd.fdNorth+' '+fd.fdEast+'\')'
+          }),
+          dataType: 'json',
+          xhrFields: {
+            withCredentials: true
+          },
+          success: function(data, status, xhr) {
+            if (data.features.length) {
+              console.log(data.features[0].geometry.coordinates)
+            }
+          }
+        })
+      },
+      getCenter: function() {
+        return center = gokart.map.olmap.getView().getCenter();
+      },
+      geocode: function(geoStr) {
+        var center = this.getCenter()
+        $.ajax({
+          url: this.gokartService+'/mapbox/geocoding/v5/mapbox.places/'+geoStr+'.json?' + $.param({
+            country: 'au',
+            proximity: ''+center[0]+','+center[1]
+          }),
+          dataType: 'json',
+          xhrFields: {
+            withCredentials: true
+          },
+          success: function(data, status, xhr) {
+            var feature = data.features[0]
+            console.log(feature)
+          }
+        })
       },
       // reusable tile loader hook to update a loading indicator
       tileLoaderHook: function (tileSource, tileLayer) {
@@ -379,6 +553,16 @@
           var layer = $.extend(vm.$root.catalogue.getLayer(value[0]), value[1])
           return vm['create' + layer.type](layer)
         })
+
+        // add some extra projections
+        proj4.defs("EPSG:28349","+proj=utm +zone=49 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        proj4.defs("EPSG:28350","+proj=utm +zone=50 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        proj4.defs("EPSG:28351","+proj=utm +zone=51 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        proj4.defs("EPSG:28352","+proj=utm +zone=52 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        proj4.defs("EPSG:28353","+proj=utm +zone=53 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        proj4.defs("EPSG:28354","+proj=utm +zone=54 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        proj4.defs("EPSG:28355","+proj=utm +zone=55 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
+        proj4.defs("EPSG:28356","+proj=utm +zone=56 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
 
         this.olmap = new ol.Map({
           logo: false,
