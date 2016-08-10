@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import uwsgi
 import requests
-from datetime import datetime
+from datetime import datetime,timedelta
 import re
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -19,12 +19,13 @@ dotenv.load_dotenv(dotenv.find_dotenv())
 bottle.TEMPLATE_PATH.append('./gokart')
 bottle.debug(True)
 
+BASE_PATH = os.path.dirname(__file__)
+
 
 # serve up map apps
 @bottle.route('/<app>')
 def index(app):
     return bottle.template('index.html', app=app)
-
 
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
@@ -110,5 +111,30 @@ def ogr(fmt):
     bottle.response.set_header("Content-Type", ct)
     bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(jpg.filename.replace("geojson", fmt)))
     return output
+
+
+# saveas
+@bottle.route("/saveas", method="POST")
+def saveas():
+    user = bottle.request.get_header("Remote-User","anonymous")
+
+    f = bottle.request.files.get("file")
+    f.raw_filename = "_{}_{}".format(user,bottle.request.remote_addr).join(os.path.splitext(f.raw_filename))
+    workdir = os.path.join(BASE_PATH,"tmp")
+    if not os.path.exists(workdir):
+        #create dir if required.
+        os.mkdir(workdir)
+
+    
+    path = os.path.join(workdir, f.filename)
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except:
+            pass
+    f.save(workdir,overwrite=True)
+    bottle.response.set_header("Content-Type", "text/plain")
+    return bottle.request.url.replace("/saveas","/fetch") + "/" + f.filename;
+
 
 application = bottle.default_app()

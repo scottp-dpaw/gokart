@@ -4,6 +4,7 @@ dist/dev
 dist/www/dist
 dist/www/gokart.html
 dist/platforms
+gokart/tmp
 
 *.log
 *.sw*

@@ -84,6 +84,7 @@ var defaultStore = {
     features: []
   }
 }
+global.gokartService = defaultStore.gokartService;
 
 global.localforage = localforage
 global.$ = $
