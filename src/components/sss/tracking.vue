@@ -313,6 +313,7 @@
       init: function() {
         this.$root.annotations.selectable = [this.trackingMapLayer]
         this.$root.annotations.setTool('Select')
+        this.$root.tracking.updateCQLFilter()
       }
     },
     ready: function () {
