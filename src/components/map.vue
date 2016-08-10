@@ -125,8 +125,16 @@
         }
         return '1:' + (Math.round(scale * 100) / 100).toLocaleString() + 'K'
       },
+      // get the DMS representation of some EPSG:4326 coordinates
+      getDMS: function(coords) {
+        return ol.coordinate.toStringHDMS(coords, 1)
+      },
       // get the MGA representation of some EPSG:4326 coordinates
       getMGA: function(coords) {
+        var mga = this.getMGARaw(coords)
+        return "MGA "+mga.mgaZone+" "+Math.round(mga.mgaEast)+"mE "+Math.round(mga.mgaNorth)+"mN"
+      },
+      getMGARaw: function(coords) {
         var results = {}
         if ((coords[0] >= 108) && (coords[0] < 114)) {
           results.mgaZone = 49
@@ -256,7 +264,7 @@
         }
         return results
       },
-      getFD: function(fdStr, callback) {
+      queryFD: function(fdStr, callback) {
         $.ajax({
           url: this.defaultWFSSrc + '?' + $.param({
             version: '1.1.0',
@@ -281,7 +289,7 @@
       getCenter: function() {
         return this.olmap.getView().getCenter();
       },
-      getGeocode: function(geoStr, callback) {
+      queryGeocode: function(geoStr, callback) {
         var center = this.getCenter()
         $.ajax({
           url: 'https://gokart.dpaw.wa.gov.au' // this.gokartService
@@ -554,32 +562,32 @@
         var victory = function (coords, name) {
           vm.animatePan(coords)
           vm.animateZoom(vm.resolutions[10])
-          console.log([name, coords])
+          console.log([name, coords[0], coords[1]])
         }
 
         // check for EPSG:4326 coordinates
         var dms = this.parseDMSString(query)
         if (dms) {
-          victory(dms.coords, "A point")
+          victory(dms, this.getDMS(dms))
           return
         }
     
         // check for MGA coordinates
         var mga = this.parseMGAString(query)
         if (mga) {
-          victory(mga.coords, "MGA "+mga.mgaZone+" "+mga.mgaEast+"mE "+mga.mgaNorth+"mN")
+          victory(mga.coords, this.getMGA(mga.coords))
           return
         }
 
         // check for FD Grid Reference
         var fd = this.parseFDString(query)
         if (fd) {
-          this.getFD(fd.fdNorth+' '+fd.fdEast, victory)
+          this.queryFD(fd.fdNorth+' '+fd.fdEast, victory)
           return
         }
 
         // failing all that, ask mapbox
-        this.getGeocode(query, victory)
+        this.queryGeocode(query, victory)
         
       },
       getMapLayer: function (id) {
