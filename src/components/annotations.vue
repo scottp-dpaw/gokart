@@ -145,7 +145,8 @@
   var noteStyles = {
     'general': function (note) {
       var textTmpl = {
-        fontSize: '16px "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
+        fontSize: '16px',
+        fontFamily: '"Helvetica Neue",Helvetica,Roboto,Arial,sans-serif',
         text: note.text,
         x: noteOffset + notePadding, y: notePadding,
         align: 'left',
