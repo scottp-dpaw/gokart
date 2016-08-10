@@ -157,7 +157,7 @@
         var vm = this
         vm.olLayers = []
         Vue.nextTick(function () {
-          vm.olLayers = vm.$root.map.getLayers().getArray()
+          vm.olLayers = vm.$root.map.olmap.getLayers().getArray()
         })
       },
       removeLayer: function (olLayer) {

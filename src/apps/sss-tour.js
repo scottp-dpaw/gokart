@@ -35,7 +35,7 @@ tour.addStep('welcome', {
   when: {
     'show': function () {
       global.gokart.map.animatePan([116, -32])
-      global.gokart.map.animateZoom(0.1)
+      global.gokart.map.animateZoom(global.gokart.map.resolutions[9])
     }
   }
 }).addStep('menu', {
