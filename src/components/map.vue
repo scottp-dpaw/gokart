@@ -5,6 +5,8 @@
       <option value="{{ scale }}" selected>{{ scaleString }}</option>
       <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
     </select>
+    <input id="map-search" id="map-search" placeholder="Search (places, °, MGA, FD)" @keyup="searchKeyFix($event)"/>
+    <button id="map-search-button" @click="runSearch"><i class="fa fa-search"></i></button>
   </div>
 </template>
 
@@ -71,13 +73,13 @@
       animatePan: function (location) {
         // pan from the current center
         var pan = ol.animation.pan({
-          source: this.olmap.getView().getCenter()
+          source: this.getCenter()
         })
         this.olmap.beforeRender(pan)
         // when we set the new location, the map will pan smoothly to it
         this.olmap.getView().setCenter(location)
       },
-      animateZoom: function (factor) {
+      animateZoom: function (resolution) {
         // zoom from the current resolution
         var zoom = ol.animation.zoom({
           resolution: this.olmap.getView().getResolution()
@@ -85,7 +87,7 @@
         this.olmap.beforeRender(zoom)
         // setting the resolution to a new value will smoothly zoom in or out
         // depending on the factor
-        this.olmap.getView().setResolution(this.olmap.getView().getResolution() * factor)
+        this.olmap.getView().setResolution(resolution)
       },
       // force OL to approximate a fixed scale (1:1K increments)
       setScale: function (scale) {
@@ -98,7 +100,7 @@
       // return the scale (1:1K increments)
       getScale: function () {
         var size = this.olmap.getSize()
-        var center = this.olmap.getView().getCenter()
+        var center = this.getCenter()
         var extent = this.olmap.getView().calculateExtent(size)
         var distance = this.$root.wgs84Sphere.haversineDistance([extent[0], center[1]], center) * 2
         return distance * this.dpmm / size[0]
@@ -123,7 +125,7 @@
         }
         return '1:' + (Math.round(scale * 100) / 100).toLocaleString() + 'K'
       },
-      // parse a string containing coordinates in decimal or DMS format
+      // get the MGA representation of some EPSG:4326 coordinates
       getMGA: function(coords) {
         var results = {}
         if ((coords[0] >= 108) && (coords[0] < 114)) {
@@ -151,6 +153,7 @@
         results.mgaNorth = newCoords[1]
         return results
       },
+      // parse a string containing coordinates in decimal or DMS format
       parseDMSString: function(dmsStr) {
         var dmsRegex = /^\s*(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s*(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?[,:\s]+(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s?(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?$/gmi
         
@@ -205,6 +208,8 @@
         }
         return coords 
       },
+      // parse a string containing coordinates in MGA grid reference format
+      // e.g. MGA 51 340000 6340000, MGA 51 340000mE 6340000mN, MGA 51 3406340
       parseMGAString: function(mgaStr) {
         var mgaRegex = /MGA\s*(49|50|51|52|53|54|55|56)\s*(\d{3,7})\s*[mM]{0,1}\s*([nNeE]{0,1})\s*,*\s*(\d{4,7})\s*[mM]{0,1}\s*([nNeE]{0,1})/gi
         var groups = mgaRegex.exec(mgaStr)
@@ -251,11 +256,7 @@
         }
         return results
       },
-      getFD: function(fdStr) {
-        var fd = this.parseFDString(fdStr)
-        if (!fd) {
-          return null
-        }
+      getFD: function(fdStr, callback) {
         $.ajax({
           url: this.defaultWFSSrc + '?' + $.param({
             version: '1.1.0',
@@ -264,7 +265,7 @@
             outputFormat: 'application/json',
             srsname: 'EPSG:4326',
             typename: 'cddp:fd_grid_points_mapping',
-            cql_filter: '(fdgrid = \''+fd.fdNorth+' '+fd.fdEast+'\')'
+            cql_filter: '(fdgrid = \''+fdStr+'\')'
           }),
           dataType: 'json',
           xhrFields: {
@@ -272,18 +273,19 @@
           },
           success: function(data, status, xhr) {
             if (data.features.length) {
-              console.log(data.features[0].geometry.coordinates)
+              callback(data.features[0].geometry.coordinates, "FD "+fdStr)
             }
           }
         })
       },
       getCenter: function() {
-        return center = gokart.map.olmap.getView().getCenter();
+        return this.olmap.getView().getCenter();
       },
-      geocode: function(geoStr) {
+      getGeocode: function(geoStr, callback) {
         var center = this.getCenter()
         $.ajax({
-          url: this.gokartService+'/mapbox/geocoding/v5/mapbox.places/'+geoStr+'.json?' + $.param({
+          url: 'https://gokart.dpaw.wa.gov.au' // this.gokartService
+            +'/mapbox/geocoding/v5/mapbox.places/'+geoStr+'.json?' + $.param({
             country: 'au',
             proximity: ''+center[0]+','+center[1]
           }),
@@ -293,7 +295,7 @@
           },
           success: function(data, status, xhr) {
             var feature = data.features[0]
-            console.log(feature)
+            callback(feature.center, feature.text)
           }
         })
       },
@@ -538,6 +540,48 @@
         tileLayer.set('id', layer.id)
         return tileLayer
       },
+      searchKeyFix: function (ev) {
+        // run a search after pressing enter
+        if (ev.keyCode == 13) { this.runSearch() } 
+      },
+      runSearch: function () {
+        var vm = this
+        var query = $("#map-search").get(0).value
+        if (!query) { 
+          return 
+        }
+
+        var victory = function (coords, name) {
+          vm.animatePan(coords)
+          vm.animateZoom(vm.resolutions[10])
+          console.log([name, coords])
+        }
+
+        // check for EPSG:4326 coordinates
+        var dms = this.parseDMSString(query)
+        if (dms) {
+          victory(dms.coords, "A point")
+          return
+        }
+    
+        // check for MGA coordinates
+        var mga = this.parseMGAString(query)
+        if (mga) {
+          victory(mga.coords, "MGA "+mga.mgaZone+" "+mga.mgaEast+"mE "+mga.mgaNorth+"mN")
+          return
+        }
+
+        // check for FD Grid Reference
+        var fd = this.parseFDString(query)
+        if (fd) {
+          this.getFD(fd.fdNorth+' '+fd.fdEast, victory)
+          return
+        }
+
+        // failing all that, ask mapbox
+        this.getGeocode(query, victory)
+        
+      },
       getMapLayer: function (id) {
         if (id && id.id) { id = id.id } // if passed a catalogue layer, get actual id
         return this.olmap.getLayers().getArray().find(function (layer) {
@@ -587,6 +631,12 @@
             }),
             new ol.control.Control({
               element: $('#menu-scale').get(0)
+            }),
+            new ol.control.Control({
+              element: $('#map-search').get(0)
+            }),
+            new ol.control.Control({
+              element: $('#map-search-button').get(0)
             }),
             new ol.control.Attribution()
           ],
