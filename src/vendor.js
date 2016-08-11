@@ -18,6 +18,8 @@ require('blueimp-canvas-to-blob')
 import 'babel-polyfill'
 // OpenLayers 3 map widget, including our extensions
 import ol from 'src/ol-extras.js'
+// proj4 reprojection lib
+import proj4 from 'proj4'
 // Vue.js template engine
 import Vue from 'vue'
 // Extension for easy cross-component sharing
@@ -59,6 +61,7 @@ var saveAs = function (blob,name,no_auto_bom) {
 export {
   $,
   ol,
+  proj4,
   Vue,
   VueStash,
   svg4everybody,

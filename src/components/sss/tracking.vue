@@ -33,7 +33,7 @@
                 </select>
               </div>
               <div class="small-6 columns">
-                <input type="search" v-model="search" placeholder="Find a resource">
+                <input type="search" v-model="search" placeholder="Find a resource" @keyup="updateCQLFilter | debounce 700">
               </div>
             </div>
             <div class="row">
@@ -313,6 +313,7 @@
       init: function() {
         this.$root.annotations.selectable = [this.trackingMapLayer]
         this.$root.annotations.setTool('Select')
+        this.$root.tracking.updateCQLFilter()
       }
     },
     ready: function () {

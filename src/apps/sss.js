@@ -2,6 +2,7 @@ import {
   $,
   svg4everybody,
   ol,
+  proj4,
   moment,
   localforage,
   Vue,
