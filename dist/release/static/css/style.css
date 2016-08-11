@@ -46,6 +46,12 @@ body {
     margin-bottom: -5px;
 }
 
+#annotations-edit .fa.fa-comment {
+    width: 20px;
+    height: 20px;
+    margin-bottom: -3px;
+}
+
 .off-canvas-content {
     height: 100%;
 }
