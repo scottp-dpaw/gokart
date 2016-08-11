@@ -5,7 +5,7 @@
       <option value="{{ scale }}" selected>{{ scaleString }}</option>
       <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
     </select>
-    <input id="map-search" id="map-search" placeholder="Search (places, °, MGA, FD)" @keyup="searchKeyFix($event)"/>
+    <input id="map-search" placeholder="Search (places, °, MGA, FD)" @keyup="searchKeyFix($event)"/>
     <button id="map-search-button" @click="runSearch"><i class="fa fa-search"></i></button>
   </div>
 </template>
@@ -631,6 +631,18 @@
           controls: [
             new ol.control.Zoom(),
             new ol.control.ScaleLine(),
+            new ol.control.MousePosition({
+                className: 'ol-mouse-position-decimal',
+                coordinateFormat: function(coordinate) {
+                    return ol.coordinate.format(coordinate, '{y}, {x}', 6)
+                }
+            }),
+            new ol.control.MousePosition({
+                className: 'ol-mouse-position-dms',
+                coordinateFormat: function(coordinate) {
+                    return ol.coordinate.toStringHDMS(coordinate)
+                }
+            }),
             new ol.control.FullScreen({
               source: $('body').get(0),
               label: $('<i/>', {
