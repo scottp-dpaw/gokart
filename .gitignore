@@ -13,3 +13,9 @@ gokart/tmp
 .build_cordova.sh
 build_cordova.env
 venv/
+
+# Database/fixture dumps
+*.pgdump
+*.dump
+*.db
+*.sqlite3
