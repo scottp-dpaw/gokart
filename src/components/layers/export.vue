@@ -1,37 +1,7 @@
 <template>
   <div class="tabs-panel" id="layers-export" v-cloak>
     <div id="map-export-controls">
-      <div class="tool-slice row collapse">
-        <div class="small-3">
-          <label class="tool-label">Name:</label>
-        </div>
-        <div class="small-9">
-          <input id="export-name" type="text" v-model="title" />
-        </div>
-      </div>
-      <div class="tool-slice row collapse">
-        <div class="small-3">
-          <label class="tool-label">Paper size:</label>
-        </div>
-        <div class="small-9">
-          <select v-model="paperSize">
-                    <option v-for="size in paperSizes" v-bind:value="$key">ISO {{ $key }} ({{ size[0] }}mm &times; {{ size[1] }}mm)</option>
-                  </select>
-        </div>
-      </div>
-      <div class="tool-slice row collapse">
-        <div class="small-3">
-          <label class="tool-label">Download:</label>
-        </div>
-        <div class="small-9">
-          <div class="expanded button-group">
-            <a class="button" title="JPG for quick and easy printing" @click="print('jpg')"><i class="fa fa-file-image-o"></i><br>JPG</a>
-            <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i><br>PDF</a>
-            <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i><br>GeoTIFF</a>
-          </div>
-        </div>
-      </div>
-      <div class="tool-slice row collapse">
+      <!--div class="tool-slice row collapse">
         <div class="small-3">
           <label class="tool-label">Vector format:</label>
         </div>
@@ -44,17 +14,7 @@
             <option value="csv">CSV (Spreadsheet/Excel)</option>
           </select>
         </div>
-      </div>
-      <div class="tool-slice row collapse">
-        <div class="small-3">
-          <label class="tool-label">Export state:</label>
-        </div>
-        <div class="small-9 columns">
-          <div class="expanded button-group">
-            <a class="button expanded" @click="download()"><i class="fa fa-download"></i> Download state as file</a>
-          </div>
-        </div>
-      </div>
+      </div-->
       <div class="tool-slice row collapse">
         <div class="small-3">
           <label class="tool-label">Save state:</label>
@@ -65,6 +25,16 @@
             <div class="input-group-button">
               <a class="button" @click="saveStateButton()">Save</a>
             </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Export state:</label>
+        </div>
+        <div class="small-9 columns">
+          <div class="expanded button-group">
+            <a class="button expanded" @click="download()"><i class="fa fa-download"></i> Download current state</a>
           </div>
         </div>
       </div>
@@ -99,6 +69,38 @@
           </div>
         </div>
       </div>
+      <hr class="row"/>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Name:</label>
+        </div>
+        <div class="small-9">
+          <input id="export-name" type="text" v-model="title" />
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Paper size:</label>
+        </div>
+        <div class="small-9">
+          <select v-model="paperSize">
+                    <option v-for="size in paperSizes" v-bind:value="$key">ISO {{ $key }} ({{ size[0] }}mm &times; {{ size[1] }}mm)</option>
+                  </select>
+        </div>
+      </div>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Download:</label>
+        </div>
+        <div class="small-9">
+          <div class="expanded button-group">
+            <a class="button" title="JPG for quick and easy printing" @click="print('jpg')"><i class="fa fa-file-image-o"></i><br>JPG</a>
+            <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i><br>PDF</a>
+            <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i><br>GeoTIFF</a>
+          </div>
+        </div>
+      </div>
+
       <div class="hide" v-el:legendsvg>
         <gk-legend></gk-legend>
       </div>

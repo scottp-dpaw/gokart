@@ -8,7 +8,7 @@ let tour = new Shepherd.Tour({
 })
 
 // Change this to prompt tour again
-tour.version = 0.1
+tour.version = 0.2
 
 global.tour = tour
 
@@ -17,7 +17,7 @@ tour.on('cancel', function () {
 })
 
 tour.addStep('welcome', {
-  text: 'Would you like a tour of the Spatial Support System? If you exit now, you can always rerun the tour by clicking "Reset SSS" in <b>Layers > Download & Print</b>',
+  text: 'Would you like a tour of the Spatial Support System? If you exit now, you can always rerun the tour by clicking "Reset SSS" in <b>Layers > Save & Print</b>.',
   buttons: [
     {
       text: 'Exit',
@@ -30,7 +30,7 @@ tour.addStep('welcome', {
     }
   ]
 }).addStep('map-controls', {
-  text: 'At the top right are common map controls for setting a scale, fullscreen and zooming',
+  text: 'At the top right are common map controls for setting a scale, going full-screen and zooming.',
   attachTo: '.ol-zoom bottom',
   when: {
     'show': function () {
@@ -45,10 +45,10 @@ tour.addStep('welcome', {
   text: 'To the left are the interactive panes for <b>Layers</b>, <b>Annotations</b> and <b>Vehicle Tracking</b>.',
   attachTo: '#menu-tab-layers-label right'
 }).addStep('layers', {
-  text: 'The layers pane lets you find, organise and print what is visible on the map',
+  text: 'The <b>Layers</b> pane lets you find, organise and print what is visible on the map.',
   attachTo: '#menu-tab-layers-label right',
 }).addStep('catalogue', {
-  text: 'The catalogue in <b>Browse Layers</b> lets you add layers to the map. Layers can be found by typing into the search box.',
+  text: 'The catalogue in <b>Browse Layers</b> lets you add more layers to the map. Layers can be found by typing into the search box.',
   attachTo: '#menu-tab-layers-label right',
   when: {
     'before-show': function () {
@@ -56,7 +56,7 @@ tour.addStep('welcome', {
     }
   }
 }).addStep('catalogue-toggle', {
-  text: 'Clicking a layers switch will add it ontop of other map layers',
+  text: 'Clicking a layer\'s switch will add it on top of other map layers.',
   attachTo: '#menu-tab-layers-label right',
   when: {
     'before-show': function () {
@@ -68,7 +68,7 @@ tour.addStep('welcome', {
     }
   }
 }).addStep('active', {
-  text: 'The map layers in Active lets you configure layers already on the map.',
+  text: 'The map layers in <b>Active</b> lets you configure layers that are part of the current map.',
   attachTo: '#menu-tab-layers-label right',
   when: {
     'before-show': function () {
@@ -76,7 +76,7 @@ tour.addStep('welcome', {
     }
   }
 }).addStep('active-opacity', {
-  text: 'Clicking a layer opens its configuration panel, from which you can adjust opacity and other settings.',
+  text: 'Clicking a layer opens a configuration panel, from which you can adjust opacity and other settings.',
   attachTo: '#menu-tab-layers-label right',
   when: {
     'before-show': function () {
@@ -87,12 +87,20 @@ tour.addStep('welcome', {
     }
   }
 }).addStep('active-remove', {
-  text: 'You can also reorder layers using drag and drop, and remove a layer by clicking the red X',
+  text: 'You can also drag and drop layers to reorder them, and remove a layer by clicking the red X.',
   attachTo: '#menu-tab-layers-label right',
   when: {
     'before-show': function () {
       // vue doesn't pickup <a> clicks from jquery, use dom method
       $('div[data-id="dpaw:resource_tracking_live"] a.remove-layer').get(0).click()
+    }
+  }
+}).addStep('export', {
+  text: 'Under <b>Save & Print</b>, you can save the current state of the map (position, layers and annotations), and load previous sessions.<br/>You can also perform a quick print of the displayed map region as JPG, geospatial PDF or GeoTIFF.',
+  attachTo: '#menu-tab-layers-label right',
+  when: {
+    'before-show': function () {
+      $('#layers-export-label').click()
     }
   }
 }).addStep('annotations', {
@@ -117,7 +125,7 @@ tour.addStep('welcome', {
     }
   }
 }).addStep('annotations-draw', {
-  text: 'Clicking on the map will place a feature',
+  text: 'Clicking on the map will place a feature.',
   attachTo: '#menu-tab-annotations-label right',
   when: {
     'before-show': function () {
@@ -127,7 +135,7 @@ tour.addStep('welcome', {
     }
   }
 }).addStep('tracking', {
-  text: 'The Tracking pane is used to find and filter the vehicles displayed on the map. (END TOUR, will reload now)',
+  text: 'The Tracking pane is used to find and filter the vehicles displayed on the map. (end of tour, app will restart)',
   attachTo: '#menu-tab-tracking-label right',
   when: {
     'before-show': function () {
