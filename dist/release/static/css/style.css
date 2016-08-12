@@ -344,8 +344,14 @@ input[type="range"] {
 #layers-list {
     padding: 1rem 0 0 0;
 }
-/* styling for movable row boxes */
 
+/* remove button padding in feature rows */
+.feature-row .button, .layer-row .button {
+    margin: 0;
+}
+
+
+/* styling for movable row boxes */
 .layer-row,
 .feature-row {
     color: white;
