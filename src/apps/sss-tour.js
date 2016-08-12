@@ -38,17 +38,15 @@ tour.addStep('welcome', {
       global.gokart.map.animateZoom(global.gokart.map.resolutions[9])
     }
   }
+}).addStep('map-search', {
+    text: 'There is also a search box with support for coordinates and place names. <br/><b>Try out some of these!</b><ul><li>Upper Swan</li><li>32.00858S 115.53978E</li><li>115° 38′ 58.0″ E, 33° 20′ 52.8″ S</li><li>MGA 50 718776mE 6190981mN</li><li>MGA50 3816452</li><li>FD ET 79</li></ul>',
+    attachTo: '#map-search left'
 }).addStep('menu', {
   text: 'To the left are the interactive panes for <b>Layers</b>, <b>Annotations</b> and <b>Vehicle Tracking</b>.',
   attachTo: '#menu-tab-layers-label right'
 }).addStep('layers', {
   text: 'The layers pane lets you find, organise and print what is visible on the map',
   attachTo: '#menu-tab-layers-label right',
-  when: {
-    'before-show': function () {
-      $('#menu-tab-layers-label').click()
-    }
-  }
 }).addStep('catalogue', {
   text: 'The catalogue in <b>Browse Layers</b> lets you add layers to the map. Layers can be found by typing into the search box.',
   attachTo: '#menu-tab-layers-label right',
@@ -114,7 +112,7 @@ tour.addStep('welcome', {
       Vue.nextTick(function () {
         $('textarea.notecontent').height(60).val('Like this one where you\ncan set the text of a note').get(0).click()
         // the click above should cache the feature image ready to place on map
-        global.exampleFeature = new global.ol.Feature({ geometry: new global.ol.geom.Point(global.gokart.map.olmap.getView().getCenter()) })
+        global.exampleFeature = new global.ol.Feature({ geometry: new global.ol.geom.Point(global.gokart.map.getCenter()) })
       })
     }
   }

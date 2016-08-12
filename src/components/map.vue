@@ -193,9 +193,11 @@
           return null
         }
 
-        // default EPSG:4326 order is easting, northing. 
+        // order most people use is northing, easting (opposite of EPSG:4326)
+        if (!groups[5] && !groups[10]) {
+            coords = coords.reverse()
         // if only one is explicitly defined, swap if required
-        if ((!groups[5]) || (!groups[10])) {
+        } else if (!groups[5] || !groups[10]) {
           if (groups[5] && ('nNsS'.indexOf(groups[5]) >=0)) {
             coords = coords.reverse()
           } else if (groups[10] && ('wWeE'.indexOf(groups[10]) >=0)) {
