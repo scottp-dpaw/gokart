@@ -205,7 +205,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + '.svg')
         f.set('tint', tint)
         f.set('baseTint', tint)
-        f.set('label', f.get('name') || f.get('callsign') || f.get('rego') || f.get('deviceid'))
+        f.set('label', f.get('district')||'' +' '+ f.get('callsign') +' '+ f.get('name'))
         f.set('time', moment(f.get('seen')).toLocaleString())
         // Set a different vue template for rendering
         f.set('partialId', 'resourceInfo')

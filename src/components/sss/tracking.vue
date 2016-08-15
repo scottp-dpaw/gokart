@@ -132,7 +132,7 @@
         search: '',
         cql: '',
         history: '',
-        fields: ['id', 'name', 'callsign', 'make', 'model', 'rego', 'category', 'deviceid', 'symbol'],
+        fields: ['id', 'name', 'callsign', 'deviceid', 'symbol', 'district'],
         allFeatures: [],
         extentFeatures: [],
         selectedDevices: [],

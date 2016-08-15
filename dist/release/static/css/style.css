@@ -46,6 +46,12 @@ body {
     margin-bottom: -5px;
 }
 
+#annotations-edit .fa.fa-comment {
+    width: 20px;
+    height: 20px;
+    margin-bottom: -3px;
+}
+
 .off-canvas-content {
     height: 100%;
 }
@@ -146,6 +152,30 @@ body {
     height: 48px;
 }
 
+.ol-mouse-position-decimal {
+    position: absolute;
+    top: 176px;
+    right: 16px;
+    width: 200px;
+    height: 27px;
+    font-size: 0.8rem;
+    border: 0;
+    padding: 8px;
+    padding-bottom: 0px;
+    color: white;
+}
+
+.ol-mouse-position-dms {
+    position: absolute;
+    top: 203px;
+    right: 16px;
+    width: 200px;
+    height: 28px;
+    font-size: 0.8rem;
+    border: 0;
+    padding: 5px 8px 3px 8px;
+    color: white;
+}
 /* for mobile screens, size the pane to fill the viewport */
 
 .off-canvas.position-left {
@@ -454,7 +484,9 @@ input[type="range"] {
 .ol-scale-line,
 #menu-scale,
 #map-search,
-#map-search-button {
+#map-search-button,
+.ol-mouse-position-decimal,
+.ol-mouse-position-dms {
     background-color: rgba(37, 45, 51, 0.7);
 }
 
