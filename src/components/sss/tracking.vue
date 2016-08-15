@@ -302,12 +302,28 @@
         map.getView().fit(extent, map.getSize())
       },
       updateTracking: function() {
+        var vm = this
         // syncing of Resource Tracking features between Vue state and OL source
         var mapLayer = this.$root.map.getMapLayer(this.$root.catalogue.getLayer('dpaw:resource_tracking_live'))
         if (!mapLayer) { return }
+        // update the contents of the selectedFeatures group
+        var deviceIds = this.selectedDevices.slice()
+        var feats = mapLayer.getSource().getFeatures()
+        this.$root.annotations.selectedFeatures.clear()
+        feats.filter(function(el, index, arr) {
+          var id = el.get('deviceid')
+          if (!id) return false
+          if (deviceIds.indexOf(id) < 0) return false
+          return true
+        }).forEach(function (el) {
+          vm.$root.annotations.selectedFeatures.push(el)
+        })
+
+        // update vue list for filtered features in the current extent
         this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
         this.extentFeatures.sort(this.resourceOrder)
-        this.allFeatures = mapLayer.getSource().getFeatures().filter(this.resourceFilter)
+        // update vue list for filtered features
+        this.allFeatures = feats.filter(this.resourceFilter)
         this.allFeatures.sort(this.resourceOrder)
       },
       init: function() {
