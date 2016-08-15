@@ -634,13 +634,19 @@
             new ol.control.MousePosition({
                 className: 'ol-mouse-position-decimal',
                 coordinateFormat: function(coordinate) {
-                    return ol.coordinate.format(coordinate, '{y}, {x}', 6)
+                    return ol.coordinate.format(coordinate, '{x}, {y}', 6)
                 }
             }),
             new ol.control.MousePosition({
                 className: 'ol-mouse-position-dms',
                 coordinateFormat: function(coordinate) {
-                    return ol.coordinate.toStringHDMS(coordinate)
+                    var str = ol.coordinate.toStringHDMS(coordinate)
+                    if (str.indexOf('N') == -1) {
+                        var ns_index = str.indexOf('S')
+                    } else {
+                        var ns_index = str.indexOf('N')
+                    }
+                    return str.substring(ns_index + 1) + ' ' + str.substring(0, ns_index + 1)
                 }
             }),
             new ol.control.FullScreen({
