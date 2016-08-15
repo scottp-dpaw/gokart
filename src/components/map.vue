@@ -125,14 +125,19 @@
         }
         return '1:' + (Math.round(scale * 100) / 100).toLocaleString() + 'K'
       },
+      // get the decimal degrees representation of some EPSG:4326 coordinates
+      getDeg: function(coords) {
+        return coords[1].toFixed(5)+', '+coords[0].toFixed(5)
+      },
       // get the DMS representation of some EPSG:4326 coordinates
       getDMS: function(coords) {
-        return ol.coordinate.toStringHDMS(coords, 1)
+        return ol.coordinate.degreesToStringHDMS_(coords[0], 'EW', 1) + ', ' +
+               ol.coordinate.degreesToStringHDMS_(coords[1], 'NS', 1)
       },
       // get the MGA representation of some EPSG:4326 coordinates
       getMGA: function(coords) {
         var mga = this.getMGARaw(coords)
-        return "MGA "+mga.mgaZone+" "+Math.round(mga.mgaEast)+"mE "+Math.round(mga.mgaNorth)+"mN"
+        return 'MGA '+mga.mgaZone+' '+Math.round(mga.mgaEast)+'mE '+Math.round(mga.mgaNorth)+'mN'
       },
       getMGARaw: function(coords) {
         var results = {}
@@ -163,6 +168,7 @@
       },
       // parse a string containing coordinates in decimal or DMS format
       parseDMSString: function(dmsStr) {
+        // https://regex101.com/r/kS2zR1/22
         var dmsRegex = /^\s*(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s*(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?[,:\s]+(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s?(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?$/gmi
         
         var groups = dmsRegex.exec(dmsStr)
@@ -221,6 +227,7 @@
       // parse a string containing coordinates in MGA grid reference format
       // e.g. MGA 51 340000 6340000, MGA 51 340000mE 6340000mN, MGA 51 3406340
       parseMGAString: function(mgaStr) {
+        // https://regex101.com/r/zY8dW4/2
         var mgaRegex = /MGA\s*(49|50|51|52|53|54|55|56)\s*(\d{3,7})\s*[mM]{0,1}\s*([nNeE]{0,1})\s*,*\s*(\d{4,7})\s*[mM]{0,1}\s*([nNeE]{0,1})/gi
         var groups = mgaRegex.exec(mgaStr)
         
@@ -634,21 +641,8 @@
             new ol.control.Zoom(),
             new ol.control.ScaleLine(),
             new ol.control.MousePosition({
-                className: 'ol-mouse-position-decimal',
                 coordinateFormat: function(coordinate) {
-                    return ol.coordinate.format(coordinate, '{x}, {y}', 6)
-                }
-            }),
-            new ol.control.MousePosition({
-                className: 'ol-mouse-position-dms',
-                coordinateFormat: function(coordinate) {
-                    var str = ol.coordinate.toStringHDMS(coordinate)
-                    if (str.indexOf('N') == -1) {
-                        var ns_index = str.indexOf('S')
-                    } else {
-                        var ns_index = str.indexOf('N')
-                    }
-                    return str.substring(ns_index + 1) + ' ' + str.substring(0, ns_index + 1)
+                    return vm.getDeg(coordinate)+'<br/>'+vm.getDMS(coordinate)+'<br/>'+vm.getMGA(coordinate)
                 }
             }),
             new ol.control.FullScreen({

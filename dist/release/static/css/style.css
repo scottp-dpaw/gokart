@@ -152,30 +152,19 @@ body {
     height: 48px;
 }
 
-.ol-mouse-position-decimal {
+.ol-mouse-position {
     position: absolute;
-    top: 176px;
-    right: 16px;
-    width: 200px;
-    height: 27px;
+    bottom: 48px;
+    left: 16px;
+    top: auto;
+    right: auto;
+    text-align: left;
     font-size: 0.8rem;
     border: 0;
     padding: 8px;
-    padding-bottom: 0px;
     color: white;
 }
 
-.ol-mouse-position-dms {
-    position: absolute;
-    top: 203px;
-    right: 16px;
-    width: 200px;
-    height: 28px;
-    font-size: 0.8rem;
-    border: 0;
-    padding: 5px 8px 3px 8px;
-    color: white;
-}
 /* for mobile screens, size the pane to fill the viewport */
 
 .off-canvas.position-left {
@@ -485,8 +474,7 @@ input[type="range"] {
 #menu-scale,
 #map-search,
 #map-search-button,
-.ol-mouse-position-decimal,
-.ol-mouse-position-dms {
+.ol-mouse-position {
     background-color: rgba(37, 45, 51, 0.7);
 }
 
@@ -494,6 +482,7 @@ input[type="range"] {
 .ol-scale-line:hover,
 #menu-scale:hover,
 #map-search:hover,
-#map-search-button:hover {
+#map-search-button:hover,
+.ol-mouse-position:hover {
     background-color: rgba(37, 45, 51, 0.9);
 }
