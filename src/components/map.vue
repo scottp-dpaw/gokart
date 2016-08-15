@@ -137,7 +137,10 @@
       // get the MGA representation of some EPSG:4326 coordinates
       getMGA: function(coords) {
         var mga = this.getMGARaw(coords)
-        return 'MGA '+mga.mgaZone+' '+Math.round(mga.mgaEast)+'mE '+Math.round(mga.mgaNorth)+'mN'
+        if (mga) {
+            return 'MGA '+mga.mgaZone+' '+Math.round(mga.mgaEast)+'mE '+Math.round(mga.mgaNorth)+'mN'
+        }
+        return ''
       },
       getMGARaw: function(coords) {
         var results = {}
