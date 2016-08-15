@@ -127,7 +127,7 @@
       },
       // get the decimal degrees representation of some EPSG:4326 coordinates
       getDeg: function(coords) {
-        return coords[1].toFixed(5)+', '+coords[0].toFixed(5)
+        return coords[0].toFixed(5)+', '+coords[1].toFixed(5)
       },
       // get the DMS representation of some EPSG:4326 coordinates
       getDMS: function(coords) {
