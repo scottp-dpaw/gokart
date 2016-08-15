@@ -121,7 +121,7 @@ body {
 
 #menu-scale {
     position: absolute;
-    top: 16px;
+    top: 72px;
     right: 72px;
     width: 96px;
     cursor: pointer;
@@ -133,7 +133,7 @@ body {
 
 #map-search {
     position: absolute;
-    top: 72px;
+    top: 16px;
     right: 104px;
     width: 192px;
     height: 48px;
@@ -145,7 +145,7 @@ body {
 
 #map-search-button {
     position: absolute;
-    top: 72px;
+    top: 16px;
     color: white;
     width: 32px;
     right: 72px;
