@@ -17,10 +17,11 @@ body {
 
 #info {
     position: absolute;
-    z-index: 100;
+    z-index: 2;
     padding: 2em;
     background-color: #424f5a;
     max-width: 40%;
+    width: 100%;
 }
 
 #info .content {
