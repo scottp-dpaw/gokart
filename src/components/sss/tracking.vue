@@ -234,9 +234,7 @@
           this.trackingLayer.cql_filter = groupFilter
         }
         this.trackingMapLayer.set('updated', moment().toLocaleString())
-        this.trackingMapLayer.getSource().loadSource(function () {
-          vm.updateTracking()
-        })
+        this.trackingMapLayer.getSource().loadSource()
       },
       historyCQLFilter: function () {
         var vm = this
@@ -339,28 +337,21 @@
       this.$on('gk-init', function () {
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
 
-
-        var renderTracking = global.debounce(function () {
-          var mapLayer = map.getMapLayer(trackingLayer)
-          if (!mapLayer) { return }
-          if (!mapLayer.get('tracking')) {
-            //console.log('setting tracking hook')
-            mapLayer.set('tracking', mapLayer.on('propertychange', function (event) {
-              //console.log('CHANGE fired on resource_tracking_live')
-              if (event.key === 'updated') {
-                vm.updateTracking()
-              }
-            }))
-            mapLayer.set('updated', moment().toLocaleString())
-          }
-          //console.log('update features')
-        }, 100)
         var viewChanged = global.debounce(function () {
           vm.updateTracking()
         }, 100)
-
-        map.olmap.getLayerGroup().on('change', renderTracking)
         map.olmap.getView().on('propertychange', viewChanged)
+
+        var layersAdded = global.debounce(function () {
+          var mapLayer = vm.trackingMapLayer
+          if (!mapLayer) { return }
+          if (!mapLayer.get('tracking')) {
+            mapLayer.set('tracking', mapLayer.getSource().on('loadsource', viewChanged))
+          }
+        }, 100)
+        map.olmap.getLayerGroup().on('change', layersAdded)
+        layersAdded()
+
         this.$root.annotations.selectedFeatures.on('add', function (event) {
           if (event.element.get('deviceid')) {
             vm.selectedDevices.push(event.element.get('deviceid'))

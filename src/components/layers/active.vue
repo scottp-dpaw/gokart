@@ -161,6 +161,7 @@
         })
       },
       removeLayer: function (olLayer) {
+        if (olLayer.postRemove) olLayer.postRemove()
         this.$root.map.olmap.removeLayer(olLayer)
       },
       // change order of OL layers based on "Map Layers" list order

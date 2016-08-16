@@ -452,6 +452,8 @@
               vectorSource.clear(true)
               vectorSource.addFeatures(features)
               vector.progress = 'idle'
+              vector.set('updated', moment().toLocaleString())
+              vectorSource.dispatchEvent('loadsource')
               if (onSuccess) {
                 onSuccess()
               }
@@ -471,16 +473,23 @@
             options.onadd(event.feature)
           })
         }
+        
+        vector.postRemove = function () {
+          // disable autoupdates
+          if (this.autoRefresh) {
+            clearInterval(this.autoRefresh)
+            delete this.autoRefresh
+          }
+        }
 
         // if the "refresh" option is set, set a timer
         // to update the source
-        if (options.refresh) {
-          vector.set('updated', moment().toLocaleString())
-          vectorSource.refresh = setInterval(function () {
-            vector.set('updated', moment().toLocaleString())
+        if (options.refresh && !vector.autoRefresh) {
+          vector.autoRefresh = setInterval(function () {
             vectorSource.loadSource()
           }, options.refresh * 1000)
         }
+        // populate the source with data
         vectorSource.loadSource()
 
         vector.set('name', options.name)
@@ -546,15 +555,23 @@
         tileLayer.progress = ''
         tileSource.setTileLoadFunction(this.tileLoaderHook(tileSource, tileLayer))
 
+        tileLayer.postRemove = function () {
+          if (this.autoRefresh) {
+            clearInterval(this.autoRefresh)
+            delete this.autoRefresh
+          }
+        }   
+
         // if the "refresh" option is set, set a timer
         // to force a reload of the tile content
         if (layer.refresh) {
           tileLayer.set('updated', moment().toLocaleString())
-          tileLayer.refresh = setInterval(function () {
+          tileLayer.autoRefresh = setInterval(function () {
             tileLayer.set('updated', moment().toLocaleString())
             tileSource.setUrl(layer.wmts_url + '?time=' + moment.utc().unix())
           }, layer.refresh * 1000)
         }
+
         // set properties for use in layer selector
         tileLayer.set('name', layer.name)
         tileLayer.set('id', layer.id)
