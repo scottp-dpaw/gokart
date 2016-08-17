@@ -17,10 +17,11 @@ body {
 
 #info {
     position: absolute;
-    z-index: 100;
+    z-index: 2;
     padding: 2em;
     background-color: #424f5a;
     max-width: 40%;
+    width: 100%;
 }
 
 #info .content {
@@ -44,6 +45,12 @@ body {
     width: 20px;
     height: 20px;
     margin-bottom: -5px;
+}
+
+#annotations-edit .fa.fa-comment {
+    width: 20px;
+    height: 20px;
+    margin-bottom: -3px;
 }
 
 .off-canvas-content {
@@ -115,7 +122,7 @@ body {
 
 #menu-scale {
     position: absolute;
-    top: 16px;
+    top: 72px;
     right: 72px;
     width: 96px;
     cursor: pointer;
@@ -127,7 +134,7 @@ body {
 
 #map-search {
     position: absolute;
-    top: 72px;
+    top: 16px;
     right: 104px;
     width: 192px;
     height: 48px;
@@ -139,11 +146,24 @@ body {
 
 #map-search-button {
     position: absolute;
-    top: 72px;
+    top: 16px;
     color: white;
     width: 32px;
     right: 72px;
     height: 48px;
+}
+
+.ol-mouse-position {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    top: auto;
+    right: auto;
+    text-align: left;
+    font-size: 0.8rem;
+    border: 0;
+    padding: 8px;
+    color: white;
 }
 
 /* for mobile screens, size the pane to fill the viewport */
@@ -344,8 +364,14 @@ input[type="range"] {
 #layers-list {
     padding: 1rem 0 0 0;
 }
-/* styling for movable row boxes */
 
+/* remove button padding in feature rows */
+.feature-row .button, .layer-row .button {
+    margin: 0;
+}
+
+
+/* styling for movable row boxes */
 .layer-row,
 .feature-row {
     color: white;
@@ -448,7 +474,8 @@ input[type="range"] {
 .ol-scale-line,
 #menu-scale,
 #map-search,
-#map-search-button {
+#map-search-button,
+.ol-mouse-position {
     background-color: rgba(37, 45, 51, 0.7);
 }
 
@@ -456,6 +483,7 @@ input[type="range"] {
 .ol-scale-line:hover,
 #menu-scale:hover,
 #map-search:hover,
-#map-search-button:hover {
+#map-search-button:hover,
+.ol-mouse-position:hover {
     background-color: rgba(37, 45, 51, 0.9);
 }

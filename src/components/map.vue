@@ -5,7 +5,7 @@
       <option value="{{ scale }}" selected>{{ scaleString }}</option>
       <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
     </select>
-    <input id="map-search" id="map-search" placeholder="Search (places, °, MGA, FD)" @keyup="searchKeyFix($event)"/>
+    <input id="map-search" placeholder="Search (places, °, MGA, FD)" @keyup="searchKeyFix($event)"/>
     <button id="map-search-button" @click="runSearch"><i class="fa fa-search"></i></button>
   </div>
 </template>
@@ -125,14 +125,22 @@
         }
         return '1:' + (Math.round(scale * 100) / 100).toLocaleString() + 'K'
       },
+      // get the decimal degrees representation of some EPSG:4326 coordinates
+      getDeg: function(coords) {
+        return coords[1].toFixed(5)+', '+coords[0].toFixed(5)
+      },
       // get the DMS representation of some EPSG:4326 coordinates
       getDMS: function(coords) {
-        return ol.coordinate.toStringHDMS(coords, 1)
+        return ol.coordinate.degreesToStringHDMS_(coords[0], 'EW', 1) + ', ' +
+               ol.coordinate.degreesToStringHDMS_(coords[1], 'NS', 1)
       },
       // get the MGA representation of some EPSG:4326 coordinates
       getMGA: function(coords) {
         var mga = this.getMGARaw(coords)
-        return "MGA "+mga.mgaZone+" "+Math.round(mga.mgaEast)+"mE "+Math.round(mga.mgaNorth)+"mN"
+        if (mga) {
+            return 'MGA '+mga.mgaZone+' '+Math.round(mga.mgaEast)+'mE '+Math.round(mga.mgaNorth)+'mN'
+        }
+        return ''
       },
       getMGARaw: function(coords) {
         var results = {}
@@ -163,6 +171,7 @@
       },
       // parse a string containing coordinates in decimal or DMS format
       parseDMSString: function(dmsStr) {
+        // https://regex101.com/r/kS2zR1/22
         var dmsRegex = /^\s*(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s*(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?[,:\s]+(-)?(\d+(?:\.\d+)?)[°º:d\s]?\s?(?:(\d+(?:\.\d+)?)['’‘′:m]\s*(?:(\d{1,2}(?:\.\d+)?)(?:"|″|’’|''|s)?)?)?\s*([NSEW])?$/gmi
         
         var groups = dmsRegex.exec(dmsStr)
@@ -193,9 +202,11 @@
           return null
         }
 
-        // default EPSG:4326 order is easting, northing. 
+        // order most people use is northing, easting (opposite of EPSG:4326)
+        if (!groups[5] && !groups[10]) {
+            coords = coords.reverse()
         // if only one is explicitly defined, swap if required
-        if ((!groups[5]) || (!groups[10])) {
+        } else if (!groups[5] || !groups[10]) {
           if (groups[5] && ('nNsS'.indexOf(groups[5]) >=0)) {
             coords = coords.reverse()
           } else if (groups[10] && ('wWeE'.indexOf(groups[10]) >=0)) {
@@ -219,6 +230,7 @@
       // parse a string containing coordinates in MGA grid reference format
       // e.g. MGA 51 340000 6340000, MGA 51 340000mE 6340000mN, MGA 51 3406340
       parseMGAString: function(mgaStr) {
+        // https://regex101.com/r/zY8dW4/2
         var mgaRegex = /MGA\s*(49|50|51|52|53|54|55|56)\s*(\d{3,7})\s*[mM]{0,1}\s*([nNeE]{0,1})\s*,*\s*(\d{4,7})\s*[mM]{0,1}\s*([nNeE]{0,1})/gi
         var groups = mgaRegex.exec(mgaStr)
         
@@ -440,6 +452,8 @@
               vectorSource.clear(true)
               vectorSource.addFeatures(features)
               vector.progress = 'idle'
+              vector.set('updated', moment().toLocaleString())
+              vectorSource.dispatchEvent('loadsource')
               if (onSuccess) {
                 onSuccess()
               }
@@ -459,16 +473,23 @@
             options.onadd(event.feature)
           })
         }
+        
+        vector.postRemove = function () {
+          // disable autoupdates
+          if (this.autoRefresh) {
+            clearInterval(this.autoRefresh)
+            delete this.autoRefresh
+          }
+        }
 
         // if the "refresh" option is set, set a timer
         // to update the source
-        if (options.refresh) {
-          vector.set('updated', moment().toLocaleString())
-          vectorSource.refresh = setInterval(function () {
-            vector.set('updated', moment().toLocaleString())
+        if (options.refresh && !vector.autoRefresh) {
+          vector.autoRefresh = setInterval(function () {
             vectorSource.loadSource()
           }, options.refresh * 1000)
         }
+        // populate the source with data
         vectorSource.loadSource()
 
         vector.set('name', options.name)
@@ -534,15 +555,23 @@
         tileLayer.progress = ''
         tileSource.setTileLoadFunction(this.tileLoaderHook(tileSource, tileLayer))
 
+        tileLayer.postRemove = function () {
+          if (this.autoRefresh) {
+            clearInterval(this.autoRefresh)
+            delete this.autoRefresh
+          }
+        }   
+
         // if the "refresh" option is set, set a timer
         // to force a reload of the tile content
         if (layer.refresh) {
           tileLayer.set('updated', moment().toLocaleString())
-          tileLayer.refresh = setInterval(function () {
+          tileLayer.autoRefresh = setInterval(function () {
             tileLayer.set('updated', moment().toLocaleString())
             tileSource.setUrl(layer.wmts_url + '?time=' + moment.utc().unix())
           }, layer.refresh * 1000)
         }
+
         // set properties for use in layer selector
         tileLayer.set('name', layer.name)
         tileLayer.set('id', layer.id)
@@ -631,6 +660,11 @@
           controls: [
             new ol.control.Zoom(),
             new ol.control.ScaleLine(),
+            new ol.control.MousePosition({
+                coordinateFormat: function(coordinate) {
+                    return vm.getDeg(coordinate)+'<br/>'+vm.getDMS(coordinate)+'<br/>'+vm.getMGA(coordinate)
+                }
+            }),
             new ol.control.FullScreen({
               source: $('body').get(0),
               label: $('<i/>', {

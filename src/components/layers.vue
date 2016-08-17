@@ -5,7 +5,7 @@
         <ul class="tabs" data-tabs id="layers-tabs">
           <li class="tabs-title is-active"><a href="#layers-active" aria-selected="true">Active</a></li>
           <li class="tabs-title"><a href="#layers-catalogue">Browse Layers</a></li>
-          <li class="tabs-title"><a href="#layers-export">Download & Print</a></li>
+          <li class="tabs-title"><a href="#layers-export">Save & Print</a></li>
         </ul>
       </div>
     </div>

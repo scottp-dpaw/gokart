@@ -109,7 +109,7 @@
               <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
-                  <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button small secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
                   <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
@@ -132,7 +132,7 @@
         search: '',
         cql: '',
         history: '',
-        fields: ['id', 'name', 'callsign', 'make', 'model', 'rego', 'category', 'deviceid', 'symbol'],
+        fields: ['id', 'name', 'callsign', 'deviceid', 'symbol', 'district'],
         allFeatures: [],
         extentFeatures: [],
         selectedDevices: [],
@@ -234,9 +234,7 @@
           this.trackingLayer.cql_filter = groupFilter
         }
         this.trackingMapLayer.set('updated', moment().toLocaleString())
-        this.trackingMapLayer.getSource().loadSource(function () {
-          vm.updateTracking()
-        })
+        this.trackingMapLayer.getSource().loadSource()
       },
       historyCQLFilter: function () {
         var vm = this
@@ -302,12 +300,28 @@
         map.getView().fit(extent, map.getSize())
       },
       updateTracking: function() {
+        var vm = this
         // syncing of Resource Tracking features between Vue state and OL source
         var mapLayer = this.$root.map.getMapLayer(this.$root.catalogue.getLayer('dpaw:resource_tracking_live'))
         if (!mapLayer) { return }
+        // update the contents of the selectedFeatures group
+        var deviceIds = this.selectedDevices.slice()
+        var feats = mapLayer.getSource().getFeatures()
+        this.$root.annotations.selectedFeatures.clear()
+        feats.filter(function(el, index, arr) {
+          var id = el.get('deviceid')
+          if (!id) return false
+          if (deviceIds.indexOf(id) < 0) return false
+          return true
+        }).forEach(function (el) {
+          vm.$root.annotations.selectedFeatures.push(el)
+        })
+
+        // update vue list for filtered features in the current extent
         this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
         this.extentFeatures.sort(this.resourceOrder)
-        this.allFeatures = mapLayer.getSource().getFeatures().filter(this.resourceFilter)
+        // update vue list for filtered features
+        this.allFeatures = feats.filter(this.resourceFilter)
         this.allFeatures.sort(this.resourceOrder)
       },
       init: function() {
@@ -323,28 +337,21 @@
       this.$on('gk-init', function () {
         var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
 
-
-        var renderTracking = global.debounce(function () {
-          var mapLayer = map.getMapLayer(trackingLayer)
-          if (!mapLayer) { return }
-          if (!mapLayer.get('tracking')) {
-            //console.log('setting tracking hook')
-            mapLayer.set('tracking', mapLayer.on('propertychange', function (event) {
-              //console.log('CHANGE fired on resource_tracking_live')
-              if (event.key === 'updated') {
-                vm.updateTracking()
-              }
-            }))
-            mapLayer.set('updated', moment().toLocaleString())
-          }
-          //console.log('update features')
-        }, 100)
         var viewChanged = global.debounce(function () {
           vm.updateTracking()
         }, 100)
-
-        map.olmap.getLayerGroup().on('change', renderTracking)
         map.olmap.getView().on('propertychange', viewChanged)
+
+        var layersAdded = global.debounce(function () {
+          var mapLayer = vm.trackingMapLayer
+          if (!mapLayer) { return }
+          if (!mapLayer.get('tracking')) {
+            mapLayer.set('tracking', mapLayer.getSource().on('loadsource', viewChanged))
+          }
+        }, 100)
+        map.olmap.getLayerGroup().on('change', layersAdded)
+        layersAdded()
+
         this.$root.annotations.selectedFeatures.on('add', function (event) {
           if (event.element.get('deviceid')) {
             vm.selectedDevices.push(event.element.get('deviceid'))
