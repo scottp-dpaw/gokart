@@ -1,4 +1,6 @@
 var env = {
+    envType: "prod",
+    appType: (window.location.protocol == "file:")?"cordova":"webapp",
     cswService: "https://oim.dpaw.wa.gov.au/catalogue/api/records",
     wmtsService: "https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
     wfsService: "https://kmi.dpaw.wa.gov.au/geoserver/wfs",
@@ -6,6 +8,5 @@ var env = {
     gokartService: "https://gokart.dpaw.wa.gov.au",
     oimService: "https://oim.dpaw.wa.gov.au",
     sssService: "https://sss.dpaw.wa.gov.au",
-    staticService:"https://static.dpaw.wa.gov.au",
-    envType: "prod"
+    staticService:"https://static.dpaw.wa.gov.au"
 };

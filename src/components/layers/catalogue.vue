@@ -39,7 +39,7 @@
         <div id="layers-catalogue-list">
           <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @click="onToggle($index)" track-by="id" @mouseleave="preview(false)">
             <div class="small-10">
-              <a @click.stop href="{{oimService}}/django-admin/catalogue/record/?identifier={{ l.id }}" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
+              <a @click.stop.prevent="edit" href="{{oimService}}/django-admin/catalogue/record/?identifier={{ l.id }}" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
             </div>
             <div class="small-2">
@@ -126,6 +126,14 @@ div.ol-overviewmap.ol-uncollapsible {
       }
     },
     methods: {
+      edit: function(event) {
+            var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
+            if (env.appType == "cordova") {
+                window.open(target.href,"_system");
+            } else {
+                window.open(target.href,target.target);
+            }
+      },
       preview: function (l) {
         if (this.layer === l) {
           return
