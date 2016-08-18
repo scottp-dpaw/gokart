@@ -41,7 +41,7 @@ var app = {
     getUser: function() {
         app.loginWindow.executeScript({code:"[document.location,document.getElementById(\"whoami\").innerText]"},function(values){
             docLocation = values[0][0];
-            if (docLocation.host != 'static.dpaw.wa.gov.au') {
+            if (docLocation.protocol + "//" + docLocation.host != env.staticService) {
                 return;
             }
             user = values[0][1].trim();
@@ -59,7 +59,7 @@ var app = {
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
-        app.loginWindow = cordova.InAppBrowser.open('https://static.dpaw.wa.gov.au/pages/login.html', '_blank', "location=no");
+        app.loginWindow = cordova.InAppBrowser.open(env.staticService + '/pages/login.html', '_blank', "location=no");
         app.loginWindow.addEventListener("loadstop",function() {
             if (app.getUserTask) {
                 clearTimeout(app.getUserTask);

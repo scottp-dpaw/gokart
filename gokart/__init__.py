@@ -22,10 +22,11 @@ bottle.debug(True)
 BASE_PATH = os.path.dirname(__file__)
 
 
+ENV_TYPE = (os.environ.get("ENV_TYPE") or "prod").lower()
 # serve up map apps
 @bottle.route('/<app>')
 def index(app):
-    return bottle.template('index.html', app=app)
+    return bottle.template('index.html', app=app,envType=ENV_TYPE)
 
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
