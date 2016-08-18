@@ -39,7 +39,7 @@
         <div id="layers-catalogue-list">
           <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @click="onToggle($index)" track-by="id" @mouseleave="preview(false)">
             <div class="small-10">
-              <a @click.stop href="https://oim.dpaw.wa.gov.au/django-admin/catalogue/record/?identifier={{ l.id }}" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
+              <a @click.stop href="{{oimService}}/django-admin/catalogue/record/?identifier={{ l.id }}" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
             </div>
             <div class="small-2">
@@ -113,7 +113,7 @@ div.ol-overviewmap.ol-uncollapsible {
     return value.length < length
   })
   export default {
-    store: ['catalogueFilters', 'defaultLegendSrc'],
+    store: ['catalogueFilters', 'defaultLegendSrc','oimService'],
     data: function () {
       return {
         layer: {},
