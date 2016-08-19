@@ -39,7 +39,7 @@
         <div id="layers-catalogue-list">
           <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @click="onToggle($index)" track-by="id" @mouseleave="preview(false)">
             <div class="small-10">
-              <a @click.stop.prevent="edit" href="{{oimService}}/django-admin/catalogue/record/?identifier={{ l.id }}" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
+              <a v-if="l.systemid" @click.stop.prevent="edit" href="{{oimService}}/django-admin/catalogue/record/{{l.systemid}}/change/" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
             </div>
             <div class="small-2">
@@ -215,6 +215,9 @@ div.ol-overviewmap.ol-uncollapsible {
             if (vm.getLayer(l.identifier)) {
                 vm.catalogue.remove(vm.getLayer(l.identifier))
             }
+            
+            l.systemid = l.id;
+            l.id = l.identifier;
             // add the base flag for layers tagged 'basemap'
             l.base = l.tags.some(function (t) {return t.name === 'basemap'})
             // set the opacity to 50% for layers tagged 'overlaymap'
