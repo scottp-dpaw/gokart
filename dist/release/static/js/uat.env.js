@@ -1,4 +1,6 @@
 var env = {
+    envType:"uat",
+    appType: (window.location.protocol == "file:")?"cordova":"webapp",
     cswService:"https://oim-uat.dpaw.wa.gov.au/catalogue/api/records",
     wmtsService:"https://kmi-uat.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
     wfsService:"https://kmi-uat.dpaw.wa.gov.au/geoserver/wfs",
@@ -6,6 +8,5 @@ var env = {
     gokartService:"https://gokart-uat.dpaw.wa.gov.au",
     oimService:"https://oim-uat.dpaw.wa.gov.au",
     sssService:"https://sss-uat.dpaw.wa.gov.au",
-    staticService:"https://static-uat.dpaw.wa.gov.au",
-    envType:"uat"
+    staticService:"https://static-uat.dpaw.wa.gov.au"
 };
