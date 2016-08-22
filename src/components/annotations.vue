@@ -53,7 +53,7 @@
               </div>
             </div>
 
-            <div v-show="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+            <div v-show="shouldShowSizePicker(tool)" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
@@ -63,7 +63,7 @@
                 </div>
               </div>
             </div>
-            <div v-show="tool.name.startsWith('Custom') || tool.name.startsWith('Text')" class="tool-slice row collapse">
+            <div v-show="shouldShowColourPicker(tool)" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
                 <div @click="updateNote(false)" class="expanded button-group">
@@ -214,6 +214,20 @@
         if (this.featureEditing instanceof ol.Feature) {
           this.featureEditing.set(prop, value)
         }
+      },
+      shouldShowSizePicker: function (t) {
+        if (!t || !t.name) {
+          return false
+        }
+        // FIXME: replace this with a tool property
+        return t.name.startsWith('Custom') 
+      },
+      shouldShowColourPicker: function (t) {
+        if (!t || !t.name) {
+          return false
+        }
+        // FIXME: replace this with a tool property
+        return t.name.startsWith('Custom') || t.name.startsWith('Text')
       },
       getTool: function (toolName) {
         return this.tools.filter(function (t) {

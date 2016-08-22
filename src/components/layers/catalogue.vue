@@ -60,7 +60,7 @@
             <div class="columns small-12">
               {{ layer.name }}<br>
               Details: TODO
-              <img v-if="layer.legend" src="{{ layer.legend }}" class="cat-legend"/>
+              <img v-if="layer.legend" v-bind:src="layer.legend" class="cat-legend"/>
             </div>
           </div>
         </div>
