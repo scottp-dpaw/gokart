@@ -59,6 +59,12 @@ var saveAs = function (blob,name,no_auto_bom) {
     }
 }
 
+$.ajaxSetup({
+    xhrFields: {
+        withCredentials: true
+    }
+});
+
 export {
   $,
   ol,
