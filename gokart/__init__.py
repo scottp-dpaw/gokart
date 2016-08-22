@@ -120,6 +120,7 @@ def saveas():
     user = bottle.request.get_header("Remote-User","anonymous")
 
     f = bottle.request.files.get("file")
+    filename = f.raw_filename
     f.raw_filename = "_{}_{}".format(user,bottle.request.remote_addr).join(os.path.splitext(f.raw_filename))
     workdir = os.path.join(BASE_PATH,"tmp")
     if not os.path.exists(workdir):
@@ -135,7 +136,7 @@ def saveas():
             pass
     f.save(workdir,overwrite=True)
     bottle.response.set_header("Content-Type", "text/plain")
-    return bottle.request.url.replace("/saveas","/fetch") + "/" + f.filename;
+    return bottle.request.url.replace("/saveas","/fetch") + "/" + f.filename + "?filename=" + filename;
 
 
 application = bottle.default_app()
