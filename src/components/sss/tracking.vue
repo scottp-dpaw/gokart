@@ -109,7 +109,7 @@
               <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
-                  <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <a @click.stop.prevent="edit" href="{{sssService}}/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
                   <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
@@ -124,6 +124,7 @@
 <script>
   import { ol, moment } from 'src/vendor.js'
   export default {
+    store: ['sssService'],
     data: function () {
       return {
         viewportOnly: true,
@@ -179,6 +180,14 @@
       }
     },
     methods: {
+      edit: function(event) {
+            var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
+            if (env.appType == "cordova") {
+                window.open(target.href,"_system");
+            } else {
+                window.open(target.href,target.target);
+            }
+      },
       ago: function (time) {
         var now = moment()
         if (now.diff(moment(time), 'days') == 1) {

@@ -7,6 +7,7 @@ import os
 import dotenv
 import json
 import re
+import shutil
 
 #import ipdb;ipdb.set_trace()
 base_dir = os.path.dirname(__file__)
@@ -15,7 +16,6 @@ dotenv.load_dotenv(os.path.join(base_dir,"build_cordova.env"))
 patch_file = "js/patch.js"
 patch_file_abs = os.path.join(base_dir,"www",patch_file)
 
-build_type = os.environ.get("BUILD_TYPE","release")
 gokart_url = os.environ.get("GOKART_URL","") or "http://127.0.0.1:8080/"
 if gokart_url[-1:] != "/":
     gokart_url = "{}/".format(gokart_url)
@@ -31,6 +31,9 @@ platforms_file = os.path.join(base_dir,"platforms","platforms.json")
 config_file = os.path.join(base_dir,"config.xml")
 engine_re = re.compile("<engine[ \t]+name=[\"\'](?P<platform>[a-zA-Z0-9]+)[\"\'][ \t]+spec=[\"\'](?P<spec>[^\"\']+)[\"\'][ \t]*/>")
 
+env_re = re.compile("<script[ \t]+src=[\"\']/?dist/static/js/(?P<env_type>[a-zA-Z0-9]+)\.env\.js[\"\'][ \t]*((/>)|(>[ \t]*</script>))",re.I)
+
+
 cordova_cmd = "run"
 app = "sss"
 def setUp():
@@ -40,11 +43,23 @@ def setUp():
     if returncode != 0:
         raise "Fail to load gokart.html from web server"
     print "Succeed to load gokart.html from web server"
-    
-    
+
+    #get  env type of gokart service
     with open(cordova_gokart_file,'rb') as f:
         file_content = f.read()
     
+    #get  env type of gokart service
+    env_type = None
+    for m in env_re.finditer(file_content):
+        env_type = m.group("env_type")
+
+    if not env_type:
+        raise "Can't get the env type from gokart.html"
+    code_base = "release" if env_type == "prod" else "dev"
+    build_type = "release" if env_type == "prod" else "debug"
+
+    print "env type = {}, code base = {}, build type = {}".format(env_type,code_base,build_type)
+
     cordova_js = """
         <script type="text/javascript" src="cordova.js"></script>
     </body>
@@ -66,7 +81,7 @@ def setUp():
         f.write(file_content)
 
     print "Begin to remove outdated gokart static resource from cordova project."
-    source_dist_dir = os.path.join(base_dir,"release" if build_type == "release" else "dev")
+    source_dist_dir = os.path.join(base_dir,code_base)
     #copy related javascript files, staic files and 
     returncode = subprocess.call(["rm","-rf" ,cordova_dist_dir])
     if returncode != 0:
@@ -83,6 +98,8 @@ def setUp():
     returncode = subprocess.call(["rm","-f","*.js.map"])
     if returncode != 0:
         raise "Fail to remove map files."
+
+    shutil.copyfile(os.path.join(source_dist_dir,"static","js","{}.env.js".format(env_type)),os.path.join(cordova_dist_dir,"env.js"))
     print "Succeed to copy gokart static resource into cordova project."
 
     #populate build command file

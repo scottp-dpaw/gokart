@@ -327,7 +327,7 @@
       queryGeocode: function(geoStr, callback) {
         var center = this.getCenter()
         $.ajax({
-          url: 'https://gokart.dpaw.wa.gov.au' // this.gokartService
+          url: gokartService
             +'/mapbox/geocoding/v5/mapbox.places/'+geoStr+'.json?' + $.param({
             country: 'au',
             proximity: ''+center[0]+','+center[1]
