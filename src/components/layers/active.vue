@@ -27,7 +27,7 @@
           <div v-for="l in olLayers.slice().reverse()" class="row layer-row" v-bind:class="l.progress" data-id="{{ l.get('id') }}"
             track-by="values_.id" @click="layer = getLayer(l.get('id'))">
             <div class="small-9">
-              <div class="layer-title">{{ l.get("name") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
+              <div class="layer-title">{{ l.get("name") || l.get("id") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
               <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
             </div>
             <div class="small-3">
