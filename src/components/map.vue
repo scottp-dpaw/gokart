@@ -264,15 +264,16 @@
         return results
       },
       // parse a string containing a FD Grid reference
-      parseFDString: function(fdStr) {
-        var fdRegex = /FD\s*([a-zA-Z]{2})\s*([0-9]{1,5})/gi
+      parseGridString: function(fdStr) {
+        var fdRegex = /(FD|PIL)\s*([a-zA-Z]{1,2})\s*([0-9]{1,5})/gi
         var groups = fdRegex.exec(fdStr)
         if (!groups) {
           return null
         }
         var results = {
-          fdNorth: groups[1],
-          fdEast: groups[2]
+          gridType: groups[1],
+          gridNorth: groups[2],
+          gridEast: groups[3]
         }
         return results
       },
@@ -294,6 +295,28 @@
           success: function(data, status, xhr) {
             if (data.features.length) {
               callback(data.features[0].geometry.coordinates, "FD "+fdStr)
+            }
+          }
+        })
+      },
+      queryPIL: function(pilStr, callback) {
+        $.ajax({
+          url: this.defaultWFSSrc + '?' + $.param({
+            version: '1.1.0',
+            service: 'WFS',
+            request: 'GetFeature',
+            outputFormat: 'application/json',
+            srsname: 'EPSG:4326',
+            typename: 'cddp:pilbara_grid_10km_mapping',
+            cql_filter: '(grid = \''+pilStr+'\')'
+          }),
+          dataType: 'json',
+          xhrFields: {
+            withCredentials: true
+          },
+          success: function(data, status, xhr) {
+            if (data.features.length) {
+              callback(data.features[0].geometry.coordinates, "PIL "+pilStr)
             }
           }
         })
@@ -608,11 +631,15 @@
           return
         }
 
-        // check for FD Grid Reference
-        var fd = this.parseFDString(query)
-        if (fd) {
-          this.queryFD(fd.fdNorth+' '+fd.fdEast, victory)
-          return
+        // check for Grid Reference
+        var gd = this.parseGridString(query)
+        if (gd) {
+          if (gd.gridType === 'FD') {
+            this.queryFD(gd.gridNorth+' '+gd.gridEast, victory)
+            return
+          } else {
+            this.queryPIL(gd.gridNorth+gd.gridEast, victory)
+          }
         }
 
         // failing all that, ask mapbox
