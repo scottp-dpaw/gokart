@@ -31,16 +31,19 @@ def index(app):
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
 FIREWATCH_TZ = pytz.timezone('Australia/Perth')
-FIREWATCH_SERVICE = os.environ.get("FIREWATCH_SERVICE", "/mapproxy/firewatch/service")
-FIREWATCH_GETCAPS = os.environ.get("FIREWATCH_GETCAPS", FIREWATCH_SERVICE + "?service=wms&request=getcapabilities")
+FIREWATCH_SERVICE = "/mapproxy/firewatch/service"
+FIREWATCH_GETCAPS = FIREWATCH_SERVICE + "?service=wms&request=getcapabilities"
+HTTPS_VERIFY = os.environ.get("HTTPS_VERIFY") or "True"
+HTTPS_VERIFY = True if HTTPS_VERIFY.lower() in ["true","on","yes"] else (False if HTTPS_VERIFY.lower() in ["false","off","no"] else HTTPS_VERIFY )
 
 
 @bottle.route("/hi8/<target>")
 def himawari8(target):
+    baseUrl = bottle.request.url[0:bottle.request.url.find("/hi8")]
     if uwsgi.cache_exists("himawari8"):
         getcaps = uwsgi.cache_get("himawari8")
     else:
-        getcaps = requests.get(FIREWATCH_GETCAPS).content
+        getcaps = requests.get("{}{}".format(baseUrl,FIREWATCH_GETCAPS),verify=HTTPS_VERIFY).content
         uwsgi.cache_set("himawari8", getcaps, 60*10)  # cache for 10 mins
     getcaps = getcaps.decode("utf-8")
     layernames = re.findall("\w+HI8\w+{}\.\w+".format(target), getcaps)
@@ -48,7 +51,7 @@ def himawari8(target):
     for layer in layernames:
         layers.append([FIREWATCH_TZ.localize(datetime.strptime(re.findall("\w+_(\d+)_\w+", layer)[0], "%Y%m%d%H%M")).isoformat(), layer])
     result = {
-        "servers": [FIREWATCH_SERVICE],
+        "servers": [baseUrl + FIREWATCH_SERVICE],
         "layers": layers
     }
     return result
