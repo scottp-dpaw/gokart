@@ -31,8 +31,8 @@ def index(app):
 # WMS shim for Himawari 8
 # Landgate tile servers, round robin
 FIREWATCH_TZ = pytz.timezone('Australia/Perth')
-FIREWATCH_SERVICE = os.environ.get("FIREWATCH_SERVICE", "/mapproxy/firewatch/service")
-FIREWATCH_GETCAPS = os.environ.get("FIREWATCH_GETCAPS", FIREWATCH_SERVICE + "?service=wms&request=getcapabilities")
+FIREWATCH_SERVICE = "/mapproxy/firewatch/service"
+FIREWATCH_GETCAPS = FIREWATCH_SERVICE + "?service=wms&request=getcapabilities"
 HTTPS_VERIFY = os.environ.get("HTTPS_VERIFY") or "True"
 HTTPS_VERIFY = True if HTTPS_VERIFY.lower() in ["true","on","yes"] else (False if HTTPS_VERIFY.lower() in ["false","off","no"] else HTTPS_VERIFY )
 
