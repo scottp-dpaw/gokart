@@ -275,11 +275,6 @@
         // auto-disable hover info, but remember the user's choice
         this.$root.active.hoverInfo = ((t.name === 'Pan') && (this.$root.active.hoverInfoCache))
 
-        // enable annotations layer, if disabled
-        var catalogue = this.$root.catalogue
-        if (!map.getMapLayer('annotations')) {
-          catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
-        }
         this.tool = t
       },
       selectAll: function () {
@@ -346,6 +341,11 @@
         return this.notes[key]
       },
       init: function() {
+        // enable annotations layer, if disabled
+        var catalogue = this.$root.catalogue
+        if (!this.$root.map.getMapLayer('annotations')) {
+          catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
+        }
         // runs on switch to this tab
         this.selectable = [this.featureOverlay]
         this.setTool('Edit')
