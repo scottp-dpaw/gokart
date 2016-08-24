@@ -177,6 +177,9 @@
       },
       trackingMapLayer: function() {
         return this.$root.map.getMapLayer(this.trackingLayer)
+      },
+      historyLayer: function() {
+        return this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
       }
     },
     methods: {
@@ -220,8 +223,8 @@
         this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'trackingdata')
       },
       clearHistory: function () {
+          var historyLayer = this.historyLayer
           if (!this.toggleHistory) {
-              var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
               historyLayer.cql_filter = "clearhistorylayer"
               this.$root.catalogue.onLayerChange(historyLayer, false)
           }
@@ -247,7 +250,7 @@
       },
       historyCQLFilter: function () {
         var vm = this
-        var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
+        var historyLayer = this.historyLayer
         var deviceFilter = 'deviceid in (' + this.selectedDevices.join(',') + ')'
         historyLayer.cql_filter = deviceFilter + "and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
@@ -311,7 +314,7 @@
       updateTracking: function() {
         var vm = this
         // syncing of Resource Tracking features between Vue state and OL source
-        var mapLayer = this.$root.map.getMapLayer(this.$root.catalogue.getLayer('dpaw:resource_tracking_live'))
+        var mapLayer = this.trackingMapLayer
         if (!mapLayer) { return }
         // update the contents of the selectedFeatures group
         var deviceIds = this.selectedDevices.slice()
@@ -334,6 +337,12 @@
         this.allFeatures.sort(this.resourceOrder)
       },
       init: function() {
+        // enable resource tracking layer, if disabled
+        var catalogue = this.$root.catalogue
+        if (!this.trackingMapLayer) {
+          catalogue.onLayerChange(this.trackingLayer, true)
+        }
+
         this.$root.annotations.selectable = [this.trackingMapLayer]
         this.$root.annotations.setTool('Select')
         this.$root.tracking.updateCQLFilter()
@@ -344,8 +353,6 @@
       var map = this.$root.map
       // post init event hookup
       this.$on('gk-init', function () {
-        var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
-
         var viewChanged = global.debounce(function () {
           vm.updateTracking()
         }, 100)
