@@ -72,10 +72,10 @@
                   <label for="historyFrom">From:</label>
                 </div>
                 <div class="small-4">
-                  <input type="text" v-model="historyFromDate" placeholder="yyyy-mm-dd"></input>
+                  <input type="text" v-on:blur="verifyDate($event,['YY-M-D','YYYY-M-D'],'YYYY-MM-DD')" v-model="historyFromDate" placeholder="yyyy-mm-dd"></input>
                 </div>
                 <div class="small-2">
-                  <input type="text" v-model="historyFromTime" placeholder="24:00"></input>
+                  <input type="text" v-on:blur="verifyDate($event,'H:m','HH:mm')" v-model="historyFromTime" placeholder="24:00"></input>
                 </div>
                 <div class="small-4">
                   <select name="select" v-model="history" @change="historyRange = history">
@@ -94,14 +94,14 @@
                   <label for="historyTo">To:</label>
                 </div>
                 <div class="small-4">
-                  <input type="text" v-model="historyToDate" placeholder="yyyy-mm-dd"></input>
+                  <input type="text" v-on:blur="verifyDate($event,['YY-M-D','YYYY-M-D'],'YYYY-MM-DD')" v-model="historyToDate" placeholder="yyyy-mm-dd"></input>
                 </div>
                 <div class="small-2">
-                  <input type="text" v-model="historyToTime" placeholder="24:00"></input>
+                  <input type="text" v-on:blur="verifyDate($event,'H:m','HH:mm')" v-model="historyToTime" placeholder="24:00"></input>
                 </div>
                 <div class="small-2"></div>
                 <div class="small-2">
-                  <button class="button" style="float: right" @click="historyCQLFilter">Go</button>
+                  <button v-bind:disabled="queryHistoryDisabled" class="button" style="float: right" @click="historyCQLFilter">Go</button>
                 </div>
               </div>
             </div>
@@ -158,6 +158,9 @@
       stats: function () {
         return Object.keys(this.extentFeatures).length + '/' + Object.keys(this.allFeatures).length
       },
+      queryHistoryDisabled: function() {
+        return !(this.selectedFeatures && this.selectedFeatures.length && this.historyFromDate && this.historyFromTime && this.historyToDate && this.historyToTime)
+      },
       historyRange: {
         get: function () {
           return this.historyRangeMilliseconds
@@ -183,6 +186,20 @@
       }
     },
     methods: {
+      verifyDate: function(event,inputPattern,pattern) {
+        var element = event.target;
+        element.value = element.value.trim()
+        if (element.value.length > 0) {
+            var m = moment(element.value,inputPattern,true)
+            if (!m.isValid()) {
+                setTimeout(function() {
+                    element.focus()
+                },10);
+            } else {
+                element.value = m.format(pattern)
+            }
+        }
+      },
       edit: function(event) {
             var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
             if (env.appType == "cordova") {
