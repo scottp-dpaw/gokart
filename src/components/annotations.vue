@@ -139,7 +139,7 @@
     })
   })
 
-  var noteOffset = 20
+  var noteOffset = 0
   var notePadding = 10
 
   var noteStyles = {
@@ -150,12 +150,11 @@
         text: note.text,
         x: noteOffset + notePadding, y: notePadding,
         align: 'left',
-        maxWidth: note.width + notePadding * -2,
         fromCenter: false
       }
       return [
-        ['drawText', $.extend({strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
-        ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
+        ['drawText', $.extend({layer:true,name:"decorationLayer",strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
+        ['drawText', $.extend({layer:true,name:"textLayer",fillStyle: note.colour}, textTmpl)]
       ]
     }
   }
@@ -307,13 +306,22 @@
         if (!note) { return }
         var vm = this
         var noteCanvas = this.$els.textpreview
+        $(noteCanvas).removeLayer("decorationLayer")
+        $(noteCanvas).removeLayer("textLayer")
         $(noteCanvas).clearCanvas()
         if ((note.style) && (note.style in noteStyles)) {
+          //draw
           $(noteCanvas).attr('height', note.height + noteOffset)
           $(noteCanvas).attr('width', note.width + noteOffset)
           noteStyles[note.style](note).forEach(function (cmd) {
             $(noteCanvas)[cmd[0]](cmd[1])
           })
+          //measure and set canvas dimension
+          var annotationSize = $(noteCanvas).measureText("decorationLayer")
+          $(noteCanvas).attr('height', annotationSize.height + noteOffset + notePadding)
+          $(noteCanvas).attr('width', annotationSize.width + noteOffset + notePadding)
+          $(noteCanvas).drawLayers()
+            
           if (save) {
             var key = JSON.stringify(note)
             // temp placeholder
