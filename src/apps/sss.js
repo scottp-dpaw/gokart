@@ -1,4 +1,3 @@
-
 import {
   $,
   svg4everybody,
@@ -38,7 +37,6 @@ global.debounce = function (func, wait, immediate) {
 var defaultStore = {
   tourVersion: null,
   whoami: { email: null },
-  remoteCatalogue: 'https://oim.dpaw.wa.gov.au/catalogue/api/records?format=json&application__name=sss',
   // filters for finding layers
   catalogueFilters: [
     ['basemap', 'Base Imagery'],
@@ -52,10 +50,13 @@ var defaultStore = {
     ['sensitive', 'Sensitive Sites']
   ],
   // overridable defaults for WMTS and WFS loading
-  defaultWMTSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wmts',
-  defaultWFSSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/wfs',
-  defaultLegendSrc: 'https://kmi.dpaw.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&LAYER=',
-  gokartService: (window.location.protocol == "file:")?"https://gokart.dpaw.wa.gov.au" : "",
+  remoteCatalogue: env.cswService + "?format=json&application__name=sss",
+  defaultWMTSSrc: env.wmtsService,
+  defaultWFSSrc: env.wfsService,
+  defaultLegendSrc: env.legendSrc,
+  gokartService: env.gokartService,
+  oimService:env.oimService,
+  sssService:env.sssService,
   // default matrix from KMI
   resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
   // fixed scales for the scale selector (1:1K increments)
@@ -131,7 +132,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         req.onload = function () {
           self.whoami = JSON.parse(this.responseText)
         }
-        req.open('GET', 'https://oim.dpaw.wa.gov.au/api/whoami')
+        req.open('GET', self.store.oimService + '/api/whoami')
         req.send()
       })()
       // bind menu side-tabs to reveal the side pane

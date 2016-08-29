@@ -264,15 +264,16 @@
         return results
       },
       // parse a string containing a FD Grid reference
-      parseFDString: function(fdStr) {
-        var fdRegex = /FD\s*([a-zA-Z]{2})\s*([0-9]{1,5})/gi
+      parseGridString: function(fdStr) {
+        var fdRegex = /(FD|PIL)\s*([a-zA-Z]{1,2})\s*([0-9]{1,5})/gi
         var groups = fdRegex.exec(fdStr)
         if (!groups) {
           return null
         }
         var results = {
-          fdNorth: groups[1],
-          fdEast: groups[2]
+          gridType: groups[1],
+          gridNorth: groups[2],
+          gridEast: groups[3]
         }
         return results
       },
@@ -298,13 +299,35 @@
           }
         })
       },
+      queryPIL: function(pilStr, callback) {
+        $.ajax({
+          url: this.defaultWFSSrc + '?' + $.param({
+            version: '1.1.0',
+            service: 'WFS',
+            request: 'GetFeature',
+            outputFormat: 'application/json',
+            srsname: 'EPSG:4326',
+            typename: 'cddp:pilbara_grid_10km_mapping',
+            cql_filter: '(grid = \''+pilStr+'\')'
+          }),
+          dataType: 'json',
+          xhrFields: {
+            withCredentials: true
+          },
+          success: function(data, status, xhr) {
+            if (data.features.length) {
+              callback(data.features[0].geometry.coordinates, "PIL "+pilStr)
+            }
+          }
+        })
+      },
       getCenter: function() {
         return this.olmap.getView().getCenter();
       },
       queryGeocode: function(geoStr, callback) {
         var center = this.getCenter()
         $.ajax({
-          url: 'https://gokart.dpaw.wa.gov.au' // this.gokartService
+          url: gokartService
             +'/mapbox/geocoding/v5/mapbox.places/'+geoStr+'.json?' + $.param({
             country: 'au',
             proximity: ''+center[0]+','+center[1]
@@ -452,6 +475,8 @@
               vectorSource.clear(true)
               vectorSource.addFeatures(features)
               vector.progress = 'idle'
+              vector.set('updated', moment().toLocaleString())
+              vectorSource.dispatchEvent('loadsource')
               if (onSuccess) {
                 onSuccess()
               }
@@ -471,16 +496,23 @@
             options.onadd(event.feature)
           })
         }
+        
+        vector.postRemove = function () {
+          // disable autoupdates
+          if (this.autoRefresh) {
+            clearInterval(this.autoRefresh)
+            delete this.autoRefresh
+          }
+        }
 
         // if the "refresh" option is set, set a timer
         // to update the source
-        if (options.refresh) {
-          vector.set('updated', moment().toLocaleString())
-          vectorSource.refresh = setInterval(function () {
-            vector.set('updated', moment().toLocaleString())
+        if (options.refresh && !vector.autoRefresh) {
+          vector.autoRefresh = setInterval(function () {
             vectorSource.loadSource()
           }, options.refresh * 1000)
         }
+        // populate the source with data
         vectorSource.loadSource()
 
         vector.set('name', options.name)
@@ -546,15 +578,23 @@
         tileLayer.progress = ''
         tileSource.setTileLoadFunction(this.tileLoaderHook(tileSource, tileLayer))
 
+        tileLayer.postRemove = function () {
+          if (this.autoRefresh) {
+            clearInterval(this.autoRefresh)
+            delete this.autoRefresh
+          }
+        }   
+
         // if the "refresh" option is set, set a timer
         // to force a reload of the tile content
         if (layer.refresh) {
           tileLayer.set('updated', moment().toLocaleString())
-          tileLayer.refresh = setInterval(function () {
+          tileLayer.autoRefresh = setInterval(function () {
             tileLayer.set('updated', moment().toLocaleString())
             tileSource.setUrl(layer.wmts_url + '?time=' + moment.utc().unix())
           }, layer.refresh * 1000)
         }
+
         // set properties for use in layer selector
         tileLayer.set('name', layer.name)
         tileLayer.set('id', layer.id)
@@ -591,11 +631,15 @@
           return
         }
 
-        // check for FD Grid Reference
-        var fd = this.parseFDString(query)
-        if (fd) {
-          this.queryFD(fd.fdNorth+' '+fd.fdEast, victory)
-          return
+        // check for Grid Reference
+        var gd = this.parseGridString(query)
+        if (gd) {
+          if (gd.gridType === 'FD') {
+            this.queryFD(gd.gridNorth+' '+gd.gridEast, victory)
+            return
+          } else {
+            this.queryPIL(gd.gridNorth+gd.gridEast, victory)
+          }
         }
 
         // failing all that, ask mapbox

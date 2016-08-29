@@ -109,7 +109,7 @@
               <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
-                  <a @click.stop href="https://sss.dpaw.wa.gov.au/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <a @click.stop.prevent="edit" href="{{sssService}}/admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
                   <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
@@ -124,6 +124,7 @@
 <script>
   import { ol, moment } from 'src/vendor.js'
   export default {
+    store: ['sssService'],
     data: function () {
       return {
         viewportOnly: true,
@@ -176,9 +177,20 @@
       },
       trackingMapLayer: function() {
         return this.$root.map.getMapLayer(this.trackingLayer)
+      },
+      historyLayer: function() {
+        return this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
       }
     },
     methods: {
+      edit: function(event) {
+            var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
+            if (env.appType == "cordova") {
+                window.open(target.href,"_system");
+            } else {
+                window.open(target.href,target.target);
+            }
+      },
       ago: function (time) {
         var now = moment()
         if (now.diff(moment(time), 'days') == 1) {
@@ -211,8 +223,8 @@
         this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'trackingdata')
       },
       clearHistory: function () {
+          var historyLayer = this.historyLayer
           if (!this.toggleHistory) {
-              var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
               historyLayer.cql_filter = "clearhistorylayer"
               this.$root.catalogue.onLayerChange(historyLayer, false)
           }
@@ -234,13 +246,11 @@
           this.trackingLayer.cql_filter = groupFilter
         }
         this.trackingMapLayer.set('updated', moment().toLocaleString())
-        this.trackingMapLayer.getSource().loadSource(function () {
-          vm.updateTracking()
-        })
+        this.trackingMapLayer.getSource().loadSource()
       },
       historyCQLFilter: function () {
         var vm = this
-        var historyLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_history')
+        var historyLayer = this.historyLayer
         var deviceFilter = 'deviceid in (' + this.selectedDevices.join(',') + ')'
         historyLayer.cql_filter = deviceFilter + "and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
@@ -304,7 +314,7 @@
       updateTracking: function() {
         var vm = this
         // syncing of Resource Tracking features between Vue state and OL source
-        var mapLayer = this.$root.map.getMapLayer(this.$root.catalogue.getLayer('dpaw:resource_tracking_live'))
+        var mapLayer = this.trackingMapLayer
         if (!mapLayer) { return }
         // update the contents of the selectedFeatures group
         var deviceIds = this.selectedDevices.slice()
@@ -327,6 +337,12 @@
         this.allFeatures.sort(this.resourceOrder)
       },
       init: function() {
+        // enable resource tracking layer, if disabled
+        var catalogue = this.$root.catalogue
+        if (!this.trackingMapLayer) {
+          catalogue.onLayerChange(this.trackingLayer, true)
+        }
+
         this.$root.annotations.selectable = [this.trackingMapLayer]
         this.$root.annotations.setTool('Select')
         this.$root.tracking.updateCQLFilter()
@@ -337,30 +353,21 @@
       var map = this.$root.map
       // post init event hookup
       this.$on('gk-init', function () {
-        var trackingLayer = this.$root.catalogue.getLayer('dpaw:resource_tracking_live')
-
-
-        var renderTracking = global.debounce(function () {
-          var mapLayer = map.getMapLayer(trackingLayer)
-          if (!mapLayer) { return }
-          if (!mapLayer.get('tracking')) {
-            //console.log('setting tracking hook')
-            mapLayer.set('tracking', mapLayer.on('propertychange', function (event) {
-              //console.log('CHANGE fired on resource_tracking_live')
-              if (event.key === 'updated') {
-                vm.updateTracking()
-              }
-            }))
-            mapLayer.set('updated', moment().toLocaleString())
-          }
-          //console.log('update features')
-        }, 100)
         var viewChanged = global.debounce(function () {
           vm.updateTracking()
         }, 100)
-
-        map.olmap.getLayerGroup().on('change', renderTracking)
         map.olmap.getView().on('propertychange', viewChanged)
+
+        var layersAdded = global.debounce(function () {
+          var mapLayer = vm.trackingMapLayer
+          if (!mapLayer) { return }
+          if (!mapLayer.get('tracking')) {
+            mapLayer.set('tracking', mapLayer.getSource().on('loadsource', viewChanged))
+          }
+        }, 100)
+        map.olmap.getLayerGroup().on('change', layersAdded)
+        layersAdded()
+
         this.$root.annotations.selectedFeatures.on('add', function (event) {
           if (event.element.get('deviceid')) {
             vm.selectedDevices.push(event.element.get('deviceid'))

@@ -53,7 +53,7 @@
               </div>
             </div>
 
-            <div v-show="tool.name.startsWith('Custom')" class="tool-slice row collapse">
+            <div v-show="shouldShowSizePicker(tool)" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
@@ -63,7 +63,7 @@
                 </div>
               </div>
             </div>
-            <div v-show="tool.name.startsWith('Custom') || tool.name.startsWith('Text')" class="tool-slice row collapse">
+            <div v-show="shouldShowColourPicker(tool)" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
                 <div @click="updateNote(false)" class="expanded button-group">
@@ -215,6 +215,20 @@
           this.featureEditing.set(prop, value)
         }
       },
+      shouldShowSizePicker: function (t) {
+        if (!t || !t.name) {
+          return false
+        }
+        // FIXME: replace this with a tool property
+        return t.name.startsWith('Custom') 
+      },
+      shouldShowColourPicker: function (t) {
+        if (!t || !t.name) {
+          return false
+        }
+        // FIXME: replace this with a tool property
+        return t.name.startsWith('Custom') || t.name.startsWith('Text')
+      },
       getTool: function (toolName) {
         return this.tools.filter(function (t) {
           return t.name === toolName
@@ -261,11 +275,6 @@
         // auto-disable hover info, but remember the user's choice
         this.$root.active.hoverInfo = ((t.name === 'Pan') && (this.$root.active.hoverInfoCache))
 
-        // enable annotations layer, if disabled
-        var catalogue = this.$root.catalogue
-        if (!map.getMapLayer('annotations')) {
-          catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
-        }
         this.tool = t
       },
       selectAll: function () {
@@ -332,6 +341,11 @@
         return this.notes[key]
       },
       init: function() {
+        // enable annotations layer, if disabled
+        var catalogue = this.$root.catalogue
+        if (!this.$root.map.getMapLayer('annotations')) {
+          catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
+        }
         // runs on switch to this tab
         this.selectable = [this.featureOverlay]
         this.setTool('Edit')

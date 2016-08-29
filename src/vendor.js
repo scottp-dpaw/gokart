@@ -42,11 +42,12 @@ import Tether from 'tether'
 import Shepherd from 'tether-shepherd'
 
 var saveAs = function (blob,name,no_auto_bom) {
-    if (window.location.protocol == "file:") {
+    if (env.appType == "cordova") {
         var formData = new window.FormData();
         formData.append('file', blob, name);
         var req = new window.XMLHttpRequest();
         req.open('POST', gokartService + '/saveas');
+        req.withCredentials = true;
         req.responseType = 'text';
         req.onload = function (event) {
             var fetchUrl = req.responseText;

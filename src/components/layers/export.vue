@@ -160,11 +160,13 @@
       // info for the legend block on the print raster
       legendInfo: function () {
         var result = {
-          km: (Math.round(this.$root.map.getScale() * 40) / 1000).toLocaleString(),
-          scale: 'ISO ' + this.paperSize + ' ' + this.$root.map.scaleString,
           title: this.title,
           author: this.whoami.email,
           date: 'Printed ' + moment().toLocaleString()
+        }
+        if (this.$root.map) {
+          result.km = (Math.round(this.$root.map.getScale() * 40) / 1000).toLocaleString()
+          result.scale = 'ISO ' + this.paperSize + ' ' + this.$root.map.scaleString
         }
         return result
       },

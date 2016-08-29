@@ -17,8 +17,8 @@
           <div class="switch tiny">
             <input class="switch-input" id="toggleHoverInfo" type="checkbox" v-bind:checked="hoverInfo" @change="toggleHoverInfo" />
             <label class="switch-paddle" for="toggleHoverInfo">
-                    <span class="show-for-sr">Display hovering feature info</span>
-                  </label>
+              <span class="show-for-sr">Display hovering feature info</span>
+            </label>
           </div>
           <label for="toggleHoverInfo" class="side-label">Display hovering feature info</label>
         </div>
@@ -27,7 +27,7 @@
           <div v-for="l in olLayers.slice().reverse()" class="row layer-row" v-bind:class="l.progress" data-id="{{ l.get('id') }}"
             track-by="values_.id" @click="layer = getLayer(l.get('id'))">
             <div class="small-9">
-              <div class="layer-title">{{ l.get("name") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
+              <div class="layer-title">{{ l.get("name") || l.get("id") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
               <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
             </div>
             <div class="small-3">
@@ -73,13 +73,13 @@
       graticule: {
         cache: false,
         get: function () {
-          return this.$root.map.graticule && this.$root.map.graticule.getMap() === this.$root.map.olmap
+          return this.$root.map && this.$root.map.graticule && this.$root.map.graticule.getMap() === this.$root.map.olmap
         }
       },
       hoverInfo: {
         cache: false,
         get: function () {
-          return this.$root.info.enabled
+          return this.$root.map && this.$root.info && this.$root.info.enabled
         },
         set: function (val) {
           this.$root.info.enabled = val
@@ -137,7 +137,12 @@
         }
         return results.reverse()
       },
-      mapLayer: function (id) { return this.$root.map.getMapLayer(id || this.layer) },
+      mapLayer: function (id) { 
+        if (!this.$root.map) {
+          return null
+        }
+        return this.$root.map.getMapLayer(id || this.layer) 
+      },
       getLayer: function (id) {
         return this.$root.catalogue.getLayer(id)
       },
@@ -161,6 +166,7 @@
         })
       },
       removeLayer: function (olLayer) {
+        if (olLayer.postRemove) olLayer.postRemove()
         this.$root.map.olmap.removeLayer(olLayer)
       },
       // change order of OL layers based on "Map Layers" list order
