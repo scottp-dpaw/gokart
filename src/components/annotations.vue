@@ -139,7 +139,7 @@
     })
   })
 
-  var noteOffset = 20
+  var noteOffset = 0
   var notePadding = 10
 
   var noteStyles = {
@@ -150,12 +150,11 @@
         text: note.text,
         x: noteOffset + notePadding, y: notePadding,
         align: 'left',
-        maxWidth: note.width + notePadding * -2,
         fromCenter: false
       }
       return [
-        ['drawText', $.extend({strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
-        ['drawText', $.extend({fillStyle: note.colour}, textTmpl)]
+        ['drawText', $.extend({layer:true,name:"decorationLayer",strokeWidth: 3, strokeStyle: 'rgba(255, 255, 255, 0.9)'}, textTmpl)],
+        ['drawText', $.extend({layer:true,name:"textLayer",fillStyle: note.colour}, textTmpl)]
       ]
     }
   }
@@ -307,13 +306,23 @@
         if (!note) { return }
         var vm = this
         var noteCanvas = this.$els.textpreview
+        $(noteCanvas).removeLayer("decorationLayer")
+        $(noteCanvas).removeLayer("textLayer")
         $(noteCanvas).clearCanvas()
         if ((note.style) && (note.style in noteStyles)) {
+          //draw
           $(noteCanvas).attr('height', note.height + noteOffset)
           $(noteCanvas).attr('width', note.width + noteOffset)
           noteStyles[note.style](note).forEach(function (cmd) {
             $(noteCanvas)[cmd[0]](cmd[1])
           })
+          //measure and set canvas dimension
+          var annotationSize = $(noteCanvas).measureText("decorationLayer")
+          note.size = [annotationSize.width + noteOffset + notePadding, annotationSize.height + notePadding]
+          $(noteCanvas).attr('width', note.size[0])
+          $(noteCanvas).attr('height', note.size[1])
+          $(noteCanvas).drawLayers()
+            
           if (save) {
             var key = JSON.stringify(note)
             // temp placeholder
@@ -438,6 +447,7 @@
       this.ui.dragSelectInter = new ol.interaction.DragBox()
       // modify selectedFeatures after dragging a box
       this.ui.dragSelectInter.on('boxend', function (event) {
+        vm.selectedFeatures.clear()
         var extent = event.target.getGeometry().getExtent()
         vm.selectable.forEach(function(layer) {
           layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
@@ -447,7 +457,7 @@
       })
       // clear selectedFeatures before dragging a box
       this.ui.dragSelectInter.on('boxstart', function () {
-        vm.selectedFeatures.clear()
+        //vm.selectedFeatures.clear()
       })
       // allow selecting multiple features by clicking
       this.ui.selectInter = new ol.interaction.Select({
@@ -566,7 +576,7 @@
         }
       }
       var vectorStyleCache = {
-        'default': ol.style.defaultStyleFunction()
+        'default': new ol.layer.Vector().getStyleFunction()()
       }
       var vectorStyle = function (res) {
         var f = this

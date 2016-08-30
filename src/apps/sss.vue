@@ -84,7 +84,7 @@
             this.styles[key] = style
             return style
           }
-          return ol.style.defaultStyleFunction()
+          return new ol.layer.Vector().getStyleFunction()()
         },
         getBlob: function(feature, keys) {
           // method to precache SVGs as raster (PNGs)

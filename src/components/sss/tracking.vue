@@ -72,10 +72,10 @@
                   <label for="historyFrom">From:</label>
                 </div>
                 <div class="small-4">
-                  <input type="text" v-model="historyFromDate" placeholder="yyyy-mm-dd"></input>
+                  <input type="text" v-on:blur="verifyDate($event,['YY-M-D','YYYY-M-D'],'YYYY-MM-DD')" v-model="historyFromDate" placeholder="yyyy-mm-dd"></input>
                 </div>
                 <div class="small-2">
-                  <input type="text" v-model="historyFromTime" placeholder="24:00"></input>
+                  <input type="text" v-on:blur="verifyDate($event,'H:m','HH:mm')" v-model="historyFromTime" placeholder="24:00"></input>
                 </div>
                 <div class="small-4">
                   <select name="select" v-model="history" @change="historyRange = history">
@@ -94,14 +94,14 @@
                   <label for="historyTo">To:</label>
                 </div>
                 <div class="small-4">
-                  <input type="text" v-model="historyToDate" placeholder="yyyy-mm-dd"></input>
+                  <input type="text" v-on:blur="verifyDate($event,['YY-M-D','YYYY-M-D'],'YYYY-MM-DD')" v-model="historyToDate" placeholder="yyyy-mm-dd"></input>
                 </div>
                 <div class="small-2">
-                  <input type="text" v-model="historyToTime" placeholder="24:00"></input>
+                  <input type="text" v-on:blur="verifyDate($event,'H:m','HH:mm')" v-model="historyToTime" placeholder="24:00"></input>
                 </div>
                 <div class="small-2"></div>
                 <div class="small-2">
-                  <button class="button" style="float: right" @click="historyCQLFilter">Go</button>
+                  <button v-bind:disabled="queryHistoryDisabled" class="button" style="float: right" @click="historyCQLFilter">Go</button>
                 </div>
               </div>
             </div>
@@ -158,6 +158,9 @@
       stats: function () {
         return Object.keys(this.extentFeatures).length + '/' + Object.keys(this.allFeatures).length
       },
+      queryHistoryDisabled: function() {
+        return !(this.selectedFeatures && this.selectedFeatures.length && this.historyFromDate && this.historyFromTime && this.historyToDate && this.historyToTime)
+      },
       historyRange: {
         get: function () {
           return this.historyRangeMilliseconds
@@ -183,6 +186,20 @@
       }
     },
     methods: {
+      verifyDate: function(event,inputPattern,pattern) {
+        var element = event.target;
+        element.value = element.value.trim()
+        if (element.value.length > 0) {
+            var m = moment(element.value,inputPattern,true)
+            if (!m.isValid()) {
+                setTimeout(function() {
+                    element.focus()
+                },10);
+            } else {
+                element.value = m.format(pattern)
+            }
+        }
+      },
       edit: function(event) {
             var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
             if (env.appType == "cordova") {
@@ -316,18 +333,20 @@
         // syncing of Resource Tracking features between Vue state and OL source
         var mapLayer = this.trackingMapLayer
         if (!mapLayer) { return }
-        // update the contents of the selectedFeatures group
-        var deviceIds = this.selectedDevices.slice()
         var feats = mapLayer.getSource().getFeatures()
-        this.$root.annotations.selectedFeatures.clear()
-        feats.filter(function(el, index, arr) {
-          var id = el.get('deviceid')
-          if (!id) return false
-          if (deviceIds.indexOf(id) < 0) return false
-          return true
-        }).forEach(function (el) {
-          vm.$root.annotations.selectedFeatures.push(el)
-        })
+        // update the contents of the selectedFeatures group
+        if (vm.$root.annotations.selectable && vm.$root.annotations.selectable.length == 1 && vm.$root.annotations.selectable[0] == vm.trackingMapLayer) {
+            var deviceIds = this.selectedDevices.slice()
+            this.$root.annotations.selectedFeatures.clear()
+            feats.filter(function(el, index, arr) {
+              var id = el.get('deviceid')
+              if (!id) return false
+              if (deviceIds.indexOf(id) < 0) return false
+              return true
+            }).forEach(function (el) {
+              vm.$root.annotations.selectedFeatures.push(el)
+            })
+        }
 
         // update vue list for filtered features in the current extent
         this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
