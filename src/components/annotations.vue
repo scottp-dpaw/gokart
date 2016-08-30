@@ -318,8 +318,9 @@
           })
           //measure and set canvas dimension
           var annotationSize = $(noteCanvas).measureText("decorationLayer")
-          $(noteCanvas).attr('height', annotationSize.height + noteOffset + notePadding)
-          $(noteCanvas).attr('width', annotationSize.width + noteOffset + notePadding)
+          note.size = [annotationSize.width + noteOffset + notePadding, annotationSize.height + notePadding]
+          $(noteCanvas).attr('width', note.size[0])
+          $(noteCanvas).attr('height', note.size[1])
           $(noteCanvas).drawLayers()
             
           if (save) {
@@ -446,6 +447,7 @@
       this.ui.dragSelectInter = new ol.interaction.DragBox()
       // modify selectedFeatures after dragging a box
       this.ui.dragSelectInter.on('boxend', function (event) {
+        vm.selectedFeatures.clear()
         var extent = event.target.getGeometry().getExtent()
         vm.selectable.forEach(function(layer) {
           layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
@@ -455,7 +457,7 @@
       })
       // clear selectedFeatures before dragging a box
       this.ui.dragSelectInter.on('boxstart', function () {
-        vm.selectedFeatures.clear()
+        //vm.selectedFeatures.clear()
       })
       // allow selecting multiple features by clicking
       this.ui.selectInter = new ol.interaction.Select({
@@ -574,7 +576,7 @@
         }
       }
       var vectorStyleCache = {
-        'default': ol.style.defaultStyleFunction()
+        'default': new ol.layer.Vector().getStyleFunction()()
       }
       var vectorStyle = function (res) {
         var f = this
