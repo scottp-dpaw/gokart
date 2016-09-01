@@ -404,15 +404,40 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       })
 
 
-      var fireBoundaryStyle = new ol.style.Style({
-        stroke: new ol.style.Stroke({
-          width: 4.0,
-          color: [0, 0, 0, 1.0]
-        }),
-        fill: new ol.style.Fill({
-          color: [0, 0, 0, 0.25]
-        })
-      })
+      var fireBoundaryStyle = function() {
+          var f = this
+          var style = null
+          if (f.get('tint') == 'selected') {
+              style = [
+                  new ol.style.Style({
+                    fill: new ol.style.Fill({
+                      color: [0, 0, 0, 0.25]
+                    }),
+                    stroke: new ol.style.Stroke({
+                      color: '#2199e8',
+                      width: 6
+                    })
+                  }),
+                  new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                      color: '#ffffff',
+                      width: 4
+                    })
+                  }),
+              ]
+          } else {
+              style = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                  width: 4.0,
+                  color: [0, 0, 0, 1.0]
+                }),
+                fill: new ol.style.Fill({
+                  color: [0, 0, 0, 0.25]
+                })
+              })
+          }
+          return style
+      }
 
       var fireBoundaryDraw = new ol.interaction.Draw({
         type: 'Polygon',

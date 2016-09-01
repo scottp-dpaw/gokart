@@ -358,6 +358,15 @@
         // runs on switch to this tab
         this.selectable = [this.featureOverlay]
         this.setTool('Edit')
+      },
+      getNoteExtent: function(feature) {
+        var note = feature.get('note')
+        if (!note) return null
+        var map = this.$root.map.olmap
+        var bottomLeftCoordinate = feature.getGeometry().getFirstCoordinate()
+        var bottomLeftPosition = map.getPixelFromCoordinate(bottomLeftCoordinate)
+        var upRightCoordinate = map.getCoordinateFromPixel([bottomLeftPosition[0] + note.size[0],bottomLeftPosition[1] - note.size[1]])
+        return [bottomLeftCoordinate[0],bottomLeftCoordinate[1],upRightCoordinate[0],upRightCoordinate[1]]
       }
     },
     ready: function () {
@@ -450,9 +459,26 @@
         vm.selectedFeatures.clear()
         var extent = event.target.getGeometry().getExtent()
         vm.selectable.forEach(function(layer) {
-          layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
-            vm.selectedFeatures.push(feature)
-          })
+          if (layer == vm.featureOverlay) {
+              //select all annotation features except text note
+              layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+                if (!feature.get('note')) {
+                    vm.selectedFeatures.push(feature)
+                }
+              })
+              //select text note
+              vm.features.forEach(function(feature){
+                if (feature.get('note')) {
+                  if (ol.extent.intersects(extent,vm.getNoteExtent(feature))) {
+                    vm.selectedFeatures.push(feature)
+                  }
+                }
+              })
+          } else {
+              layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+                vm.selectedFeatures.push(feature)
+              })
+          }
         })
       })
       // clear selectedFeatures before dragging a box
@@ -466,7 +492,20 @@
         },
         features: this.selectedFeatures
       })
-
+      this.ui.selectInter.defaultHandleEvent = this.ui.selectInter.defaultHandleEvent || this.ui.selectInter.handleEvent
+      this.ui.selectInter.handleEvent = function(event) {
+        if (this.condition_(event)) {
+            try {
+                vm.selecting = true
+                return this.defaultHandleEvent(event)
+            } finally {
+                vm.selecting = false
+            }
+        } else {
+            vm.selecting = false
+            return this.defaultHandleEvent(event)
+        }
+      }
       // OpenLayers3 hook for keyboard input
       this.ui.keyboardInter = new ol.interaction.Interaction({
         handleEvent: function (mapBrowserEvent) {
@@ -541,16 +580,22 @@
         } else {
           return null
         }
+        var tint = f.get('tint') || "notselected"
         if (!noteStyleCache[url]) {
-          noteStyleCache[url] = new ol.style.Style({
+            noteStyleCache[url] = []
+        }
+        if (!noteStyleCache[url][tint]) {
+          var color = (tint == "selected")?'#70BDF0':undefined
+          noteStyleCache[url][tint] = new ol.style.Style({
             image: new ol.style.Icon({
               anchorOrigin: 'bottom-left',
               anchor: [0, 0],
+              color: color,
               src: url
             })
           })
         }
-        return noteStyleCache[url]
+        return noteStyleCache[url][tint]
       }
       var noteDraw = new ol.interaction.Draw({
         type: 'Point',
@@ -563,6 +608,14 @@
         interactions: [noteDraw],
         showName: true,
         onAdd: function (f) {
+          f.getGeometry().defaultGetExtent = f.getGeometry().defaultGetExtent || f.getGeometry().getExtent
+          f.getGeometry().getExtent = function() {
+              if (vm.selecting) {
+                  return vm.getNoteExtent(f)
+              } else {
+                  return this.defaultGetExtent()
+              }
+          }
           if (f.get('note')) { return }
           f.set('note', $.extend({}, vm.note))
         }
