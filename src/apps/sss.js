@@ -407,7 +407,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       var fireBoundaryStyle = function() {
           var f = this
           var style = null
-          if (f.get('tint') == 'selected') {
+          if (f && f.get('tint') == 'selected') {
               style = [
                   new ol.style.Style({
                     fill: new ol.style.Fill({
