@@ -1,7 +1,7 @@
 <template>
   <div id="map-measure" class="ol-selectable ol-control">
-      <button type="button" @click="toggleMeasure('MeasureLength')" v-bind:class="{'selected':isMeasureLength}"><img src="/dist/static/images/measure-length.png"></button>
-      <button type="button" @click="toggleMeasure('MeasureArea')" v-bind:class="{'selected':isMeasureArea}"><img src="/dist/static/images/measure-area.png"></button>
+      <button type="button" @click="toggleMeasure('MeasureLength')" v-bind:class="{'selected':isMeasureLength}"><img src="/dist/static/images/measure-length.svg"></button>
+      <button type="button" @click="toggleMeasure('MeasureArea')" v-bind:class="{'selected':isMeasureArea}"><img src="/dist/static/images/measure-area.svg"></button>
       <button type="button" v-show="showClear" @click="clearMeasure()"><i class="fa fa-trash"></i></button>
   </div>
 </template>
