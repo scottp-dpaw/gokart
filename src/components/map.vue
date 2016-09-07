@@ -7,15 +7,17 @@
     </select>
     <input id="map-search" placeholder="Search (places, °, MGA, FD)" @keyup="searchKeyFix($event)"/>
     <button id="map-search-button" @click="runSearch"><i class="fa fa-search"></i></button>
+    <gk-measure v-ref:measure></gk-measure>
   </div>
 </template>
 
 <script>
   import { $, ol, proj4, moment } from 'src/vendor.js'
   import gkInfo from './info.vue'
+  import gkMeasure from './measure.vue'
   export default {
     store: ['defaultWMTSSrc', 'defaultWFSSrc', 'gokartService', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm', 'view'],
-    components: { gkInfo },
+    components: { gkInfo,gkMeasure },
     data: function () {
       return {
         scale: 0,
