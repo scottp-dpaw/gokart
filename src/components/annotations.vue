@@ -16,18 +16,18 @@
               <div class="small-2"><label class="tool-label">Tool:</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
-                  <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
+                  <a v-for="t in tools | filterIf 'hide' undefined | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
                     @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
                   <a class="button button-tool" v-bind:class="{'disabled': selectedFeatures.getArray().length !== 1}"
                     @click="editFeature(selectedFeatures.getArray()[0])" title="Edit selected feature"><i class="fa fa-pencil-square-o"></i></a>
                 </div>
                 <div class="row resetmargin">
                   <div class="small-6 rightmargin">
-                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                    <a v-for="t in tools | filterIf 'hide' undefined | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
                       v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
                   </div>
                   <div class="small-6">
-                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                    <a v-for="t in tools | filterIf 'hide' undefined | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
                       v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
                   </div>
                 </div>
@@ -234,6 +234,10 @@
         })[0]
       },
       editFeature: function (f) {
+        if (!f) {
+            //no chosen feature.
+            return
+        }
         this.featureEditing = f
         this.setTool(this.getTool(f.get('toolName')))
         // set note so edit context makes sense
