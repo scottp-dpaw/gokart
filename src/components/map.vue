@@ -674,6 +674,12 @@
         proj4.defs("EPSG:28355","+proj=utm +zone=55 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
         proj4.defs("EPSG:28356","+proj=utm +zone=56 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
 
+        // bump search bar over if there's no fullscreen button
+        if (!ol.control.FullScreen.isFullScreenSupported()) {
+          $('#map-search').addClass('noFullScreen')
+          $('#map-search-button').addClass('noFullScreen')
+        }
+
         this.olmap = new ol.Map({
           logo: false,
           renderer: 'canvas',
