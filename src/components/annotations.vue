@@ -18,8 +18,6 @@
                 <div class="expanded button-group">
                   <a v-for="t in tools | filterIf 'hide' undefined | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
                     @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
-                  <a class="button button-tool" v-bind:class="{'disabled': selectedFeatures.getArray().length !== 1}"
-                    @click="editFeature(selectedFeatures.getArray()[0])" title="Edit selected feature"><i class="fa fa-pencil-square-o"></i></a>
                 </div>
                 <div class="row resetmargin">
                   <div class="small-6 rightmargin">
@@ -53,7 +51,7 @@
               </div>
             </div>
 
-            <div v-show="shouldShowSizePicker(tool)" class="tool-slice row collapse">
+            <div v-show="shouldShowSizePicker" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Size:<br/>({{ size }})</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
@@ -63,7 +61,7 @@
                 </div>
               </div>
             </div>
-            <div v-show="shouldShowColourPicker(tool)" class="tool-slice row collapse">
+            <div v-show="shouldShowColourPicker" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
                 <div @click="updateNote(false)" class="expanded button-group">
@@ -73,7 +71,7 @@
               </div>
             </div>
 
-            <div v-show="tool.name == 'Text Note'" class="tool-slice row collapse">
+            <div v-show="shouldShowNoteEditor" class="tool-slice row collapse">
               <div class="small-2">Note:</div>
               <div class="small-10">
                 <select name="select" @change="note.text = $event.target.value.split('<br>').join('\n')">
@@ -85,7 +83,7 @@
             </div>
             <div class="tool-slice row collapse">
               <div class="small-12 canvaspane">
-                <canvas v-show="tool.name == 'Text Note'" v-el:textpreview></canvas>
+                <canvas v-show="shouldShowNoteEditor" v-el:textpreview></canvas>
               </div>
             </div>
           </div>
@@ -170,7 +168,6 @@
         // array of layers that are selectable
         selectable: [],
         featureOverlay: {},
-        featureEditing: {},
         note: {
           style: 'general',
           text: 'Sector: \nChannel: \nCommander: ',
@@ -191,6 +188,57 @@
           ['black', '#000000']
         ],
         advanced: false
+      }
+    },
+    computed: {
+      featureEditing: function() {
+        if (this.tool == this.ui.editStyle && this.selectedFeatures.getLength() > 0) {
+            return this.selectedFeatures.item(0)
+        } else {
+            return null
+        }
+      },
+      shouldShowNoteEditor: function () {
+        if (!this.tool || !this.tool.name) {
+          return false
+        }
+        // FIXME: replace this with a tool property
+        return this.tool === this.ui.defaultText || 
+            (this.tool === this.ui.editStyle && this.featureEditing && this.getTool(this.featureEditing.get('toolName')) === this.ui.defaultText)
+      },
+      shouldShowSizePicker: function () {
+        if (!this.tool || !this.tool.name) {
+          return false
+        }
+        // FIXME: replace this with a tool property
+        return this.tool === this.ui.defaultLine || 
+               this.tool === this.ui.defaultPolygon || 
+               (this.tool == this.ui.editStyle && this.featureEditing && ([this.ui.defaultLine,this.ui.defaultPolygon].indexOf(this.getTool(this.featureEditing.get('toolName'))) >= 0))
+      },
+      shouldShowColourPicker: function () {
+        if (!this.tool || !this.tool.name) {
+          return false
+        }
+        // FIXME: replace this with a tool property
+        return this.tool === this.ui.defaultLine || 
+               this.tool === this.ui.defaultPolygon || 
+               this.tool == this.ui.defaultText || 
+               (this.tool === this.ui.editStyle && this.featureEditing && ([this.ui.defaultLine,this.ui.defaultPolygon,this.ui.defaultText].indexOf(this.getTool(this.featureEditing.get('toolName'))) >= 0))
+      },
+    },
+    watch:{
+      'featureEditing': function(val,oldVal) {
+        if (val && val instanceof ol.Feature && val.get) {
+            if (val.get('note')) {
+                //it is a text note
+                this.note = val.get('note')
+                this.drawNote(this.note)
+                this.colour = this.note.colour || this.colour
+            } else {
+                this.size = val.get('size') || this.size
+                this.colour = val.get('colour') || this.colour
+            }
+        }
       }
     },
     methods: {
@@ -214,50 +262,14 @@
           this.featureEditing.set(prop, value)
         }
       },
-      shouldShowSizePicker: function (t) {
-        if (!t || !t.name) {
-          return false
-        }
-        // FIXME: replace this with a tool property
-        return t.name.startsWith('Custom') 
-      },
-      shouldShowColourPicker: function (t) {
-        if (!t || !t.name) {
-          return false
-        }
-        // FIXME: replace this with a tool property
-        return t.name.startsWith('Custom') || t.name.startsWith('Text')
-      },
       getTool: function (toolName) {
         return this.tools.filter(function (t) {
           return t.name === toolName
         })[0]
       },
-      editFeature: function (f) {
-        if (!f) {
-            //no chosen feature.
-            return
-        }
-        this.featureEditing = f
-        this.setTool(this.getTool(f.get('toolName')))
-        // set note so edit context makes sense
-        if (f.get('note')) {
-          this.note = $.extend({}, f.get('note'))
-          this.drawNote(f.get('note'))
-        }
-        if (f.get('size')) {
-          this.size = f.get('size')
-        }
-        if (f.get('colour')) {
-          this.colour = f.get('colour')
-        }
-      },
       setTool: function (t) {
         if (typeof t == 'string') {
           t = this.getTool(t)
-        }
-        if (!this.featureEditing.get || t.name !== this.featureEditing.get('toolName')) {
-          this.featureEditing = {}
         }
         var map = this.$root.map
         // remove all custom tool interactions from map
@@ -279,6 +291,8 @@
         this.$root.active.hoverInfo = ((t.name === 'Pan') && (this.$root.active.hoverInfoCache))
 
         this.tool = t
+
+        if (t.onSet) { t.onSet() }
       },
       selectAll: function () {
         var vm = this
@@ -297,7 +311,7 @@
       },
       updateNote: function (save) {
         var note = this.note
-        if (this.featureEditing.get) {
+        if (this.featureEditing) {
           note = this.featureEditing.get('note') || note
         }
         note.text = this.$els.notecontent.value
@@ -450,7 +464,6 @@
         layers: [this.featureOverlay],
         features: this.selectedFeatures
       })
-
       // allow modifying features by click+dragging
       this.ui.modifyInter = new ol.interaction.Modify({
         features: this.features
@@ -462,16 +475,21 @@
       this.ui.dragSelectInter.on('boxend', function (event) {
         vm.selectedFeatures.clear()
         var extent = event.target.getGeometry().getExtent()
+        var multi = (this.multi_ == undefined)?true:this.multi_
         vm.selectable.forEach(function(layer) {
+          if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
           if (layer == vm.featureOverlay) {
               //select all annotation features except text note
               layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+                if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
                 if (!feature.get('note')) {
                     vm.selectedFeatures.push(feature)
+                    return !multi
                 }
               })
               //select text note
               vm.features.forEach(function(feature){
+                if (!multi && vm.selectedFeatures.getLength() > 0) {return}
                 if (feature.get('note')) {
                   if (ol.extent.intersects(extent,vm.getNoteExtent(feature))) {
                     vm.selectedFeatures.push(feature)
@@ -480,7 +498,9 @@
               })
           } else {
               layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+                if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
                 vm.selectedFeatures.push(feature)
+                return !multi
               })
           }
         })
@@ -489,6 +509,10 @@
       this.ui.dragSelectInter.on('boxstart', function () {
         //vm.selectedFeatures.clear()
       })
+      this.ui.dragSelectInter.setMulti = function(multi) {
+        this.multi_ = multi
+      }
+
       // allow selecting multiple features by clicking
       this.ui.selectInter = new ol.interaction.Select({
         layers: function(layer) { 
@@ -509,6 +533,9 @@
             vm.selecting = false
             return this.defaultHandleEvent(event)
         }
+      }
+      this.ui.selectInter.setMulti = function(multi) {
+        this.multi_ = multi
       }
       // OpenLayers3 hook for keyboard input
       this.ui.keyboardInter = new ol.interaction.Interaction({
@@ -549,6 +576,18 @@
           map.keyboardZoomInter
         ]
       }
+      this.ui.editStyle = {
+        name: 'Edit Style',
+        icon: 'fa-pencil-square-o',
+        interactions: [
+          this.ui.dragSelectInter,
+          this.ui.selectInter,
+        ],
+        onSet: function() {
+            vm.ui.dragSelectInter.setMulti(false)
+            vm.ui.selectInter.setMulti(false)
+        }
+      }
       this.ui.defaultSelect = {
         name: 'Select',
         icon: 'fa-mouse-pointer',
@@ -557,7 +596,11 @@
           this.ui.dragSelectInter,
           this.ui.selectInter,
           this.ui.translateInter
-        ]
+        ],
+        onSet: function() {
+            vm.ui.dragSelectInter.setMulti(true)
+            vm.ui.selectInter.setMulti(true)
+        }
       }
       this.ui.defaultEdit = {
         name: 'Edit',
@@ -567,12 +610,17 @@
           this.ui.selectInter,
           this.ui.dragSelectInter,
           this.ui.modifyInter
-        ]
+        ],
+        onSet: function() {
+            vm.ui.dragSelectInter.setMulti(true)
+            vm.ui.selectInter.setMulti(true)
+        }
       }
       this.tools = [
         this.ui.defaultPan,
         this.ui.defaultSelect,
-        this.ui.defaultEdit
+        this.ui.defaultEdit,
+        this.ui.editStyle
       ]
 
       var noteStyleCache = {}
@@ -622,7 +670,7 @@
           }
           if (f.get('note')) { return }
           f.set('note', $.extend({}, vm.note))
-        }
+        },
       }
       var customAdd = function (f) {
         if (!f.get('size')) { 
