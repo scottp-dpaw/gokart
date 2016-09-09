@@ -484,16 +484,15 @@
                 if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
                 if (!feature.get('note')) {
                     vm.selectedFeatures.push(feature)
-                    return true
+                    return !multi
                 }
               })
               //select text note
               vm.features.forEach(function(feature){
-                if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
+                if (!multi && vm.selectedFeatures.getLength() > 0) {return}
                 if (feature.get('note')) {
                   if (ol.extent.intersects(extent,vm.getNoteExtent(feature))) {
                     vm.selectedFeatures.push(feature)
-                    return true
                   }
                 }
               })
@@ -501,7 +500,7 @@
               layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
                 if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
                 vm.selectedFeatures.push(feature)
-                return true
+                return !multi
               })
           }
         })
