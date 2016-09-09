@@ -233,7 +233,7 @@
       // e.g. MGA 51 340000 6340000, MGA 51 340000mE 6340000mN, MGA 51 3406340
       parseMGAString: function(mgaStr) {
         // https://regex101.com/r/zY8dW4/2
-        var mgaRegex = /MGA\s*(49|50|51|52|53|54|55|56)\s*(\d{3,7})\s*[mM]{0,1}\s*([nNeE]{0,1})\s*,*\s*(\d{4,7})\s*[mM]{0,1}\s*([nNeE]{0,1})/gi
+        var mgaRegex = /(?:MGA|mga)\s*(49|50|51|52|53|54|55|56)\s*(\d{3,7})\s*[mM]{0,1}\s*([nNeE]{0,1})\s*,*\s*(\d{4,7})\s*[mM]{0,1}\s*([nNeE]{0,1})/gi
         var groups = mgaRegex.exec(mgaStr)
         
         if (!groups) {
@@ -267,14 +267,14 @@
       },
       // parse a string containing a FD Grid reference
       parseGridString: function(fdStr) {
-        var fdRegex = /(FD|PIL)\s*([a-zA-Z]{1,2})\s*([0-9]{1,5})/gi
+        var fdRegex = /(FD|fd|PIL|pil)\s*([a-zA-Z]{1,2})\s*([0-9]{1,5})/gi
         var groups = fdRegex.exec(fdStr)
         if (!groups) {
           return null
         }
         var results = {
-          gridType: groups[1],
-          gridNorth: groups[2],
+          gridType: groups[1].toUpperCase(),
+          gridNorth: groups[2].toUpperCase(),
           gridEast: groups[3]
         }
         return results
@@ -297,6 +297,8 @@
           success: function(data, status, xhr) {
             if (data.features.length) {
               callback(data.features[0].geometry.coordinates, "FD "+fdStr)
+            } else {
+              console.log('No Forest Department Grid reference found for '+pilStr)
             }
           }
         })
@@ -319,6 +321,8 @@
           success: function(data, status, xhr) {
             if (data.features.length) {
               callback(data.features[0].geometry.coordinates, "PIL "+pilStr)
+            } else {
+              console.log('No Pilbara Grid reference found for '+pilStr)
             }
           }
         })
@@ -339,8 +343,12 @@
             withCredentials: true
           },
           success: function(data, status, xhr) {
-            var feature = data.features[0]
-            callback(feature.center, feature.text)
+            if (data.features.length) {
+              var feature = data.features[0]
+              callback(feature.center, feature.text)
+            } else {
+              console.log('No results found for '+geoStr)
+            }
           }
         })
       },
