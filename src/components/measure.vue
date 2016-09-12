@@ -1,7 +1,7 @@
 <template>
   <div id="map-measure" class="ol-selectable ol-control">
-      <button type="button" @click="toggleMeasure('MeasureLength')" v-bind:class="{'selected':isMeasureLength}"><img src="/dist/static/images/measure-length.svg"></button>
-      <button type="button" @click="toggleMeasure('MeasureArea')" v-bind:class="{'selected':isMeasureArea}"><img src="/dist/static/images/measure-area.svg"></button>
+      <button type="button" @click="toggleMeasure('MeasureLength')" v-bind:class="{'selected':isMeasureLength}"><img src="dist/static/images/measure-length.svg"></button>
+      <button type="button" @click="toggleMeasure('MeasureArea')" v-bind:class="{'selected':isMeasureArea}"><img src="dist/static/images/measure-area.svg"></button>
       <button type="button" v-show="showClear" @click="clearMeasure()"><i class="fa fa-trash"></i></button>
   </div>
 </template>
@@ -56,7 +56,7 @@
             this.features.clear()
         }
         if (this.feature) {
-            this.switchMeasure(this.measureType)
+            this.annotations.setTool(this.measureType)
             //console.log("Reset measure")
         }
     
@@ -198,12 +198,18 @@
       })
       this.style =  new ol.style.Style({
           fill: new ol.style.Fill({
-            color: 'rgba(255, 255, 255, 0.2)'
+            color: 'rgba(0,0,0, 0.25)'
           }),
           stroke: new ol.style.Stroke({
             color: 'rgba(0, 0, 0, 0.5)',
             lineDash: [10, 10],
             width: 2
+          }),
+          image: new ol.style.Circle({
+            radius: 5,
+            fill: new ol.style.Fill({
+              color: 'rgb(0, 153, 255)'
+            })
           })
       })
       this.source = new ol.source.Vector({
