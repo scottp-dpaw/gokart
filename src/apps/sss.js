@@ -433,6 +433,12 @@ localforage.getItem('sssOfflineStore').then(function (store) {
                 }),
                 fill: new ol.style.Fill({
                   color: [0, 0, 0, 0.25]
+                }),
+                image: new ol.style.Circle({
+                  radius: 5,
+                  fill: new ol.style.Fill({
+                  color: 'rgb(0, 153, 255)'
+                  })
                 })
               })
           }
