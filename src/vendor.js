@@ -40,6 +40,8 @@ import localforage from 'localforage'
 import Tether from 'tether'
 // Guided tour lib
 import Shepherd from 'tether-shepherd'
+//pdf generator
+import jsPDF from 'jspdf'
 
 var saveAs = function (blob,name,no_auto_bom) {
     if (env.appType == "cordova") {
@@ -72,5 +74,6 @@ export {
   dragula,
   localforage,
   Tether,
-  Shepherd
+  Shepherd,
+  jsPDF
 }

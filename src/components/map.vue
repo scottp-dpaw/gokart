@@ -367,7 +367,7 @@
           numLoadingTiles++
           var image = tile.getImage()
           // to hell with you, cross origin policy!
-          image.crossOrigin = 'anonymous'
+          image.crossOrigin = 'use-credentials'
           image.onload = function () {
             numLoadingTiles--
             if (numLoadingTiles === 0) {
