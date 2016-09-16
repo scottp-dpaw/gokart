@@ -97,6 +97,7 @@
             <a class="button" title="JPG for quick and easy printing" @click="print('jpg')"><i class="fa fa-file-image-o"></i><br>JPG</a>
             <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i><br>PDF</a>
             <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i><br>GeoTIFF</a>
+            <a class="button" title="Legends of active layers" @click="toggleLegends()"><i class="fa fa-file-pdf-o"></i><br>Legend</a>
           </div>
         </div>
       </div>
@@ -104,11 +105,29 @@
       <div class="hide" v-el:legendsvg>
         <gk-legend></gk-legend>
       </div>
+
+      <div class="reveal" id="active-layers-legend" data-reveal data-v-offset="0px" data-h-offset="auto" data-overlay="true" data-close-on-esc="false">
+        <h4>Legends</h4>
+        <div id="active-layer-legend-list">
+        <template v-for="l in legendLayers" >
+            <div  class="layer-legend-row" >
+                <div class="layer-title">{{ l.name || l.id }} </div>
+                <img v-bind:src="l.legend" class="cat-legend" @error="loadLegendFailed($index,l)" crossOrigin="use-credentials"/>
+            </div>
+         </template>
+         </div>
+         <button  type="button" class="print-button" @click="printLegends()">
+           <i class="fa fa-print"></i>
+         </button>
+         <button class="close-button" data-close aria-label="Close modal" type="button">
+           <span aria-hidden="true">&times;</span>
+         </button>
+      </div>
     </div>
   </div>
 </template>
 <script>
-  import { kjua, saveAs, moment, $, localforage } from 'src/vendor.js'
+  import { kjua, saveAs, moment, $, localforage,jsPDF } from 'src/vendor.js'
   import gkLegend from './legend.vue'
   export default {
     store: ['whoami', 'dpmm', 'view', 'mmPerInch','gokartService'],
@@ -128,7 +147,8 @@
         title: 'Quick Print',
         statefile: '',
         vectorFormat: 'json',
-        states: []
+        states: [],
+        legendLayers:[],
       }
     },
     // parts of the template to be computed live
@@ -153,10 +173,144 @@
           var lonlat = this.olmap.getView().getCenter()
           return $.param({ lon: lonlat[0], lat: lonlat[1], scale: Math.round(this.$root.map.getScale() * 1000) })
         }
-      }
+      },
     },
     // methods callable from inside the template
     methods: {
+      toggleLegends: function() {
+        var vm = this
+        var watchActiveLayers = function(){
+            var catalogue = vm.$root.catalogue
+            var results = []
+            vm.$root.active.olLayers.every(function (layer) {
+              var catLayer = catalogue.getLayer(layer)
+              if (catLayer) {
+                if (catLayer.legend && (catLayer.loadLegendFailed == undefined || !catLayer.loadLegendFailed)) {
+                    results.push(catLayer)
+                }
+                return true
+              } else {
+                  return false
+              }
+            })
+            results = results.reverse()
+            if (results.length != vm.legendLayers) {
+                vm.legendLayers = results 
+            } else {
+                var changed = false
+                for(var i = 0;i < results.length; i++) {
+                    if (results[i].id != vm.legendLayers.id) {
+                        changed = true
+                        break
+                    }
+                }
+                if (changed) {
+                    vm.legendLayers = results
+                }
+            }
+        }
+        this.activeLayerLegends = this.activeLayerLegends || new Foundation.Reveal($("#active-layers-legend"))
+        if (this.activeLayerLegends.isActive) {
+            this.activeLayerLegends.close()
+            this.unwatchActiveLayers()
+            this.unwatchActiveLayers = false
+            return
+        }
+        if (!this.unwatchActiveLayers) {
+            watchActiveLayers()
+            this.unwatchActiveLayers = this.$root.active.$watch("olLayers",function(newVal,oldVal){
+                watchActiveLayers()
+            })
+        }
+        this.activeLayerLegends.open()
+      },
+      loadLegendFailed:function(index,l) {
+        this.legendLayers.splice(index,1)
+        l.loadLegendFailed = true
+        
+      },
+      printLegends:function() {
+        var vm = this
+        var paperSize = this.paperSizes["A4"]
+        var style = { 
+          top: 20, 
+          bottom: 20, 
+          left: 20,
+          right:20,
+          width: paperSize[1],
+          height:paperSize[0],
+          fontHeight:10,
+          padding:5,
+          font:"helvetica",
+          fontType:"bold",
+          fontSize:10,
+          textColor:[0,0,0],
+          lineWidth: 1,
+          lineColor:[77,77,77]
+        }
+        var getBase64Image = function(img) {
+          var canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          $(document.body).append($(canvas))
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0,img.naturalWidth,img.naturalHeight,0,0,canvas.width,canvas.height);
+          return canvas.toDataURL("image/png");
+        }
+        var getImageSize = function(img,textHeight) {
+          var width = 0
+          var height = 0
+          var maxImageSize = [style.width - style.left - style.right,style.height - style.top - style.bottom - textHeight]
+          var imgSize = [Math.floor(img.naturalWidth / vm.dpmm), Math.floor(img.naturalHeight / vm.dpmm)]
+        
+          if (imgSize[0] / imgSize[1] > maxImageSize[0] /maxImageSize[1]) {
+            if (imgSize[0] <= maxImageSize[0]) {
+                width = imgSize[0]
+                height = imgSize[1]
+            } else {
+                width = maxImageSize[0]
+                height = (imgSize[1] * width) / imgSize[0]
+            }
+          } else {
+            if (imgSize[1] <= maxImageSize[1]) {
+                height = imgSize[1]
+                width = imgSize[0]
+            } else {
+                height = maxImageSize[1]
+                width = (imgSize[0] * height) / imgSize[1]
+            }
+          }
+          return [width,height]
+        }
+        var doc = new jsPDF();
+        doc.setFontSize(style.fontSize)
+        doc.setFont(style.font)
+        doc.setFontType(style.fontType)
+        doc.setTextColor(style.textColor[0],style.textColor[1],style.textColor[2])
+        doc.setLineWidth(style.lineWidth)
+        doc.setDrawColor(style.lineColor[0],style.lineColor[1],style.lineColor[2])
+        var top = style.top
+        $("#active-layer-legend-list .layer-legend-row").each(function(index,element){
+            var imgElement = $(element).find("img").get(0)
+            var imageSize = getImageSize(imgElement,style.fontHeight)
+            if (top != style.top && top + style.fontHeight + imageSize[1] + style.bottom + 2 * style.padding + style.lineWidth > style.height) {
+                doc.addPage()
+                top = style.top
+            } else if (top !=style.top) {
+                top += style.padding
+                doc.line(style.left,top,style.width - style.right,top)
+                top += style.lineWidth
+                top += imageSize[1] + style.padding
+            }
+            doc.text(style.left,top,$(element).find(".layer-title").text())
+            top += style.fontHeight
+            doc.addImage(getBase64Image(imgElement),"PNG",style.left,top,imageSize[0],imageSize[1])
+            top += imageSize[1]
+        })
+        var filename = vm.title.replace(' ', '_') + ".legend.pdf"
+        saveAs(doc.output("blob"),filename)
+
+      },
       // info for the legend block on the print raster
       legendInfo: function () {
         var result = {
