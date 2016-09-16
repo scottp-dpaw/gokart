@@ -177,38 +177,6 @@
     },
     // methods callable from inside the template
     methods: {
-      watchActiveLayers:function(){
-        var catalogue = this.$root.catalogue
-        var results = []
-        this.$root.active.olLayers.every(function (layer) {
-          // catlayer doesn't exist at startup, need to
-          // persist relevant catalogue entries perhaps?
-          var catLayer = catalogue.getLayer(layer)
-          if (catLayer) {
-            if (catLayer.legend && (catLayer.loadLegendFailed == undefined || !catLayer.loadLegendFailed)) {
-                results.push(catLayer)
-            }
-            return true
-          } else {
-              return false
-          }
-        })
-        results = results.reverse()
-        if (results.length != this.legendLayers) {
-            this.legendLayers = results 
-        } else {
-            var changed = false
-            for(var i = 0;i < results.length; i++) {
-                if (results[i].id != this.legendLayers.id) {
-                    changed = true
-                    break
-                }
-            }
-            if (changed) {
-                this.legendLayers = results
-            }
-        }
-      },
       toggleLegends: function() {
         var vm = this
         var watchActiveLayers = function(){
