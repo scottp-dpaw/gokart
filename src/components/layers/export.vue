@@ -427,8 +427,6 @@
         })
         vm.olmap.renderSync()
       },
-      printLegend: function () {
-      },
       download: function (key) {
         if (key) {
           // download JSON blob from the state store
