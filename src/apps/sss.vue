@@ -73,19 +73,6 @@
           })
           return svgstring
         },
-        cacheStyle: function(styleFunc, feature, keys) {
-          var key = keys.map(function(k) {
-            return feature.get(k)
-          }).join(";")
-          var style = this.styles[key]
-          if (style) { return style }
-          style = styleFunc(feature)
-          if (style) {
-            this.styles[key] = style
-            return style
-          }
-          return new ol.layer.Vector().getStyleFunction()()
-        },
         getBlob: function(feature, keys) {
           // method to precache SVGs as raster (PNGs)
           // workaround for Firefox missing the SurfaceCache when blitting to canvas

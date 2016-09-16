@@ -242,6 +242,21 @@
       }
     },
     methods: {
+      cacheStyle: function(styleFunc, feature, keys) {
+        if (feature) {
+            var key = keys.map(function(k) {
+              return feature.get(k)
+            }).join(";")
+            var style = this.cachedStyles[key]
+            if (style) { return style }
+            style = styleFunc(feature)
+            if (style) {
+              this.cachedStyles[key] = style
+              return style
+            }
+        }
+        return new ol.layer.Vector().getStyleFunction()()
+      },
       downloadAnnotations: function() {
         this.$root.export.exportVector(this.features.getArray(), 'annotations')
       },
@@ -389,6 +404,8 @@
     },
     ready: function () {
       var vm = this
+      //initialize the style cache
+      this.cachedStyles = {}
       var map = this.$root.map
       // collection to store all annotation features
       this.features.on('add', function (ev) {
@@ -680,18 +697,11 @@
           f.set('colour', vm.colour)
         }
       }
-      var vectorStyleCache = {
-        'default': new ol.layer.Vector().getStyleFunction()()
-      }
-      var vectorStyle = function (res) {
+      var vectorStyle = function () {
         var f = this
-        var key = 'default'
-        if (f) {
-          key = f.get('size') +';'+ f.get('colour') +';'+ f.get('tint')
-        }
-        if (!vectorStyleCache[key]) {
+        var style = vm.cacheStyle(function (f) {
           if (f.get('tint') === 'selected') {
-            vectorStyleCache[key] = [
+            return [
               new ol.style.Style({
                 fill: new ol.style.Fill({
                   color: 'rgba(255, 255, 255, 0.2)'
@@ -709,7 +719,7 @@
               }),
            ]
           } else {
-            vectorStyleCache[key] = new ol.style.Style({
+            return new ol.style.Style({
               fill: new ol.style.Fill({
                 color: 'rgba(255, 255, 255, 0.2)'
               }),
@@ -719,8 +729,8 @@
               })
             })
           }
-        }
-        return vectorStyleCache[key]
+        },f,['size','colour','tint'])
+        return style
       }
       this.ui.defaultLine = {
         name: 'Custom Line',
