@@ -219,8 +219,9 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         f.setStyle(resourceTrackingStyle)
       }
 
-      var iconStyle = function (feat, res) {
-        var style = self.$refs.app.cacheStyle(function (feat) {
+      var iconStyle = function () {
+        var feat = this
+        var style = self.annotations.cacheStyle(function (feat) {
           var src = self.$refs.app.getBlob(feat, ['icon', 'tint'])
           if (!src) { return false }
           var rot = feat.get('rotation') || 0.0
@@ -361,7 +362,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         var draw =  new ol.interaction.Draw({
           type: 'Point',
           features: options.features,
-          style: function (feat, res) { return iconStyle(defaultFeat, res) }
+          style: iconStyle 
         })
         draw.on('drawstart', function (ev) {
           // set parameters
@@ -469,27 +470,27 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           name: 'Origin Point',
           icon: 'dist/static/symbols/fire/origin.svg',
           interactions: [originPointDraw],
-          style: function (res) { return iconStyle(this, res) },
+          style: iconStyle,
           showName: true,
           selectedTint: [['#b43232','#2199e8']]
         }, {
           name: 'Spot Fire',
           icon: 'dist/static/symbols/fire/spotfire.svg',
           interactions: [spotFireDraw],
-          style: function (res) { return iconStyle(this, res) },
+          style: iconStyle,
           showName: true,
           selectedTint: [['#b43232','#2199e8']]
         }, {
           name: 'Division',
           icon: 'dist/static/symbols/fire/division.svg',
           interactions: [divisionDraw, snapToLines],
-          style: function (res) { return iconStyle(this, res) },
+          style: iconStyle,
           showName: true
         }, {
           name: 'Sector',
           icon: 'dist/static/symbols/fire/sector.svg',
           interactions: [sectorDraw, snapToLines],
-          style: function (res) { return iconStyle(this, res) },
+          style: iconStyle,
           showName: true
         }, {
           name: 'Fire Boundary',
