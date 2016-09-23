@@ -191,6 +191,7 @@
       }
     },
     computed: {
+      map: function () { return this.$root.$refs.app.$refs.map },
       featureEditing: function() {
         if (this.tool == this.ui.editStyle && this.selectedFeatures.getLength() > 0) {
             return this.selectedFeatures.item(0)
@@ -242,20 +243,11 @@
       }
     },
     methods: {
-      cacheStyle: function(styleFunc, feature, keys) {
-        if (feature) {
-            var key = keys.map(function(k) {
-              return feature.get(k)
-            }).join(";")
-            var style = this.cachedStyles[key]
-            if (style) { return style }
-            style = styleFunc(feature)
-            if (style) {
-              this.cachedStyles[key] = style
-              return style
-            }
+      getStyleFunction: function(featureStyleFunction,thisArg) {
+        var func = function(feat,res) {
+            return featureStyleFunction.call(thisArg || feat,res)
         }
-        return new ol.layer.Vector().getStyleFunction()()
+        return func
       },
       downloadAnnotations: function() {
         this.$root.export.exportVector(this.features.getArray(), 'annotations')
@@ -286,7 +278,7 @@
         if (typeof t == 'string') {
           t = this.getTool(t)
         }
-        var map = this.$root.map
+        var map = this.map
         // remove all custom tool interactions from map
         this.tools.forEach(function (tool) {
           tool.interactions.forEach(function (inter) {
@@ -325,9 +317,17 @@
         this.selectedFeatures.clear()
       },
       updateNote: function (save) {
-        var note = this.note
-        if (this.featureEditing) {
-          note = this.featureEditing.get('note') || note
+        var note = null
+        if (this.tool ===  this.ui.editStyle) {
+            //edit mode
+            if (!this.featureEditing || !this.featureEditing.get('note')) {
+              //this feature is not a note. return
+              return
+            }
+            note = this.featureEditing.get('note')
+        } else {
+            //draw mode
+            note = this.note
         }
         note.text = this.$els.notecontent.value
         note.width = $(this.$els.notecontent).width()
@@ -385,7 +385,7 @@
       init: function() {
         // enable annotations layer, if disabled
         var catalogue = this.$root.catalogue
-        if (!this.$root.map.getMapLayer('annotations')) {
+        if (!this.map.getMapLayer('annotations')) {
           catalogue.onLayerChange(catalogue.getLayer('annotations'), true)
         }
         // runs on switch to this tab
@@ -395,7 +395,7 @@
       getNoteExtent: function(feature) {
         var note = feature.get('note')
         if (!note) return null
-        var map = this.$root.map.olmap
+        var map = this.map.olmap
         var bottomLeftCoordinate = feature.getGeometry().getFirstCoordinate()
         var bottomLeftPosition = map.getPixelFromCoordinate(bottomLeftCoordinate)
         var upRightCoordinate = map.getCoordinateFromPixel([bottomLeftPosition[0] + note.size[0],bottomLeftPosition[1] - note.size[1]])
@@ -404,9 +404,7 @@
     },
     ready: function () {
       var vm = this
-      //initialize the style cache
-      this.cachedStyles = {}
-      var map = this.$root.map
+      var map = this.map
       // collection to store all annotation features
       this.features.on('add', function (ev) {
         var feature = ev.element
@@ -432,7 +430,7 @@
       // add/remove selected property
       this.selectedFeatures.on('add', function (ev) {
         var feature = ev.element
-        feature.set('baseTint', feature.get('tint'))
+        feature.set('baseTint', feature.get('tint'),true)
         var tool = vm.getTool(feature.get('toolName'))
         if (tool) {
             feature.set('tint', tool.selectedTint || 'selected')
@@ -699,7 +697,7 @@
       }
       var vectorStyle = function () {
         var f = this
-        var style = vm.cacheStyle(function (f) {
+        var style = vm.map.cacheStyle(function (f) {
           if (f.get('tint') === 'selected') {
             return [
               new ol.style.Style({

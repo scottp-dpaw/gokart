@@ -110,7 +110,7 @@
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
                   <a @click.stop.prevent="edit" href="{{sssService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
+                  <div class="feature-title"><img class="feature-icon" v-bind:src="map.getBlob(f, ['icon', 'tint'],tints)" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
             </div>
@@ -126,6 +126,8 @@
   export default {
     store: ['sssService'],
     data: function () {
+      var fill = '#ff6600'
+      var stroke = '#7c3100'
       return {
         viewportOnly: true,
         toggleHistory: false,
@@ -141,10 +143,18 @@
         historyFromTime: '',
         historyToDate: '',
         historyToTime: '',
-        historyRangeMilliseconds: 0
+        historyRangeMilliseconds: 0,
+        tints: {
+          'red': [[fill,'#ed2727'], [stroke,'#480000']],
+          'orange': [[fill,'#ff6600'], [stroke,'#562200']],
+          'yellow': [[fill,'#ffd700'], [stroke,'#413104']],
+          'green': [[fill,'#71c837'], [stroke,'#1b310d']],
+          'selected': [['#000000', '#2199e8'], [stroke,'#2199e8'], [fill, '#ffffff']],
+        },
       }
     },
     computed: {
+      map: function () { return this.$root.$refs.app.$refs.map },
       features: function () {
         if (this.viewportOnly) {
           return this.extentFeatures
@@ -370,6 +380,85 @@
     ready: function () {
       var vm = this
       var map = this.$root.map
+
+      var resourceTrackingStyle = function (res) {
+        var feat = this
+        // cache styles for performance
+        var style = vm.map.cacheStyle(function (feat) {
+          var src = vm.map.getBlob(feat, ['icon', 'tint'],vm.tints)
+          if (!src) { return false }
+          return new ol.style.Style({
+            image: new ol.style.Icon({
+              src: src,
+              scale: 0.5,
+              snapToPixel: true
+            }),
+            text: new ol.style.Text({
+              offsetX: 12,
+              textAlign: 'left',
+              font: '12px Helvetica,Roboto,Arial,sans-serif',
+              stroke: new ol.style.Stroke({
+                color: '#fff',
+                width: 4
+              })
+            }),
+            stroke: new ol.style.Stroke({
+              color: [52, 101, 164, 0.6],
+              width: 4.0
+            })
+          })
+        }, feat, ['icon', 'tint'])
+        if (style.getText) {
+          if (res < 0.002) {
+            style.getText().setText(feat.get('label'))
+          } else {
+            style.getText().setText('')
+          }
+        }
+        return style
+      }
+
+      var addResource = function (f) {
+        var tint = 'red'
+        if (f.get('age') < 24) {
+          tint = 'orange'
+        };
+        if (f.get('age') < 3) {
+          tint = 'yellow'
+        };
+        if (f.get('age') <= 1) {
+          tint = 'green'
+        };
+        f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + '.svg')
+        f.set('tint', tint)
+        f.set('baseTint', tint)
+        if (f.get('district') == null){
+            f.set('label', f.get('callsign') +' '+ f.get('name'))
+        } else {
+            f.set('label', f.get('district') +' '+ f.get('callsign') +' '+ f.get('name'))
+        }
+        f.set('time', moment(f.get('seen')).toLocaleString())
+        // Set a different vue template for rendering
+        f.set('partialId', 'resourceInfo')
+        // Set id for select tools
+        f.set('selectId', f.get('deviceid'))
+        f.setStyle(resourceTrackingStyle)
+      }
+
+      this.$root.fixedLayers.push({
+        type: 'WFSLayer',
+        name: 'Resource Tracking',
+        id: 'dpaw:resource_tracking_live',
+        onadd: addResource,
+        refresh: 30
+      }, {
+        type: 'WFSLayer',
+        name: 'Resource Tracking History',
+        id: 'dpaw:resource_tracking_history',
+        onadd: addResource,
+        cql_filter: false
+      })
+
       // post init event hookup
       this.$on('gk-init', function () {
         var viewChanged = global.debounce(function () {

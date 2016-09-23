@@ -72,6 +72,122 @@
     },
     // methods callable from inside the template
     methods: {
+      tintSVG: function(svgstring, tints) {
+        tints.forEach(function(colour) {
+          svgstring = svgstring.split(colour[0]).join(colour[1])
+        })
+        return svgstring
+      },
+      getBlob: function(feature, keys,tintSettings) {
+        // method to precache SVGs as raster (PNGs)
+        // workaround for Firefox missing the SurfaceCache when blitting to canvas
+        // returns a url or undefined if svg isn't baked yet
+        var vm = this
+        var key = keys.map(function(k) {
+          return feature.get(k)
+        }).join(";")
+        if (this.svgBlobs[key]) {
+          return this.svgBlobs[key]
+        } else if (this.jobs[key]) {
+           vm.jobs[key].then(function(){
+                feature.changed()
+            })
+        } else {
+          var dims = feature.get('dims') || [48, 48]
+          var tint = feature.get('tint')
+          tint = (tintSettings)?tintSettings[tint]:[]
+          var url = feature.get('icon')
+          vm.jobs[key] = new Promise(function(resolve, reject) {
+            vm.addSVG(key, url, tint, dims, resolve)
+          }).then(function() {
+            feature.changed()
+            delete vm.jobs[key]
+          })
+        }
+      },
+      addSVG: function(key, url, tint, dims, pResolve) {
+        var vm = this
+        tint = tint || []
+        var draw = function() {
+          if (typeof vm.svgBlobs[key] !== 'undefined') { pResolve() }
+          // RACE CONDITION: MS edge inlines promises and callbacks!
+          // we can't set vm.svgBlobs[key] to be the Promise, as
+          // it's entirely possible for the whole thing to have been 
+          // completed in the constructor before the svgBlobs array is even set
+          //vm.svgBlobs[key] = ''
+          var drawJob = new Promise(function(resolve, reject) {
+            vm.drawSVG(key, vm.svgTemplates[url], tint, dims, resolve, reject)
+          }).then(function() {
+            pResolve()
+          })
+        }
+        if (vm.svgTemplates[url]) {
+          // render from loaded svg or queue render post load promise
+          draw()
+        } else if (vm.jobs[url]) {
+            vm.jobs[url].then(function(){
+                draw()
+            })
+        } else {
+          vm.jobs[url] = new Promise(function (resolve, reject) { 
+            // load svg
+            //console.log('addSVG: Cache miss for '+key)
+            var req = new window.XMLHttpRequest()
+            req.withCredentials = true
+            req.onload = function () {
+              //console.log('addSVG: XHR returned for '+key)
+              if (!this.responseText) {
+                return
+              }
+              vm.svgTemplates[url] = this.responseText
+              resolve()
+            }
+            req.onerror = function() {
+              reject()
+            }
+            req.open('GET', url)
+            req.send()
+          }).then(function(){
+            draw()
+            delete vm.jobs[url]
+          })
+        }
+      },
+      drawSVG: function(key, svgstring, tints, dims, resolve, reject) {
+        var vm = this
+        //console.log('drawSVG: Cache miss for '+key)
+        var canvas = $('<canvas>')
+        canvas.attr({width: dims[0], height: dims[1]})
+        canvas.drawImage({
+          source: 'data:image/svg+xml;utf8,' + encodeURIComponent(vm.tintSVG(svgstring, tints)),
+          fromCenter: false, x: 0, y: 0, width: dims[0], height: dims[1],
+          load: function () {
+            //console.log('drawSVG: Canvas drawn for '+key)
+            canvas.get(0).toBlob(function (blob) {
+              vm.svgBlobs[key] = window.URL.createObjectURL(blob)
+              //console.log("drawSVG:" + key)
+              resolve()
+            }, 'image/png')
+          }
+        })
+      },
+      cacheStyle: function(styleFunc, feature, keys) {
+        if (feature) {
+            var key = keys.map(function(k) {
+              return feature.get(k)
+            }).join(";")
+            var style = this.cachedStyles[key]
+            if (style) { 
+                return style 
+            }
+            style = styleFunc(feature)
+            if (style) {
+              this.cachedStyles[key] = style
+              return style
+            }
+        }
+        return new ol.layer.Vector().getStyleFunction()()
+      },
       animatePan: function (location) {
         // pan from the current center
         var pan = ol.animation.pan({
@@ -757,6 +873,11 @@
       }
     },
     ready: function () {
+      this.svgBlobs = {}
+      this.svgTemplates = {}
+      this.cachedStyles = {}
+      this.jobs = {}
+
       // generate matrix IDs from name and level number
       $.each(this.matrixSets, function (projection, innerMatrixSets) {
         $.each(innerMatrixSets, function (tileSize, matrixSet) {

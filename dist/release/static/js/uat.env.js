@@ -8,5 +8,6 @@ var env = {
     gokartService:"https://gokart-uat.dpaw.wa.gov.au",
     oimService:"https://oim-uat.dpaw.wa.gov.au",
     sssService:"https://sss-uat.dpaw.wa.gov.au",
+    bfrsService: "https://bfrs.dpaw.wa.gov.au",
     staticService:"https://static-uat.dpaw.wa.gov.au"
 };
