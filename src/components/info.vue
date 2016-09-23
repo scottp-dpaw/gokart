@@ -11,7 +11,7 @@
         <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" track-by="get('id')">
           <div v-if="f.get('partialId') !== 'resourceInfo'" class="columns">{{ f.getId() }}</div>
           <div v-if="f.get('partialId') === 'resourceInfo'" class="columns">
-            <div class="feature-title"><img class="feature-icon" v-bind:src="$root.$refs.app.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
+            <div class="feature-title"><img class="feature-icon" v-bind:src="map.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
           </div>
         </div>
       </div>
@@ -40,6 +40,7 @@
     },
     // parts of the template to be computed live
     computed: {
+      map: function () { return this.$root.$refs.app.$refs.map },
       featuresLength: function () {
         return Object.keys(this.features).length
       },

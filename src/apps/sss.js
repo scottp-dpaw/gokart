@@ -57,6 +57,7 @@ var defaultStore = {
   gokartService: env.gokartService,
   oimService:env.oimService,
   sssService:env.sssService,
+  bfrsService:env.bfrsService,
   // default matrix from KMI
   resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
   // fixed scales for the scale selector (1:1K increments)
@@ -101,8 +102,13 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       // store contains state we want to reload/persist
       store: $.extend(defaultStore, store || {}),
       pngs: {},
+      fixedLayers:[],
       saved: null,
-      touring: false
+      touring: false,
+      tints: {
+        'selectedPoint': [['#b43232', '#2199e8']],
+        'selectedDivision': [['#000000', '#2199e8'], ['#7c3100','#2199e8'], ['#ff6600', '#ffffff']]
+      }
     },
     computed: {
       map: function () { return this.$refs.app.$refs.map },
@@ -112,6 +118,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       export: function () { return this.$refs.app.$refs.layers.$refs.export },
       annotations: function () { return this.$refs.app.$refs.annotations },
       tracking: function () { return this.$refs.app.$refs.tracking },
+      //bfrs: function () { return this.$refs.app.$refs.bfrs },
       geojson: function () { return new ol.format.GeoJSON() },
       wgs84Sphere: function () { return new ol.Sphere(6378137) }
     },
@@ -122,8 +129,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       svg4everybody()
       // calculate screen res
       $('body').append('<div id="dpi" style="width:1in;display:none"></div>')
-      this.dpi = parseFloat($('#dpi').width())
-      this.store.dpmm = self.dpi / self.store.mmPerInch
+      self.dpi = parseFloat($('#dpi').width())
+      self.store.dpmm = self.dpi / self.store.mmPerInch
       $('#dpi').remove();
       // get user info
       (function () {
@@ -155,74 +162,10 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.map.olmap.updateSize()
       })
 
-      var resourceTrackingStyle = function (res) {
+      var iconStyle = function (res) {
         var feat = this
-        // cache styles for performance
-        var style = self.$refs.app.cacheStyle(function (feat) {
-          var src = self.$refs.app.getBlob(feat, ['icon', 'tint'])
-          if (!src) { return false }
-          return new ol.style.Style({
-            image: new ol.style.Icon({
-              src: src,
-              scale: 0.5,
-              snapToPixel: true
-            }),
-            text: new ol.style.Text({
-              offsetX: 12,
-              textAlign: 'left',
-              font: '12px Helvetica,Roboto,Arial,sans-serif',
-              stroke: new ol.style.Stroke({
-                color: '#fff',
-                width: 4
-              })
-            }),
-            stroke: new ol.style.Stroke({
-              color: [52, 101, 164, 0.6],
-              width: 4.0
-            })
-          })
-        }, feat, ['icon', 'tint'])
-        if (style.getText) {
-          if (res < 0.002) {
-            style.getText().setText(feat.get('label'))
-          } else {
-            style.getText().setText('')
-          }
-        }
-        return style
-      }
-
-      var addResource = function (f) {
-        var tint = 'red'
-        if (f.get('age') < 24) {
-          tint = 'orange'
-        };
-        if (f.get('age') < 3) {
-          tint = 'yellow'
-        };
-        if (f.get('age') <= 1) {
-          tint = 'green'
-        };
-        f.set('icon', 'dist/static/symbols/device/' + f.get('symbolid') + '.svg')
-        f.set('tint', tint)
-        f.set('baseTint', tint)
-        if (f.get('district') == null){
-            f.set('label', f.get('callsign') +' '+ f.get('name'))
-        } else {
-            f.set('label', f.get('district') +' '+ f.get('callsign') +' '+ f.get('name'))
-        }
-        f.set('time', moment(f.get('seen')).toLocaleString())
-        // Set a different vue template for rendering
-        f.set('partialId', 'resourceInfo')
-        // Set id for select tools
-        f.set('selectId', f.get('deviceid'))
-        f.setStyle(resourceTrackingStyle)
-      }
-
-      var iconStyle = function () {
-        var feat = this
-        var style = self.annotations.cacheStyle(function (feat) {
-          var src = self.$refs.app.getBlob(feat, ['icon', 'tint'])
+        var style = self.map.cacheStyle(function (feat) {
+          var src = self.map.getBlob(feat, ['icon', 'tint'],self.tints)
           if (!src) { return false }
           var rot = feat.get('rotation') || 0.0
           return new ol.style.Style({
@@ -278,19 +221,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       
       // pack-in catalogue
-      var catalogue = [{
-        type: 'WFSLayer',
-        name: 'Resource Tracking',
-        id: 'dpaw:resource_tracking_live',
-        onadd: addResource,
-        refresh: 30
-      }, {
-        type: 'WFSLayer',
-        name: 'Resource Tracking History',
-        id: 'dpaw:resource_tracking_history',
-        onadd: addResource,
-        cql_filter: false
-      }, {
+      self.fixedLayers = self.fixedLayers.concat([{
         type: 'TileLayer',
         name: 'Firewatch Hotspots 72hrs',
         id: 'landgate:firewatch_ecu_hotspots_last_0_72',
@@ -300,7 +231,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         type: 'TimelineLayer',
         name: 'Himawari-8 Hotspots',
         id: 'himawari8:hotspots',
-        source: this.store.gokartService + '/hi8/AHI_TKY_FHS',
+        source: self.store.gokartService + '/hi8/AHI_TKY_FHS',
         params: {
           FORMAT: 'image/png'
         },
@@ -309,28 +240,28 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         type: 'TimelineLayer',
         name: 'Himawari-8 True Colour',
         id: 'himawari8:bandtc',
-        source: this.store.gokartService + '/hi8/AHI_TKY_b321',
+        source: self.store.gokartService + '/hi8/AHI_TKY_b321',
         refresh: 300,
         base: true
       }, {
         type: 'TimelineLayer',
         name: 'Himawari-8 Band 3',
         id: 'himawari8:band3',
-        source: this.store.gokartService + '/hi8/AHI_TKY_b3',
+        source: self.store.gokartService + '/hi8/AHI_TKY_b3',
         refresh: 300,
         base: true
       }, {
         type: 'TimelineLayer',
         name: 'Himawari-8 Band 7',
         id: 'himawari8:band7',
-        source: this.store.gokartService + '/hi8/AHI_TKY_b7',
+        source: self.store.gokartService + '/hi8/AHI_TKY_b7',
         refresh: 300,
         base: true
       }, {
         type: 'TimelineLayer',
         name: 'Himawari-8 Band 15',
         id: 'himawari8:band15',
-        source: this.store.gokartService + '/hi8/AHI_TKY_b15',
+        source: self.store.gokartService + '/hi8/AHI_TKY_b15',
         refresh: 300,
         base: true
       }, {
@@ -343,7 +274,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         name: 'Virtual Mosaic',
         id: 'landgate:LGATE-V001',
         base: true
-      }]
+      }])
 
       // load custom annotation tools
       /*var hotSpotStyle = new ol.style.Style({
@@ -357,12 +288,14 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       var iconDrawFactory = function (options) {
         var defaultFeat = new ol.Feature({
-          'icon': options.icon,
+            'icon': options.icon,
+            'tint': options.tint
         })
+
         var draw =  new ol.interaction.Draw({
           type: 'Point',
           features: options.features,
-          style: iconStyle 
+          style: self.annotations.getStyleFunction(iconStyle,defaultFeat)
         })
         draw.on('drawstart', function (ev) {
           // set parameters
@@ -383,23 +316,23 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       var originPointDraw = iconDrawFactory({
         icon: 'dist/static/symbols/fire/origin.svg',
-        features:  this.annotations.features,
-        tint: 'default',
+        features:  self.annotations.features,
+        tint: 'default'
       })
       var spotFireDraw = iconDrawFactory({
         icon: 'dist/static/symbols/fire/spotfire.svg',
-        features:  this.annotations.features,
-        tint: 'default',
+        features:  self.annotations.features,
+        tint: 'default'
       })
       var divisionDraw = iconDrawFactory({
         icon: 'dist/static/symbols/fire/division.svg',
-        features:  this.annotations.features,
+        features:  self.annotations.features,
         tint: 'default',
         perpendicular: true
       })
       var sectorDraw = iconDrawFactory({
         icon: 'dist/static/symbols/fire/sector.svg',
-        features:  this.annotations.features,
+        features:  self.annotations.features,
         tint: 'default',
         perpendicular: true
       })
@@ -448,12 +381,12 @@ localforage.getItem('sssOfflineStore').then(function (store) {
 
       var fireBoundaryDraw = new ol.interaction.Draw({
         type: 'Polygon',
-        features: this.annotations.features,
-        style: fireBoundaryStyle
+        features: self.annotations.features,
+        style: self.annotations.getStyleFunction(fireBoundaryStyle)
       })
 
       var snapToLines = new ol.interaction.Snap({
-        features: this.annotations.features,
+        features: self.annotations.features,
         edge: true,
         vertex: false,
         pixelTolerance: 16
@@ -471,26 +404,28 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           icon: 'dist/static/symbols/fire/origin.svg',
           interactions: [originPointDraw],
           style: iconStyle,
+          selectedTint: 'selectedPoint',
           showName: true,
-          selectedTint: [['#b43232','#2199e8']]
         }, {
           name: 'Spot Fire',
           icon: 'dist/static/symbols/fire/spotfire.svg',
           interactions: [spotFireDraw],
           style: iconStyle,
+          selectedTint: 'selectedPoint',
           showName: true,
-          selectedTint: [['#b43232','#2199e8']]
         }, {
           name: 'Division',
           icon: 'dist/static/symbols/fire/division.svg',
           interactions: [divisionDraw, snapToLines],
           style: iconStyle,
+          selectedTint: 'selectedDivision',
           showName: true
         }, {
           name: 'Sector',
           icon: 'dist/static/symbols/fire/sector.svg',
           interactions: [sectorDraw, snapToLines],
           style: iconStyle,
+          selectedTint: 'selectedDivision',
           showName: true
         }, {
           name: 'Fire Boundary',
@@ -509,8 +444,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       })
 
       // load map with default layers
-      this.map.init(catalogue, this.store.activeLayers)
-      this.catalogue.loadRemoteCatalogue(this.store.remoteCatalogue, function () {
+      self.map.init(self.fixedLayers, self.store.activeLayers)
+      self.catalogue.loadRemoteCatalogue(self.store.remoteCatalogue, function () {
         // after catalogue load trigger a tour
         if (self.store.tourVersion !== tour.version) {
           self.store.tourVersion = tour.version
