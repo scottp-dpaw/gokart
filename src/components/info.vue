@@ -8,7 +8,7 @@
     </div>
     <div class="row">
       <div class="columns content">
-        <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }" track-by="get('id')">
+        <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f) }" track-by="get('id')">
           <div v-if="f.get('partialId') !== 'resourceInfo'" class="columns">{{ f.getId() }}</div>
           <div v-if="f.get('partialId') === 'resourceInfo'" class="columns">
             <div class="feature-title"><img class="feature-icon" v-bind:src="map.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>

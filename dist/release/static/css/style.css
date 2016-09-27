@@ -564,3 +564,21 @@ input[type="range"] {
     line-height: 1;
     cursor: pointer;
 }
+
+
+.feature-row {
+    cursor: pointer;
+    border-right: 1px transparent;
+}
+    
+.feature-row:hover {
+    border-right: 1px solid #fff;
+}
+    
+.feature-row.feature-selected {
+    background-color: #165016;
+}
+    
+.feature-row:nth-child(even).feature-selected {
+    background-color: #185a18;
+}

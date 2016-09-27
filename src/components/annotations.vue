@@ -16,16 +16,16 @@
               <div class="small-2"><label class="tool-label">Tool:</label></div>
               <div class="small-10">
                 <div class="expanded button-group">
-                  <a v-for="t in tools | filterIf 'hide' undefined | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
+                  <a v-for="t in annotationTools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == tool.name}"
                     @click="setTool(t)" v-bind:title="t.name">{{{ icon(t) }}}</a>
                 </div>
                 <div class="row resetmargin">
                   <div class="small-6 rightmargin">
-                    <a v-for="t in tools | filterIf 'hide' undefined | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                    <a v-for="t in annotationTools | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
                       v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
                   </div>
                   <div class="small-6">
-                    <a v-for="t in tools | filterIf 'hide' undefined | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
+                    <a v-for="t in annotationTools | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == tool.name}" @click="setTool(t)"
                       v-bind:title="t.name">{{{ icon(t) }}} {{ t.name }}</a>
                   </div>
                 </div>
@@ -163,6 +163,7 @@
         ui: {},
         tool: {},
         tools: [],
+        annotationTools: [],
         features: new ol.Collection(),
         selectedFeatures: new ol.Collection(),
         // array of layers that are selectable
@@ -252,6 +253,86 @@
       downloadAnnotations: function() {
         this.$root.export.exportVector(this.features.getArray(), 'annotations')
       },
+      getIconStyleFunction : function(tints) {
+        var vm = this
+        return function (res) {
+            var feat = this
+            var style = vm.map.cacheStyle(function (feat) {
+              var src = vm.map.getBlob(feat, ['icon', 'tint'],tints || {})
+              if (!src) { return false }
+              var rot = feat.get('rotation') || 0.0
+              return new ol.style.Style({
+                image: new ol.style.Icon({
+                  src: src,
+                  scale: 0.5,
+                  rotation: rot,
+                  rotateWithView: true,
+                  snapToPixel: true
+                })
+              })
+            }, feat, ['icon', 'tint', 'rotation'])
+            return style
+        }
+      },
+      getPerpendicular : function (coords) {
+        // find the nearest Polygon or lineString in the annotations layer
+        var nearestFeature = gokart.annotations.featureOverlay.getSource().getClosestFeatureToCoordinate(
+          coords, function (feat) {
+            var geom = feat.getGeometry()
+            return ((geom instanceof ol.geom.Polygon) || (geom instanceof ol.geom.LineString))
+          }
+        )
+        if (!nearestFeature) {
+          // no feature == no rotation
+          return 0.0
+        }
+        var segments = []
+        var source = []
+        var segLength = 0
+        // if a Polygon, join the last segment to the first
+        if (nearestFeature.getGeometry() instanceof ol.geom.Polygon) {
+          source = nearestFeature.getGeometry().getCoordinates()[0]
+          segLength = source.length
+        } else {
+        // if a LineString, don't include the last segment
+          source = nearestFeature.getGeometry().getCoordinates()
+          segLength = source.length-1
+        }
+        for (var i=0; i < segLength; i++) {
+          segments.push([source[i], source[(i+1)%source.length]])
+        }
+        // sort segments by ascending distance from point
+        segments.sort(function (a, b) {
+          return ol.coordinate.squaredDistanceToSegment(coords, a) - ol.coordinate.squaredDistanceToSegment(coords, b)
+        })
+
+        // head of the list is our target segment. reverse this to get the normal angle
+        var offset = [segments[0][1][0] - segments[0][0][0], segments[0][1][1] - segments[0][0][1]]
+        var normal = Math.atan2(-offset[1], offset[0])
+        return normal
+      },
+      iconDrawFactory : function (options) {
+        var vm = this
+        var defaultFeat = new ol.Feature({
+            'icon': options.icon,
+            'tint': options.tint
+        })
+
+        var draw =  new ol.interaction.Draw({
+          type: 'Point',
+          features: options.features,
+          style: vm.getStyleFunction(vm.getIconStyleFunction(options.tints || {}),defaultFeat)
+        })
+        draw.on('drawstart', function (ev) {
+          // set parameters
+          ev.feature.set('icon', options.icon)
+          if (options.perpendicular) {
+            var coords = ev.feature.getGeometry().getCoordinates()
+            ev.feature.set('rotation', vm.getPerpendicular(coords))
+          }
+        })
+        return draw
+      },
       icon: function (t) {
         if (t.icon.startsWith('fa-')) {
           return '<i class="fa ' + t.icon + '" aria-hidden="true"></i>'
@@ -277,6 +358,12 @@
       setTool: function (t) {
         if (typeof t == 'string') {
           t = this.getTool(t)
+        }
+        if (this.tool === t) {
+            //choose the same tool, do nothing,
+            return
+        } else if(this.tool.onUnset) {
+            this.tool.onUnset()
         }
         var map = this.map
         // remove all custom tool interactions from map
@@ -584,6 +671,7 @@
       this.tool = this.ui.defaultPan = {
         name: 'Pan',
         icon: 'fa-hand-paper-o',
+        scope:["annotation","bushfirereport"],
         interactions: [
           map.dragPanInter,
           map.doubleClickZoomInter,
@@ -594,6 +682,7 @@
       this.ui.editStyle = {
         name: 'Edit Style',
         icon: 'fa-pencil-square-o',
+        scope:["annotation"],
         interactions: [
           this.ui.dragSelectInter,
           this.ui.selectInter,
@@ -606,6 +695,7 @@
       this.ui.defaultSelect = {
         name: 'Select',
         icon: 'fa-mouse-pointer',
+        scope:["annotation","bushfirereport"],
         interactions: [
           this.ui.keyboardInter,
           this.ui.dragSelectInter,
@@ -620,6 +710,7 @@
       this.ui.defaultEdit = {
         name: 'Edit',
         icon: 'fa-pencil',
+        scope:["annotation"],
         interactions: [
           this.ui.keyboardInter,
           this.ui.selectInter,
@@ -674,6 +765,7 @@
         style: noteStyle,
         interactions: [noteDraw],
         showName: true,
+        scope:["annotation"],
         onAdd: function (f) {
           f.getGeometry().defaultGetExtent = f.getGeometry().defaultGetExtent || f.getGeometry().getExtent
           f.getGeometry().getExtent = function() {
@@ -735,6 +827,7 @@
         icon: 'dist/static/images/iD-sprite.svg#icon-line',
         interactions: [this.ui.lineInter],
         showName: true,
+        scope:["annotation"],
         onAdd: customAdd,
         style: vectorStyle
       }
@@ -743,6 +836,7 @@
         icon: 'dist/static/images/iD-sprite.svg#icon-area',
         interactions: [this.ui.polyInter],
         showName: true,
+        scope:["annotation"],
         onAdd: customAdd,
         style: vectorStyle
       }
@@ -752,6 +846,12 @@
         type: 'Annotations',
         id: 'annotations',
         name: 'My Annotations'
+      })
+
+      this.$on("gk-init",function() {
+        vm.annotationTools = this.tools.filter(function (t) {
+          return t.scope && t.scope.indexOf("annotation") >= 0
+        })
       })
     }
   }

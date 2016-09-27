@@ -55,7 +55,7 @@
                       <input class="switch-input" id="selectedOnly" type="checkbox" v-model="selectedOnly" @change="updateCQLFilter" />
                       <label class="switch-paddle" for="selectedOnly">
                     <span class="show-for-sr">Show selected only</span>
-                  </label>
+                 </label>
                     </div>
                     <label for="selectedOnly" class="side-label">Show selected only</label>
                   </div>
@@ -106,11 +106,11 @@
               </div>
             </div>
             <div id="tracking-list">
-              <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
+              <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f) }"
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
                   <a @click.stop.prevent="edit" href="{{sssService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img class="feature-icon" v-bind:src="map.getBlob(f, ['icon', 'tint'],tints)" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
+                  <div class="feature-title"><img class="feature-icon" id="device-icon-{{f.get('id')}}" v-bind:src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
             </div>
@@ -144,6 +144,7 @@
         historyToDate: '',
         historyToTime: '',
         historyRangeMilliseconds: 0,
+        loadedIcons:0,
         tints: {
           'red': [[fill,'#ed2727'], [stroke,'#480000']],
           'orange': [[fill,'#ff6600'], [stroke,'#562200']],
@@ -242,6 +243,15 @@
         } else {
           this.$root.annotations.selectedFeatures.push(f)
         }
+      },
+      featureIconSrc:function(f) {
+        var vm = this
+        //trigger dynamic binding
+        var tmp = vm.selectedDevices
+        tmp = this.loadedIcons
+        return this.map.getBlob(f, ['icon', 'tint'],this.tints,function(){
+            $("#device-icon-" + f.get('id')).attr("src", vm.featureIconSrc(f))
+        })
       },
       selected: function (f) {
         return f.get('deviceid') && (this.selectedDevices.indexOf(f.get('deviceid')) > -1)

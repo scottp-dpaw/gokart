@@ -57,21 +57,3 @@
     }
 </script>
 
-<style>
-    #tracking-list .feature-row {
-        cursor: pointer;
-        border-right: 1px transparent;
-    }
-    
-    #tracking-list .feature-row:hover {
-        border-right: 1px solid #fff;
-    }
-    
-    .feature-row.device-selected {
-        background-color: #165016;
-    }
-    
-    .feature-row:nth-child(even).device-selected {
-        background-color: #185a18;
-    }
-</style>

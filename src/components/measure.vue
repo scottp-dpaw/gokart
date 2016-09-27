@@ -230,7 +230,6 @@
 
       var measureLength = {
         name: 'MeasureLength',
-        hide: true,
         interactions:[
             map.dragPanInter,
             map.doubleClickZoomInter,
@@ -251,7 +250,6 @@
 
       var measureArea = {
         name: 'MeasureArea',
-        hide: true,
         interactions:[
             map.dragPanInter,
             map.doubleClickZoomInter,

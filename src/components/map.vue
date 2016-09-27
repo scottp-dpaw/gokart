@@ -78,7 +78,7 @@
         })
         return svgstring
       },
-      getBlob: function(feature, keys,tintSettings) {
+      getBlob: function(feature, keys,tintSettings,callback) {
         // method to precache SVGs as raster (PNGs)
         // workaround for Firefox missing the SurfaceCache when blitting to canvas
         // returns a url or undefined if svg isn't baked yet
@@ -89,9 +89,10 @@
         if (this.svgBlobs[key]) {
           return this.svgBlobs[key]
         } else if (this.jobs[key]) {
-           vm.jobs[key].then(function(){
+          vm.jobs[key].then(function(){
                 feature.changed()
-            })
+                if (callback) {callback()}
+          })
         } else {
           var dims = feature.get('dims') || [48, 48]
           var tint = feature.get('tint')
@@ -102,8 +103,11 @@
           }).then(function() {
             feature.changed()
             delete vm.jobs[key]
+            if (callback) {callback()}
           })
         }
+
+
       },
       addSVG: function(key, url, tint, dims, pResolve) {
         var vm = this
@@ -165,7 +169,7 @@
             //console.log('drawSVG: Canvas drawn for '+key)
             canvas.get(0).toBlob(function (blob) {
               vm.svgBlobs[key] = window.URL.createObjectURL(blob)
-              //console.log("drawSVG:" + key)
+              console.log("drawSVG:" + key + "\t url = " + vm.svgBlobs[key])
               resolve()
             }, 'image/png')
           }

@@ -7,10 +7,30 @@
         </ul>
       </div>
     </div>
+
     <div class="row collapse" id="bushfire-report-tab-panels">
       <div class="columns">
         <div class="tabs-content vertical" data-tabs-content="tracking-tabs">
           <div id="bushfire-report-list-tab" class="tabs-panel is-active" v-cloak>
+            <div class="tool-slice row collapse">
+              <div class="small-12">
+                <div class="expanded button-group">
+                  <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == annotations.tool.name}"
+                    @click="annotations.setTool(t)" v-bind:title="t.name">{{{ annotations.icon(t) }}}</a>
+                </div>
+                <div class="row resetmargin">
+                  <div class="small-6 rightmargin">
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == annotations.tool.name}" @click="annotations.setTool(t)"
+                      v-bind:title="t.name">{{{ annotations.icon(t) }}} {{ t.name }}</a>
+                  </div>
+                  <div class="small-6">
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == annotations.tool.name}" @click="annotations.setTool(t)"
+                      v-bind:title="t.name">{{{ annotations.icon(t) }}} {{ t.name }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr class="row"></hr>
             <div class="row">
               <div class="switch tiny">
                 <input class="switch-input" id="bushfireReportsInViewport" type="checkbox" v-model="viewportOnly" />
@@ -62,11 +82,11 @@
             </div>
 
             <div id="bushfire-report-list">
-              <div v-for="f in features" class="row feature-row" v-bind:class="{'report-selected': selected(f) }"
+              <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f) }" 
                 @click="toggleSelect(f)" track-by="get('prk_id')">
                 <div class="columns">
-                  <a @click.stop.prevent="edit" href="{{bfrsService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img class="feature-icon" v-bind:src="map.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small></small></i></div>
+                  <a @click.stop.prevent="edit" href="{{bfrsService}}/sss_admin/tracking/device/{{ f.get(reportKey) }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <div class="feature-title"><img class="feature-icon" id="report-icon-{{f.get(reportKey)}}" v-bind:Src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small></small></i></div>
                 </div>
               </div>
             </div>
@@ -78,7 +98,7 @@
   </div>
 </template>
 <script>
-  import { ol, moment } from 'src/vendor.js'
+  import { ol, moment,$ } from 'src/vendor.js'
   export default {
     store: ['bfrsService'],
     data: function () {
@@ -87,7 +107,8 @@
         selectedOnly: false,
         search: '',
         cql: '',
-        fields: ['id', 'name'],
+        tools: [],
+        fields: ['prk_id', 'name'],
         allFeatures: [],
         extentFeatures: [],
         selectedReports: [],
@@ -104,6 +125,7 @@
     },
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      annotations: function () { return this.$root.$refs.app.$refs.annotations },
       features: function () {
         if (this.viewportOnly) {
           return this.extentFeatures
@@ -161,10 +183,18 @@
       },
       toggleSelect: function (f) {
         if (this.selected(f)) {
-          this.$root.annotations.selectedFeatures.remove(f)
+          this.annotations.selectedFeatures.remove(f)
         } else {
-          this.$root.annotations.selectedFeatures.push(f)
+          this.annotations.selectedFeatures.push(f)
         }
+      },
+      featureIconSrc:function(f) {
+        var vm = this
+        //trigger dynamic binding
+        var tmp = this.selectedReports
+        return this.map.getBlob(f, ['icon', 'tint'],this.tints,function(){
+            $("#report-icon-" + f.get(vm.reportKey)).attr("src", vm.featureIconSrc(f))
+        })
       },
       selected: function (f) {
         return f.get(this.reportKey) && (this.selectedReports.indexOf(f.get(this.reportKey)) > -1)
@@ -173,7 +203,6 @@
         this.$root.export.exportVector(this.features.filter(this.resourceFilter).sort(this.resourceOrder), 'bushfirereport')
       },
       updateCQLFilter: function () {
-        var vm = this
         var filters = []
         if(this.cql.trim()) {filter.push(this.cql.trim())}
         var reportFilter = ''
@@ -218,29 +247,29 @@
       updateReport: function() {
         var vm = this
         // syncing of Resource Tracking features between Vue state and OL source
-        var mapLayer = this.reportMapLayer
+        var mapLayer = vm.reportMapLayer
         if (!mapLayer) { return }
         var feats = mapLayer.getSource().getFeatures()
         // update the contents of the selectedFeatures group
-        if (vm.$root.annotations.selectable && vm.$root.annotations.selectable.length == 1 && vm.$root.annotations.selectable[0] == vm.reportMapLayer) {
-            var reportIds = this.selectedReports.slice()
-            this.$root.annotations.selectedFeatures.clear()
+        if (vm.annotations.selectable === vm.selectable) {
+            var reportIds = vm.selectedReports.slice()
+            vm.annotations.selectedFeatures.clear()
             feats.filter(function(el, index, arr) {
-              var id = el.get(vm.reportkey)
+              var id = el.get(vm.reportKey)
               if (!id) return false
               if (reportIds.indexOf(id) < 0) return false
               return true
             }).forEach(function (el) {
-              vm.$root.annotations.selectedFeatures.push(el)
+              vm.annotations.selectedFeatures.push(el)
             })
         }
 
         // update vue list for filtered features in the current extent
-        this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
-        this.extentFeatures.sort(this.resourceOrder)
+        vm.extentFeatures = mapLayer.getSource().getFeaturesInExtent(vm.$root.export.mapLayout.extent).filter(vm.resourceFilter)
+        vm.extentFeatures.sort(vm.resourceOrder)
         // update vue list for filtered features
-        this.allFeatures = feats.filter(this.resourceFilter)
-        this.allFeatures.sort(this.resourceOrder)
+        vm.allFeatures = feats.filter(vm.resourceFilter)
+        vm.allFeatures.sort(vm.resourceOrder)
       },
       init: function() {
         // enable resource tracking layer, if disabled
@@ -250,8 +279,8 @@
         }
 
         this.selectable = [this.reportMapLayer]
-        this.$root.annotations.selectable = this.selectable
-        this.$root.annotations.setTool('Select')
+        this.annotations.selectable = this.selectable
+        this.annotations.setTool('Select')
         this.updateCQLFilter()
       }
     },
@@ -291,15 +320,56 @@
         return style
       }
 
-      this.$root.fixedLayers.push({
+      vm.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Bushfire Report',
         id: 'dpaw:ratis_rtv_web_parks',
         onadd: addReport,
         cql_filter: false
       })
+
+      vm.droppinFeatures = new ol.Collection()
+      vm.droppinOverlay = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          features: vm.droppinFeatures
+        })
+      })
+      var droppinDraw = vm.annotations.iconDrawFactory({
+        icon: 'dist/static/images/droppin.svg',
+        features:  vm.droppinFeatures,
+        tint: 'default',
+      })
+      droppinDraw.on("drawend",function(ev) {
+        var feature = ev.feature
+        feature.set('tint', vm.annotations.tool.tint || 'default')
+        feature.setStyle(vm.annotations.tool.style || null)
+        vm.droppinFeatures.clear()
+
+      })
+
+      var tools = [
+        {
+          name: 'Drop Pin',
+          icon: 'dist/static/images/droppin.svg',
+          interactions: [droppinDraw],
+          selectedTint: 'selectedPoint',
+          style: vm.annotations.getIconStyleFunction(),
+          scope:["bushfirereport"],
+          onSet:function() {
+            vm.droppinOverlay.setMap(vm.map.olmap)
+          },
+          onUnset: function() {
+            vm.droppinOverlay.setMap(null)
+          }
+        }
+      ]
+
+      tools.forEach(function (tool) {
+        vm.annotations.tools.push(tool)
+      })
+
       // post init event hookup
-      this.$on('gk-init', function () {
+      vm.$on('gk-init', function () {
         var viewChanged = global.debounce(function () {
           vm.updateReport()
         }, 100)
@@ -315,15 +385,19 @@
         map.olmap.getLayerGroup().on('change', layersAdded)
         layersAdded()
 
-        this.$root.annotations.selectedFeatures.on('add', function (event) {
-          if (vm.$root.annotations.selectable === vm.selectable) {
+        vm.annotations.selectedFeatures.on('add', function (event) {
+          if (vm.annotations.selectable === vm.selectable) {
             vm.selectedReports.push(event.element.get(vm.reportKey))
           }
         })
-        this.$root.annotations.selectedFeatures.on('remove', function (event) {
-          if (vm.$root.annotations.selectable === vm.selectable) {
+        vm.annotations.selectedFeatures.on('remove', function (event) {
+          if (vm.annotations.selectable === vm.selectable) {
             vm.selectedReports.$remove(event.element.get(vm.reportKey))
           }
+        })
+
+        vm.tools = vm.annotations.tools.filter(function (t) {
+          return t.scope && t.scope.indexOf("bushfirereport") >= 0
         })
       })
     }
