@@ -283,7 +283,7 @@
           this.trackingLayer.cql_filter = groupFilter
         }
         this.trackingMapLayer.set('updated', moment().toLocaleString())
-        this.trackingMapLayer.getSource().loadSource()
+        this.trackingMapLayer.getSource().loadSource("query")
       },
       historyCQLFilter: function () {
         var vm = this
@@ -292,7 +292,7 @@
         historyLayer.cql_filter = deviceFilter + "and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
         var source = this.$root.map.getMapLayer(historyLayer).getSource()
-        source.loadSource(function () {
+        source.loadSource("query",function () {
           // callback to draw the line trail after the points information is loaded
           var devices = {}
           // group by device

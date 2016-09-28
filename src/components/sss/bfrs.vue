@@ -96,6 +96,11 @@
       </div>
     </div>
   </div>
+  <div id="bushfireReportEditOverlay" >
+    <a class="button tiny secondary" href="{{editUrl}}" target="_blank">
+        <i class="fa {{editIcon}}"></i>
+    </a>
+  </div>
 </template>
 <script>
   import { ol, moment,$ } from 'src/vendor.js'
@@ -111,7 +116,9 @@
         fields: ['prk_id', 'name'],
         allFeatures: [],
         extentFeatures: [],
+        editableFeatures: new ol.Collection(),
         selectedReports: [],
+        droppinFeatures:new ol.Collection(),
         reportFromDate: '',
         reportToDate: '',
         range:'',
@@ -120,6 +127,7 @@
           'draft': [['#b43232','#ff6600']],
           'final': [['#b43232','#71c837']],
           'selected': [['#b43232', '#2199e8']],
+          'modified': [['#b43232', '#a138c2']],
           },
       }
     },
@@ -157,6 +165,62 @@
       reportMapLayer: function() {
         return this.$root.map.getMapLayer(this.reportLayer)
       },
+      editingFeature:function() {
+        if (this.annotations.tool === this.droppinTool) {
+            return (this.droppinFeatures.getLength() > 0)?this.droppinFeatures.item(0):null
+        } else if(this.annotations.tool === this.editTool) {
+            return (this.annotations.selectedFeatures.getLength() > 0)?this.annotations.selectedFeatures.item(0):null
+        } else {
+            return null
+        }
+      },
+      editingFeaturePosition:function() {
+        var feat = this.editingFeature
+        return (feat)?feat.getGeometry().getLastCoordinate():undefined
+      },
+      editIcon:function() {
+        var feat = this.editingFeature
+        if (!feat) {
+            //no editing feature
+            return "fa-pencil"
+        } else if (feat.get(this.reportKey)) {
+            //has report key
+            if (["draft","modified"].indexOf(feat.get('baseTint')) >= 0) {
+                //edit
+                return "fa-pencil"
+            } else {
+                //view
+                return "fa-eye"
+            }
+        } else {
+            //no report key,create
+            return "fa-pencil"
+        }
+      },
+      editUrl:function() {
+        var feat = this.editingFeature
+        if (!feat) {
+            //no editing feature
+            return ""
+        } else if (feat.get(this.reportKey)) {
+            //has report key
+            if (["draft","modified"].indexOf(feat.get('baseTint')) >= 0) {        
+                //edit
+                return this.bfrsService + "/reports/" + feat.get(this.reportKey) + "?point=" 
+            } else {
+                //view
+                return this.bfrsService + "/reports/" + feat.get(this.reportKey) + "?point=" 
+            }
+        } else {
+            //no report key,create
+            return this.bfrsService + "/reports" + "?point=" 
+        }
+      }
+    },
+    watch:{
+      'editingFeaturePosition': function(val,oldVal) {
+        this.editButtonOverlay.setPosition(val)
+      }
     },
     methods: {
       verifyDate: function(event,inputPattern,pattern) {
@@ -180,6 +244,9 @@
             } else {
                 window.open(target.href,target.target);
             }
+      },
+      editable: function(f) {
+        return f.get('tint') === "draft" 
       },
       toggleSelect: function (f) {
         if (this.selected(f)) {
@@ -224,7 +291,7 @@
         }
     
         this.reportMapLayer.set('updated', moment().toLocaleString())
-        this.reportMapLayer.getSource().loadSource()
+        this.reportMapLayer.getSource().loadSource("query")
       },
       resourceFilter: function (f) {
         var search = ('' + this.search).toLowerCase()
@@ -320,15 +387,23 @@
         return style
       }
 
+      vm.reports = new ol.Collection()
       vm.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Bushfire Report',
         id: 'dpaw:ratis_rtv_web_parks',
         onadd: addReport,
+        refresh: 60,
         cql_filter: false
       })
 
-      vm.droppinFeatures = new ol.Collection()
+      vm.editButtonOverlay = new ol.Overlay({
+        id: "bushfireReportEditOverlay",
+        element: $("#bushfireReportEditOverlay")[0],
+        positioning: "bottom-left",
+        stopEvent:true,
+      })
+
       vm.droppinOverlay = new ol.layer.Vector({
         source: new ol.source.Vector({
           features: vm.droppinFeatures
@@ -344,29 +419,53 @@
         feature.set('tint', vm.annotations.tool.tint || 'default')
         feature.setStyle(vm.annotations.tool.style || null)
         vm.droppinFeatures.clear()
-
       })
 
-      var tools = [
-        {
-          name: 'Drop Pin',
-          icon: 'dist/static/images/droppin.svg',
-          interactions: [droppinDraw],
-          selectedTint: 'selectedPoint',
-          style: vm.annotations.getIconStyleFunction(),
-          scope:["bushfirereport"],
-          onSet:function() {
-            vm.droppinOverlay.setMap(vm.map.olmap)
-          },
-          onUnset: function() {
-            vm.droppinOverlay.setMap(null)
-          }
+      vm.droppinTool = {
+        name: 'Drop Pin',
+        icon: 'dist/static/images/droppin.svg',
+        interactions: [droppinDraw],
+        selectedTint: 'selectedPoint',
+        style: vm.annotations.getIconStyleFunction(),
+        scope:["bushfirereport"],
+        onSet:function() {
+          vm.droppinOverlay.setMap(vm.map.olmap)
+        },
+        onUnset: function() {
+          vm.droppinOverlay.setMap(null)
         }
-      ]
+      }
 
-      tools.forEach(function (tool) {
-        vm.annotations.tools.push(tool)
+      vm.modifyInter = new ol.interaction.Modify({
+        features: vm.editableFeatures,
+        deleteCondition: function(event) {return false}
       })
+      vm.modifyInter.on("modifystart",function(ev){
+        ev.features.item(0).set('baseTint','modified')
+        vm.editButtonOverlay.setPosition(undefined)
+      })
+      vm.modifyInter.on("modifyend",function(ev){
+        vm.editButtonOverlay.setPosition(ev.features.item(0).getGeometry().getLastCoordinate())
+      })
+
+      vm.editTool = {
+        name: 'Edit',
+        icon: 'fa-pencil',
+        scope:["bushfirereport"],
+        interactions: [
+          vm.annotations.ui.keyboardInter,
+          vm.annotations.ui.selectInter,
+          vm.annotations.ui.dragSelectInter,
+          vm.modifyInter
+        ],
+        onSet: function() {
+          vm.annotations.ui.dragSelectInter.setMulti(false)
+          vm.annotations.ui.selectInter.setMulti(false)
+        }
+      }
+
+      vm.annotations.tools.push(vm.editTool)
+      vm.annotations.tools.push(vm.droppinTool)
 
       // post init event hookup
       vm.$on('gk-init', function () {
@@ -388,13 +487,19 @@
         vm.annotations.selectedFeatures.on('add', function (event) {
           if (vm.annotations.selectable === vm.selectable) {
             vm.selectedReports.push(event.element.get(vm.reportKey))
+            if (["draft","modified"].indexOf(event.element.get('baseTint')) >= 0) {
+                vm.editableFeatures.push(event.element)
+            }
           }
         })
         vm.annotations.selectedFeatures.on('remove', function (event) {
           if (vm.annotations.selectable === vm.selectable) {
             vm.selectedReports.$remove(event.element.get(vm.reportKey))
+            vm.editableFeatures.remove(event.element)
           }
         })
+
+        vm.editButtonOverlay.setMap(vm.map.olmap)
 
         vm.tools = vm.annotations.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("bushfirereport") >= 0

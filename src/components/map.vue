@@ -591,7 +591,7 @@
         })
         vector.progress = ''
 
-        vectorSource.loadSource = function (onSuccess) {
+        vectorSource.loadSource = function (loadType,onSuccess) {
           if (options.cql_filter) {
             options.params.cql_filter = options.cql_filter
           } else if (options.params.cql_filter) {
@@ -602,8 +602,15 @@
             url: url + '?' + $.param(options.params),
             success: function (response, stat, xhr) {
               var features = vm.$root.geojson.readFeatures(response)
-              vectorSource.clear(true)
-              vectorSource.addFeatures(features)
+              var defaultOnload = function(source,features) {
+                  source.clear(true)
+                  source.addFeatures(features)
+              }
+              if (options.onload) {
+                options.onload(loadType,source,features,defaultOnload)
+              } else {
+                defaultOnload(vectorSource,features)
+              }
               vector.progress = 'idle'
               vector.set('updated', moment().toLocaleString())
               vectorSource.dispatchEvent('loadsource')
@@ -639,11 +646,11 @@
         // to update the source
         if (options.refresh && !vector.autoRefresh) {
           vector.autoRefresh = setInterval(function () {
-            vectorSource.loadSource()
+            vectorSource.loadSource("auto")
           }, options.refresh * 1000)
         }
         // populate the source with data
-        vectorSource.loadSource()
+        vectorSource.loadSource("initial")
 
         vector.set('name', options.name)
         vector.set('id', options.id)
