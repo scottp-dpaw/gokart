@@ -24,11 +24,11 @@
         </div>
 
         <div id="layers-active-list">
-          <div v-for="l in olLayers.slice().reverse()" class="row layer-row" v-bind:class="l.progress" data-id="{{ l.get('id') }}"
+          <div v-for="l in olLayers.slice().reverse()" class="row layer-row" v-bind:class="layerRefreshProgress(l)" data-id="{{ l.get('id') }}"
             track-by="values_.id" @click="layer = getLayer(l.get('id'))">
             <div class="small-9">
               <div class="layer-title">{{ l.get("name") || l.get("id") }} - {{ Math.round(l.getOpacity() * 100) }}%</div>
-              <small v-if="l.get('updated')">Updated: {{ l.get("updated") }}</small>
+              <small v-if="layerRefreshStatus(l)">Updated: {{ layerRefreshStatus(l) }}</small>
             </div>
             <div class="small-3">
               <div class="text-right">
@@ -42,6 +42,16 @@
     <div class="row collapse">
       <div id="layer-config" class="columns">
         <h4 v-if="mapLayer()">{{ layer.name }}</h4>
+        <div class="tool-slice row" v-if="layer.refresh">
+          <div class="columns small-2"><label class="tool-label">Refresh:<br/>{{ formattedLayerRefreshInterval }}</label></div>
+          <div class="columns small-9">
+            <input class="layer-opacity" v-if="layerRefreshConfigable()" type="range" :min="layer.min_interval" :max="layer.max_interval" :step="layer.interval_step || 1" v-model="layerRefreshInterval">
+          </div>
+          <div class="columns small-1">
+            <a title="Stop auto refresh" v-if="!layerRefreshStopped" class="button tiny secondary float-right" @click="stopLayerRefresh()" ><i class="fa fa-stop"></i></a>
+            <a title="Start auto refresh" v-if="layerRefreshStopped"class="button tiny secondary float-right" @click="startLayerRefresh()" ><i class="fa fa-play"></i></a>
+          </div>
+        </div>
         <div class="tool-slice row" v-if="mapLayer()">
           <div class="columns small-2"><label class="tool-label">Opacity:<br/>{{ layerOpacity }}%</label></div>
           <div class="columns small-10"><input class="layer-opacity" type="range" min="1" max="100" step="1" v-model="layerOpacity"></div>
@@ -56,13 +66,15 @@
 </template>
 
 <script>
-  import { Vue, dragula } from 'src/vendor.js'
+  import { Vue, dragula,moment } from 'src/vendor.js'
   export default {
     // variables
     data: function () {
       return {
         sliderOpacity: 0,
         layer: {},
+        layerRefreshStopped:false,
+        refreshRevision:0,
         olLayers: [],
         hoverInfoCache: false,
         timeIndex: 0
@@ -109,10 +121,69 @@
         set: function (val) {
           this.mapLayer().setOpacity(val / 100)
         }
+      },
+      layerRefreshInterval: {
+        get: function () {
+          return this.layer.refresh
+        },
+        set: function (val) {
+          var vm = this
+          vm.layer.refresh = val
+          if (vm.layerRefreshStopped) {
+            return
+          }
+          vm.layer.changeRefreshInterval = vm.layer.changeRefreshInterval || global.debounce(function () {
+            vm.mapLayer().stopAutoRefresh()
+            vm.mapLayer().startAutoRefresh()
+          }, 5000)
+
+          vm.layer.changeRefreshInterval()
+                  
+        }
+      },
+      formattedLayerRefreshInterval: function() {
+        if (this.layerRefreshStopped) {
+          return "Stopped"
+        } else {
+          var format = "H\\hm\\ms\\s"
+          if (this.layer.refresh < 60) {
+            format = "s\\s"
+          } else if (this.layer.refresh < 3600) {
+            format = "m\\ms\\s"
+          }
+          return moment(new Date(this.layer.refresh * 1000)).utc().format(format) 
+        }
+      },
+    },
+    watch: {
+      "layer": function() {
+        this.layerRefreshStopped = this.layer.refresh?(this.layer.autoRefreshStopped || false):true
       }
     },
     // methods callable from inside the template
     methods: {
+      stopLayerRefresh:function() {
+        this.mapLayer().stopAutoRefresh()
+        this.layer.autoRefreshStopped = true
+        this.layerRefreshStopped = true
+      },
+      startLayerRefresh:function() {
+        this.mapLayer().startAutoRefresh()
+        this.layer.autoRefreshStopped = false
+        this.layerRefreshStopped = false
+      },
+      layerRefreshConfigable:function(id) {
+        var layer = id?this.getLayer(id):this.layer
+        return layer.type === "WFSLayer" && layer.refresh && layer.min_interval && layer.max_interval && true
+      },
+      layerRefreshProgress: function(l) {
+        var tmp = this.refreshRevision
+        return l.progress || ""
+      },
+      layerRefreshStatus: function(l) {
+        var tmp = this.refreshRevision
+        return l.get("updated")
+      },
       activeLayers: function () {
         var catalogue = this.$root.catalogue
         var results = []

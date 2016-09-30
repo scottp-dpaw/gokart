@@ -98,6 +98,11 @@
           var tint = feature.get('tint')
           tint = (tintSettings)?tintSettings[tint]:[]
           var url = feature.get('icon')
+          if (typeof tint === "string") {
+            //tint is not just a color replacement, is a totally different icon
+            url = tint
+            tint = []
+          }
           vm.jobs[key] = new Promise(function(resolve, reject) {
             vm.addSVG(key, url, tint, dims, resolve)
           }).then(function() {
@@ -597,20 +602,22 @@
           } else if (options.params.cql_filter) {
             delete options.params.cql_filter
           }
+          vm.$root.active.refreshRevision += 1
           vector.progress = 'loading'
           $.ajax({
             url: url + '?' + $.param(options.params),
             success: function (response, stat, xhr) {
               var features = vm.$root.geojson.readFeatures(response)
-              var defaultOnload = function(source,features) {
+              var defaultOnload = function(loadType,source,features) {
                   source.clear(true)
                   source.addFeatures(features)
               }
               if (options.onload) {
-                options.onload(loadType,source,features,defaultOnload)
+                options.onload(loadType,vectorSource,features,defaultOnload)
               } else {
-                defaultOnload(vectorSource,features)
+                defaultOnload(loadType,vectorSource,features)
               }
+              vm.$root.active.refreshRevision += 1
               vector.progress = 'idle'
               vector.set('updated', moment().toLocaleString())
               vectorSource.dispatchEvent('loadsource')
@@ -619,6 +626,7 @@
               }
             },
             error: function () {
+              vm.$root.active.refreshRevision += 1
               vector.progress = 'error'
             },
             dataType: 'json',
@@ -654,6 +662,30 @@
 
         vector.set('name', options.name)
         vector.set('id', options.id)
+
+        vector.stopAutoRefresh = function() {
+            if (this.autoRefresh) {
+                clearInterval(this.autoRefresh)
+                console.log("Stop auto refresh for layer (" + options.id + ")")
+                delete this.autoRefresh
+            }
+        }
+
+        vector.startAutoRefresh = function() {
+            if (!options.refresh) {
+                //not refreshable
+                return
+            } 
+            if(this.autoRefresh) {
+                //already started
+                return
+            }
+            this.autoRefresh = setInterval(function () {
+                vectorSource.loadSource("auto")
+            }, options.refresh * 1000)
+            console.log("Start auto refresh for layer (" + options.id + ") with interval " + options.refresh)
+        }
+
         return vector
       },
       createAnnotations: function (layer) {

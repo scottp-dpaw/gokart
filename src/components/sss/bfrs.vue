@@ -42,12 +42,12 @@
             </div>
             <div class="row collapse">
               <div class="small-6 columns">
-                <select name="select" v-model="cql" @change="updateCQLFilter">
+                <select name="select" v-model="cql" >
                   <option value="" selected>All Reports</option> 
                 </select>
               </div>
               <div class="small-6 columns">
-                <input type="search" v-model="search" placeholder="Find a report" @keyup="updateCQLFilter | debounce 700">
+                <input type="search" v-model="search" placeholder="Find a report" @keyup="updateResourceFilter | debounce 700">
               </div>
             </div>
             <div class="row">
@@ -73,11 +73,12 @@
               <div class="small-5">
                 <input type="text" v-on:blur="verifyDate($event,['YY-M-D','YYYY-M-D'],'YYYY-MM-DD')" v-model="reportToDate" placeholder="yyyy-mm-dd"></input>
               </div>
-              <div class="small-2">
-              </div>
-              <div class="small-3">
-                  <a title="Zoom to selected" class="button float-right" @click="zoomToSelected()"><i class="fa fa-search"></i></a>
-                  <a title="Download list" class="button" @click="downloadList()" class="float-right"><i class="fa fa-download"></i></a>
+              <div class="small-5">
+                  <div class="float-right">
+                      <a class="button" @click="updateCQLFilter" >Go</a>
+                      <a title="Download list" class="button" @click="downloadList()" ><i class="fa fa-download"></i></a>
+                      <a title="Zoom to selected" class="button" @click="zoomToSelected()"><i class="fa fa-search"></i></a>
+                  </div>
               </div>
             </div>
 
@@ -85,8 +86,13 @@
               <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f) }" 
                 @click="toggleSelect(f)" track-by="get('prk_id')">
                 <div class="columns">
-                  <a @click.stop.prevent="edit" href="{{bfrsService}}/sss_admin/tracking/device/{{ f.get(reportKey) }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img class="feature-icon" id="report-icon-{{f.get(reportKey)}}" v-bind:Src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small></small></i></div>
+                  <span class="feature-title"><img class="feature-icon" id="report-icon-{{f.get(reportKey)}}" v-bind:Src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small></small></i></span>
+                  <span class="float-right">
+                      <a @click.stop.prevent="edit" v-if="isModified(f)" class="button tiny secondary" href="{{editUrl(f)}}" target="_blank">
+                        <i class="fa fa-save"></i>
+                      </a>
+                      <a @click.stop.prevent="edit" href="{{editUrl(f)}}" target="_blank" class="button tiny secondary"><i class="fa {{editIcon(f)}}"></i></a>
+                  </span>
                 </div>
               </div>
             </div>
@@ -97,8 +103,11 @@
     </div>
   </div>
   <div id="bushfireReportEditOverlay" >
-    <a class="button tiny secondary" href="{{editUrl}}" target="_blank">
-        <i class="fa {{editIcon}}"></i>
+    <a v-if="isModified()" class="button tiny secondary" href="{{editUrl()}}" target="_blank">
+        <i class="fa fa-save"></i>
+    </a>
+    <a class="button tiny secondary" href="{{editUrl()}}" target="_blank">
+        <i class="fa {{editIcon()}}"></i>
     </a>
   </div>
 </template>
@@ -109,26 +118,26 @@
     data: function () {
       return {
         viewportOnly: true,
-        selectedOnly: false,
         search: '',
         cql: '',
         tools: [],
         fields: ['prk_id', 'name'],
         allFeatures: [],
         extentFeatures: [],
-        editableFeatures: new ol.Collection(),
         selectedReports: [],
+        editableFeatures: new ol.Collection(),
         droppinFeatures:new ol.Collection(),
+        modifiedFeatures:[],
         reportFromDate: '',
         reportToDate: '',
+        editRevision:0,
         range:'',
         reportRangeDays: 0,
         tints: {
-          'draft': [['#b43232','#ff6600']],
-          'final': [['#b43232','#71c837']],
-          'selected': [['#b43232', '#2199e8']],
-          'modified': [['#b43232', '#a138c2']],
-          },
+          'draft': [['#ff4444','#008000']],
+          'modified': [['#ff4444', '#8a2be2']],
+          'selected': [['#ff4444', '#2199e8']],
+        },
       }
     },
     computed: {
@@ -178,44 +187,6 @@
         var feat = this.editingFeature
         return (feat)?feat.getGeometry().getLastCoordinate():undefined
       },
-      editIcon:function() {
-        var feat = this.editingFeature
-        if (!feat) {
-            //no editing feature
-            return "fa-pencil"
-        } else if (feat.get(this.reportKey)) {
-            //has report key
-            if (["draft","modified"].indexOf(feat.get('baseTint')) >= 0) {
-                //edit
-                return "fa-pencil"
-            } else {
-                //view
-                return "fa-eye"
-            }
-        } else {
-            //no report key,create
-            return "fa-pencil"
-        }
-      },
-      editUrl:function() {
-        var feat = this.editingFeature
-        if (!feat) {
-            //no editing feature
-            return ""
-        } else if (feat.get(this.reportKey)) {
-            //has report key
-            if (["draft","modified"].indexOf(feat.get('baseTint')) >= 0) {        
-                //edit
-                return this.bfrsService + "/reports/" + feat.get(this.reportKey) + "?point=" 
-            } else {
-                //view
-                return this.bfrsService + "/reports/" + feat.get(this.reportKey) + "?point=" 
-            }
-        } else {
-            //no report key,create
-            return this.bfrsService + "/reports" + "?point=" 
-        }
-      }
     },
     watch:{
       'editingFeaturePosition': function(val,oldVal) {
@@ -245,8 +216,52 @@
                 window.open(target.href,target.target);
             }
       },
-      editable: function(f) {
-        return f.get('tint') === "draft" 
+      isEditable: function(f) {
+        return ["draft","modified"].indexOf(f.get('baseTint')) >= 0
+      },
+      isModified: function(f) {
+        var tmp = this.editRevision
+        var feat = f || this.editingFeature
+        return feat && feat.get('baseTint') === "modified"
+      },
+      editIcon:function(f) {
+        var tmp = this.editRevision
+        var feat = f || this.editingFeature
+        if (!feat) {
+            //no editing feature
+            return "fa-pencil"
+        } else if (feat.get(this.reportKey)) {
+            //has report key
+            if (this.isEditable(feat)) {
+                //edit
+                return "fa-pencil"
+            } else {
+                //view
+                return "fa-eye"
+            }
+        } else {
+            //no report key,create
+            return "fa-pencil"
+        }
+      },
+      editUrl:function(f) {
+        var feat = f || this.editingFeature
+        if (!feat) {
+            //no editing feature
+            return ""
+        } else if (feat.get(this.reportKey)) {
+            //has report key
+            if (this.isEditable(feat)) {        
+                //edit
+                return this.bfrsService + "/reports/" + feat.get(this.reportKey) + "?point=" 
+            } else {
+                //view
+                return this.bfrsService + "/reports/" + feat.get(this.reportKey) + "?point=" 
+            }
+        } else {
+            //no report key,create
+            return this.bfrsService + "/reports" + "?point=" 
+        }
       },
       toggleSelect: function (f) {
         if (this.selected(f)) {
@@ -274,9 +289,6 @@
         if(this.cql.trim()) {filter.push(this.cql.trim())}
         var reportFilter = ''
         // filter by specific reports if "Show selected only" is enabled
-        if ((this.selectedReports.length > 0) && (this.selectedOnly)) {
-          filters.push( this.reportKey + ' in (' + this.selectedReports.join(',') + ')')
-        }
         if (this.reportFromDate && this.reportToDate) {
             filters.push( "seen between '" + this.reportFromDate + ' ' + "00:00:00' and '" + this.reportToDate + ' ' + "23:59:00'")
         }
@@ -293,14 +305,20 @@
         this.reportMapLayer.set('updated', moment().toLocaleString())
         this.reportMapLayer.getSource().loadSource("query")
       },
+      updateResourceFilter: function () {
+        var mapLayer = this.reportMapLayer
+        // update vue list for filtered features in the current extent
+        this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
+        this.extentFeatures.sort(this.resourceOrder)
+        // update vue list for filtered features
+        this.allFeatures = mapLayer.getSource().getFeatures().filter(this.resourceFilter)
+        this.allFeatures.sort(this.resourceOrder)
+      },
       resourceFilter: function (f) {
         var search = ('' + this.search).toLowerCase()
         var found = !search || this.fields.some(function (key) {
           return ('' + f.get(key)).toLowerCase().indexOf(search) > -1
         })
-        if (this.selectedOnly) {
-          return this.selected(f) && found
-        };
         return found
       },
       zoomToSelected: function () {
@@ -320,11 +338,18 @@
         // update the contents of the selectedFeatures group
         if (vm.annotations.selectable === vm.selectable) {
             var reportIds = vm.selectedReports.slice()
-            vm.annotations.selectedFeatures.clear()
+            for(var i = vm.annotations.selectedFeatures.getLength() - 1;i >= 0; i--) {
+                if (!vm.isModified(vm.annotations.selectedFeatures.item(i))) {
+                    //element is not modified,remote it and readd it later
+                    vm.annotations.selectedFeatures.removeAt(i)
+                }
+            }
             feats.filter(function(el, index, arr) {
               var id = el.get(vm.reportKey)
               if (!id) return false
               if (reportIds.indexOf(id) < 0) return false
+              //feature is modified, and is kept in selected features, no need to add it again
+              if (vm.isModified(el)) return false 
               return true
             }).forEach(function (el) {
               vm.annotations.selectedFeatures.push(el)
@@ -348,7 +373,6 @@
         this.selectable = [this.reportMapLayer]
         this.annotations.selectable = this.selectable
         this.annotations.setTool('Select')
-        this.updateCQLFilter()
       }
     },
     ready: function () {
@@ -357,6 +381,10 @@
       this.reportKey = "prk_id"
 
       var addReport = function (f) {
+        if (f.get('tint')) {
+            //not reloaded for some reason, no need to set again
+            return
+        }
         var tint = 'draft'
         if (f.get(vm.reportKey) % 2 == 0) {
             tint = 'draft'
@@ -366,7 +394,7 @@
         f.set('tint', tint)
         f.set('baseTint', tint)
         f.set('label', f.get('name'))
-        f.set('icon','dist/static/symbols/fire/origin.svg')
+        f.set('icon','dist/static/symbols/fire/fire.svg')
         f.set('selectId', f.get(vm.reportKey))
         f.setStyle(reportStyle)
       }
@@ -393,8 +421,31 @@
         name: 'Bushfire Report',
         id: 'dpaw:ratis_rtv_web_parks',
         onadd: addReport,
-        refresh: 60,
-        cql_filter: false
+        refresh: 120,
+        min_interval:30,
+        max_interval:600,
+        interval_step:30,
+        cql_filter: false,
+        onload:function(loadType,source,features,defaultFunc) {
+            if (loadType == "auto" ) {
+                if (vm.modifiedFeatures.length > 0) {
+                    //remote all unmodified features
+                    source.clear(true)
+                    source.addFeatures(vm.modifiedFeatures)
+                    source.addFeatures(features.filter(function(f){
+                        return !vm.modifiedFeatures.some(function(modifiedFeature) {
+                            return modifiedFeature.get(vm.reportKey) === f.get(vm.reportKey)
+                        })
+                    }))
+                } else {
+                    vm.modifiedFeatures = []
+                    defaultFunc(loadType,source,features)
+                }
+            } else {
+                vm.modifiedFeatures = []
+                defaultFunc(loadType,source,features)
+            }
+        }
       })
 
       vm.editButtonOverlay = new ol.Overlay({
@@ -442,7 +493,9 @@
       })
       vm.modifyInter.on("modifystart",function(ev){
         ev.features.item(0).set('baseTint','modified')
+        vm.modifiedFeatures.push(ev.features.item(0))
         vm.editButtonOverlay.setPosition(undefined)
+        vm.editRevision += 1
       })
       vm.modifyInter.on("modifyend",function(ev){
         vm.editButtonOverlay.setPosition(ev.features.item(0).getGeometry().getLastCoordinate())
@@ -487,7 +540,7 @@
         vm.annotations.selectedFeatures.on('add', function (event) {
           if (vm.annotations.selectable === vm.selectable) {
             vm.selectedReports.push(event.element.get(vm.reportKey))
-            if (["draft","modified"].indexOf(event.element.get('baseTint')) >= 0) {
+            if (vm.isEditable(event.element)) {
                 vm.editableFeatures.push(event.element)
             }
           }

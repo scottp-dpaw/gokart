@@ -33,7 +33,7 @@
                 </select>
               </div>
               <div class="small-6 columns">
-                <input type="search" v-model="search" placeholder="Find a resource" @keyup="updateCQLFilter | debounce 700">
+                <input type="search" v-model="search" placeholder="Find a resource" @keyup="updateResourceFilter | debounce 700">
               </div>
             </div>
             <div class="row">
@@ -285,6 +285,15 @@
         this.trackingMapLayer.set('updated', moment().toLocaleString())
         this.trackingMapLayer.getSource().loadSource("query")
       },
+      updateResourceFilter: function () {
+        var mapLayer = this.trackingMapLayer
+        // update vue list for filtered features in the current extent
+        this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
+        this.extentFeatures.sort(this.resourceOrder)
+        // update vue list for filtered features
+        this.allFeatures = mapLayer.getSource().getFeatures().filter(this.resourceFilter)
+        this.allFeatures.sort(this.resourceOrder)
+      },
       historyCQLFilter: function () {
         var vm = this
         var historyLayer = this.historyLayer
@@ -460,7 +469,7 @@
         name: 'Resource Tracking',
         id: 'dpaw:resource_tracking_live',
         onadd: addResource,
-        refresh: 30
+        refresh: 60
       }, {
         type: 'WFSLayer',
         name: 'Resource Tracking History',
