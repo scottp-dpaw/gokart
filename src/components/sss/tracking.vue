@@ -33,7 +33,7 @@
                 </select>
               </div>
               <div class="small-6 columns">
-                <input type="search" v-model="search" placeholder="Find a resource" @keyup="updateCQLFilter | debounce 700">
+                <input type="search" v-model="search" placeholder="Find a resource" @keyup="updateResourceFilter | debounce 700">
               </div>
             </div>
             <div class="row">
@@ -55,7 +55,7 @@
                       <input class="switch-input" id="selectedOnly" type="checkbox" v-model="selectedOnly" @change="updateCQLFilter" />
                       <label class="switch-paddle" for="selectedOnly">
                     <span class="show-for-sr">Show selected only</span>
-                  </label>
+                 </label>
                     </div>
                     <label for="selectedOnly" class="side-label">Show selected only</label>
                   </div>
@@ -106,11 +106,11 @@
               </div>
             </div>
             <div id="tracking-list">
-              <div v-for="f in features" class="row feature-row" v-bind:class="{'device-selected': selected(f) }"
+              <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f) }"
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
-                  <a @click.stop.prevent="edit" href="{{sssService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
-                  <div class="feature-title"><img class="feature-icon" v-bind:src="map.getBlob(f, ['icon', 'tint'],tints)" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
+                  <a @click.stop.prevent="map.editResource($event)" href="{{sssService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <div class="feature-title"><img class="feature-icon" id="device-icon-{{f.get('id')}}" v-bind:src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
             </div>
@@ -144,6 +144,7 @@
         historyToDate: '',
         historyToTime: '',
         historyRangeMilliseconds: 0,
+        loadedIcons:0,
         tints: {
           'red': [[fill,'#ed2727'], [stroke,'#480000']],
           'orange': [[fill,'#ff6600'], [stroke,'#562200']],
@@ -210,14 +211,6 @@
             }
         }
       },
-      edit: function(event) {
-            var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
-            if (env.appType == "cordova") {
-                window.open(target.href,"_system");
-            } else {
-                window.open(target.href,target.target);
-            }
-      },
       ago: function (time) {
         var now = moment()
         if (now.diff(moment(time), 'days') == 1) {
@@ -242,6 +235,15 @@
         } else {
           this.$root.annotations.selectedFeatures.push(f)
         }
+      },
+      featureIconSrc:function(f) {
+        var vm = this
+        //trigger dynamic binding
+        var tmp = vm.selectedDevices
+        tmp = this.loadedIcons
+        return this.map.getBlob(f, ['icon', 'tint'],this.tints,function(){
+            $("#device-icon-" + f.get('id')).attr("src", vm.featureIconSrc(f))
+        })
       },
       selected: function (f) {
         return f.get('deviceid') && (this.selectedDevices.indexOf(f.get('deviceid')) > -1)
@@ -273,7 +275,16 @@
           this.trackingLayer.cql_filter = groupFilter
         }
         this.trackingMapLayer.set('updated', moment().toLocaleString())
-        this.trackingMapLayer.getSource().loadSource()
+        this.trackingMapLayer.getSource().loadSource("query")
+      },
+      updateResourceFilter: function () {
+        var mapLayer = this.trackingMapLayer
+        // update vue list for filtered features in the current extent
+        this.extentFeatures = mapLayer.getSource().getFeaturesInExtent(this.$root.export.mapLayout.extent).filter(this.resourceFilter)
+        this.extentFeatures.sort(this.resourceOrder)
+        // update vue list for filtered features
+        this.allFeatures = mapLayer.getSource().getFeatures().filter(this.resourceFilter)
+        this.allFeatures.sort(this.resourceOrder)
       },
       historyCQLFilter: function () {
         var vm = this
@@ -282,7 +293,7 @@
         historyLayer.cql_filter = deviceFilter + "and seen between '" + this.historyFromDate + ' ' + this.historyFromTime + ":00' and '" + this.historyToDate + ' ' + this.historyToTime + ":00'"
         this.$root.catalogue.onLayerChange(historyLayer, true)
         var source = this.$root.map.getMapLayer(historyLayer).getSource()
-        source.loadSource(function () {
+        source.loadSource("query",function () {
           // callback to draw the line trail after the points information is loaded
           var devices = {}
           // group by device
@@ -450,7 +461,7 @@
         name: 'Resource Tracking',
         id: 'dpaw:resource_tracking_live',
         onadd: addResource,
-        refresh: 30
+        refresh: 60
       }, {
         type: 'WFSLayer',
         name: 'Resource Tracking History',
@@ -465,6 +476,7 @@
           vm.updateTracking()
         }, 100)
         map.olmap.getView().on('propertychange', viewChanged)
+        viewChanged()
 
         var layersAdded = global.debounce(function () {
           var mapLayer = vm.trackingMapLayer

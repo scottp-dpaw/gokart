@@ -58,6 +58,7 @@ var defaultStore = {
   oimService:env.oimService,
   sssService:env.sssService,
   bfrsService:env.bfrsService,
+  appType:env.appType,
   // default matrix from KMI
   resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
   // fixed scales for the scale selector (1:1K increments)
@@ -118,7 +119,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       export: function () { return this.$refs.app.$refs.layers.$refs.export },
       annotations: function () { return this.$refs.app.$refs.annotations },
       tracking: function () { return this.$refs.app.$refs.tracking },
-      //bfrs: function () { return this.$refs.app.$refs.bfrs },
+      bfrs: function () { return this.$refs.app.$refs.bfrs },
       geojson: function () { return new ol.format.GeoJSON() },
       wgs84Sphere: function () { return new ol.Sphere(6378137) }
     },
@@ -152,8 +153,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         $(this).attr('aria-selected', true)
         self.map.olmap.updateSize()
       }).on('click', '.tabs-title a[aria-selected=true]', function (ev) {
-        offCanvasLeft.removeClass('reveal-responsive')
-        $(this).attr('aria-selected', false)
+        offCanvasLeft.toggleClass('reveal-responsive')
         self.map.olmap.updateSize()
       })
       $('#side-pane-close').on('click', function (ev) {
@@ -162,64 +162,6 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.map.olmap.updateSize()
       })
 
-      var iconStyle = function (res) {
-        var feat = this
-        var style = self.map.cacheStyle(function (feat) {
-          var src = self.map.getBlob(feat, ['icon', 'tint'],self.tints)
-          if (!src) { return false }
-          var rot = feat.get('rotation') || 0.0
-          return new ol.style.Style({
-            image: new ol.style.Icon({
-              src: src,
-              scale: 0.5,
-              rotation: rot,
-              rotateWithView: true,
-              snapToPixel: true
-            })
-          })
-        }, feat, ['icon', 'tint', 'rotation'])
-        return style
-      }
-
-      var getPerpendicular = function (coords) {
-        // find the nearest Polygon or lineString in the annotations layer
-        var nearestFeature = gokart.annotations.featureOverlay.getSource().getClosestFeatureToCoordinate(
-          coords, function (feat) {
-            var geom = feat.getGeometry()
-            return ((geom instanceof ol.geom.Polygon) || (geom instanceof ol.geom.LineString))
-          }
-        )
-        if (!nearestFeature) {
-          // no feature == no rotation
-          return 0.0
-        }
-        var segments = []
-        var source = []
-        var segLength = 0
-        // if a Polygon, join the last segment to the first
-        if (nearestFeature.getGeometry() instanceof ol.geom.Polygon) {
-          source = nearestFeature.getGeometry().getCoordinates()[0]
-          segLength = source.length
-        } else {
-        // if a LineString, don't include the last segment
-          source = nearestFeature.getGeometry().getCoordinates()
-          segLength = source.length-1
-        }
-        for (var i=0; i < segLength; i++) {
-          segments.push([source[i], source[(i+1)%source.length]])
-        }
-        // sort segments by ascending distance from point
-        segments.sort(function (a, b) {
-          return ol.coordinate.squaredDistanceToSegment(coords, a) - ol.coordinate.squaredDistanceToSegment(coords, b)
-        })
-
-        // head of the list is our target segment. reverse this to get the normal angle
-        var offset = [segments[0][1][0] - segments[0][0][0], segments[0][1][1] - segments[0][0][1]]
-        var normal = Math.atan2(-offset[1], offset[0])
-        return normal
-      }
-
-      
       // pack-in catalogue
       self.fixedLayers = self.fixedLayers.concat([{
         type: 'TileLayer',
@@ -286,54 +228,36 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         })
       })*/
 
-      var iconDrawFactory = function (options) {
-        var defaultFeat = new ol.Feature({
-            'icon': options.icon,
-            'tint': options.tint
-        })
-
-        var draw =  new ol.interaction.Draw({
-          type: 'Point',
-          features: options.features,
-          style: self.annotations.getStyleFunction(iconStyle,defaultFeat)
-        })
-        draw.on('drawstart', function (ev) {
-          // set parameters
-          ev.feature.set('icon', options.icon)
-          if (options.perpendicular) {
-            var coords = ev.feature.getGeometry().getCoordinates()
-            ev.feature.set('rotation', getPerpendicular(coords))
-          }
-        })
-        return draw
-      }
-
       /*var hotSpotDraw = new ol.interaction.Draw({
         type: 'Point',
         features: this.annotations.features,
         style: hotSpotStyle
       })*/
 
-      var originPointDraw = iconDrawFactory({
+      var originPointDraw = self.annotations.iconDrawFactory({
         icon: 'dist/static/symbols/fire/origin.svg',
         features:  self.annotations.features,
-        tint: 'default'
+        tint: 'default',
+        tints: self.tints
       })
-      var spotFireDraw = iconDrawFactory({
+      var spotFireDraw = self.annotations.iconDrawFactory({
         icon: 'dist/static/symbols/fire/spotfire.svg',
         features:  self.annotations.features,
-        tint: 'default'
+        tint: 'default',
+        tints: self.tints
       })
-      var divisionDraw = iconDrawFactory({
+      var divisionDraw = self.annotations.iconDrawFactory({
         icon: 'dist/static/symbols/fire/division.svg',
         features:  self.annotations.features,
         tint: 'default',
+        tints: self.tints,
         perpendicular: true
       })
-      var sectorDraw = iconDrawFactory({
+      var sectorDraw = self.annotations.iconDrawFactory({
         icon: 'dist/static/symbols/fire/sector.svg',
         features:  self.annotations.features,
         tint: 'default',
+        tints: self.tints,
         perpendicular: true
       })
 
@@ -403,35 +327,40 @@ localforage.getItem('sssOfflineStore').then(function (store) {
           name: 'Origin Point',
           icon: 'dist/static/symbols/fire/origin.svg',
           interactions: [originPointDraw],
-          style: iconStyle,
+          style: self.annotations.getIconStyleFunction(self.tints),
           selectedTint: 'selectedPoint',
+          scope:["annotation"],
           showName: true,
         }, {
           name: 'Spot Fire',
           icon: 'dist/static/symbols/fire/spotfire.svg',
           interactions: [spotFireDraw],
-          style: iconStyle,
+          style: self.annotations.getIconStyleFunction(self.tints),
           selectedTint: 'selectedPoint',
+          scope:["annotation"],
           showName: true,
         }, {
           name: 'Division',
           icon: 'dist/static/symbols/fire/division.svg',
           interactions: [divisionDraw, snapToLines],
-          style: iconStyle,
+          style: self.annotations.getIconStyleFunction(self.tints),
           selectedTint: 'selectedDivision',
+          scope:["annotation"],
           showName: true
         }, {
           name: 'Sector',
           icon: 'dist/static/symbols/fire/sector.svg',
           interactions: [sectorDraw, snapToLines],
-          style: iconStyle,
+          style: self.annotations.getIconStyleFunction(self.tints),
           selectedTint: 'selectedDivision',
+          scope:["annotation"],
           showName: true
         }, {
           name: 'Fire Boundary',
           icon: 'dist/static/images/iD-sprite.svg#icon-area',
           style: fireBoundaryStyle,
           interactions: [fireBoundaryDraw],
+          scope:["annotation"],
           showName: true
         },
         self.annotations.ui.defaultText,
@@ -443,9 +372,11 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.annotations.tools.push(tool)
       })
 
-      // load map with default layers
-      self.map.init(self.fixedLayers, self.store.activeLayers)
+      // load map without layers
+      self.map.init()
       self.catalogue.loadRemoteCatalogue(self.store.remoteCatalogue, function () {
+        //add default layers
+        self.map.initLayers(self.fixedLayers, self.store.activeLayers)
         // after catalogue load trigger a tour
         if (self.store.tourVersion !== tour.version) {
           self.store.tourVersion = tour.version

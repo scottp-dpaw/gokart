@@ -13,24 +13,24 @@
             <div class="off-canvas-content" data-off-canvas-content>
                 <ul class="tabs vertical map-widget" id="menu-tabs" data-tabs>
                     <li class="tabs-title side-button is-active">
-                        <a href="#menu-tab-layers" title="Map Layers" @click="$root.annotations.setTool('Pan')">
+                        <a href="#menu-tab-layers" title="Map Layers" @click="switchMenu('mapLayers',init)">
                             <svg class="icon">
                                 <use xlink:href="dist/static/images/iD-sprite.svg#icon-layers"></use>
                             </svg>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-annotations" title="Annotations" @click="$root.annotations.init()">
+                        <a href="#menu-tab-annotations" title="Annotations" @click="switchMenu('annotations',$root.annotations.init)">
                             <i class="fa fa-pencil" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="$root.tracking.init()">
+                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="switchMenu('vehicleTracking',$root.tracking.init)">
                             <i class="fa fa-truck" aria-hidden="true"></i>
                         </a>
                     </li>
                     <!--li class="tabs-title side-button">
-                        <a href="#menu-tab-bfrs" title="Bushfire Report System" @click="$root.bfrs.init()">
+                        <a href="#menu-tab-bfrs" title="Bushfire Report System" @click="switchMenu('bushfireReportSystem',$root.bfrs.init)">
                             <i class="fa fa-fire" aria-hidden="true"></i>
                         </a>
                     </li-->
@@ -51,27 +51,28 @@
 
 
     export default { 
-      components: { gkMap, gkLayers, gkAnnotations, gkTracking },
+      data: function() {
+        return {
+            activeMenu : null
+        }
+      },
+      components: { gkMap, gkLayers, gkAnnotations, gkTracking},//,gkBfrs },
       methods: {
+        init: function() {
+            this.$root.annotations.setTool('Pan')
+        },
+        switchMenu: function(menu,initFunc) {
+            if (this.activeMenu && this.activeMenu == menu) {
+                //click on the active menu, do nothing
+                return
+            } else {
+                this.activeMenu = menu
+                if (initFunc) {
+                    initFunc()
+                }
+            }
+        }
       }
     }
 </script>
 
-<style>
-    #tracking-list .feature-row {
-        cursor: pointer;
-        border-right: 1px transparent;
-    }
-    
-    #tracking-list .feature-row:hover {
-        border-right: 1px solid #fff;
-    }
-    
-    .feature-row.device-selected {
-        background-color: #165016;
-    }
-    
-    .feature-row:nth-child(even).device-selected {
-        background-color: #185a18;
-    }
-</style>

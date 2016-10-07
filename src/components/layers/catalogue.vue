@@ -37,9 +37,9 @@
           <label for="switchBaseLayers" class="side-label">Switch out base layers automatically</label>
         </div>
         <div id="layers-catalogue-list">
-          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" @click="onToggle($index)" track-by="id" @mouseleave="preview(false)">
+          <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" track-by="id" @mouseleave="preview(false)">
             <div class="small-10">
-              <a v-if="l.systemid" @click.stop.prevent="edit" href="{{oimService}}/django-admin/catalogue/record/{{l.systemid}}/change/" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
+              <a v-if="l.systemid" @click.stop.prevent="map.editResource($event)" href="{{oimService}}/django-admin/catalogue/record/{{l.systemid}}/change/" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
             </div>
             <div class="small-2">
@@ -125,15 +125,10 @@ div.ol-overviewmap.ol-uncollapsible {
         layerDetails: false
       }
     },
+    computed: {
+      map: function () { return this.$root.$refs.app.$refs.map },
+    },
     methods: {
-      edit: function(event) {
-            var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
-            if (env.appType == "cordova") {
-                window.open(target.href,"_system");
-            } else {
-                window.open(target.href,target.target);
-            }
-      },
       preview: function (l) {
         if (this.layer === l) {
           return
@@ -223,6 +218,10 @@ div.ol-overviewmap.ol-uncollapsible {
             // set the opacity to 50% for layers tagged 'overlaymap'
             if (l.tags.some(function (t) { return t.name === 'overlaymap' })) {
                 l.opacity = 0.5
+            }
+            // set the refresh interval to 10 minutes
+            if (l.tags.some(function (t) { return t.name === 'livemap' })) {
+                l.refresh = 600
             }
             // 
             vm.catalogue.push(l)

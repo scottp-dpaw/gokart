@@ -72,13 +72,21 @@
     },
     // methods callable from inside the template
     methods: {
+      editResource: function(event) {
+        var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
+        if (env.appType == "cordova") {
+            window.open(target.href,"_system");
+        } else {
+            window.open(target.href,target.target);
+        }
+      },
       tintSVG: function(svgstring, tints) {
         tints.forEach(function(colour) {
           svgstring = svgstring.split(colour[0]).join(colour[1])
         })
         return svgstring
       },
-      getBlob: function(feature, keys,tintSettings) {
+      getBlob: function(feature, keys,tintSettings,callback) {
         // method to precache SVGs as raster (PNGs)
         // workaround for Firefox missing the SurfaceCache when blitting to canvas
         // returns a url or undefined if svg isn't baked yet
@@ -89,21 +97,30 @@
         if (this.svgBlobs[key]) {
           return this.svgBlobs[key]
         } else if (this.jobs[key]) {
-           vm.jobs[key].then(function(){
+          vm.jobs[key].then(function(){
                 feature.changed()
-            })
+                if (callback) {callback()}
+          })
         } else {
           var dims = feature.get('dims') || [48, 48]
           var tint = feature.get('tint')
           tint = (tintSettings)?tintSettings[tint]:[]
           var url = feature.get('icon')
+          if (typeof tint === "string") {
+            //tint is not just a color replacement, is a totally different icon
+            url = tint
+            tint = []
+          }
           vm.jobs[key] = new Promise(function(resolve, reject) {
             vm.addSVG(key, url, tint, dims, resolve)
           }).then(function() {
             feature.changed()
             delete vm.jobs[key]
+            if (callback) {callback()}
           })
         }
+
+
       },
       addSVG: function(key, url, tint, dims, pResolve) {
         var vm = this
@@ -165,7 +182,7 @@
             //console.log('drawSVG: Canvas drawn for '+key)
             canvas.get(0).toBlob(function (blob) {
               vm.svgBlobs[key] = window.URL.createObjectURL(blob)
-              //console.log("drawSVG:" + key)
+              console.log("drawSVG:" + key + "\t url = " + vm.svgBlobs[key])
               resolve()
             }, 'image/png')
           }
@@ -587,19 +604,28 @@
         })
         vector.progress = ''
 
-        vectorSource.loadSource = function (onSuccess) {
+        vectorSource.loadSource = function (loadType,onSuccess) {
           if (options.cql_filter) {
             options.params.cql_filter = options.cql_filter
           } else if (options.params.cql_filter) {
             delete options.params.cql_filter
           }
+          vm.$root.active.refreshRevision += 1
           vector.progress = 'loading'
           $.ajax({
             url: url + '?' + $.param(options.params),
             success: function (response, stat, xhr) {
               var features = vm.$root.geojson.readFeatures(response)
-              vectorSource.clear(true)
-              vectorSource.addFeatures(features)
+              var defaultOnload = function(loadType,source,features) {
+                  source.clear(true)
+                  source.addFeatures(features)
+              }
+              if (options.onload) {
+                options.onload(loadType,vectorSource,features,defaultOnload)
+              } else {
+                defaultOnload(loadType,vectorSource,features)
+              }
+              vm.$root.active.refreshRevision += 1
               vector.progress = 'idle'
               vector.set('updated', moment().toLocaleString())
               vectorSource.dispatchEvent('loadsource')
@@ -608,6 +634,7 @@
               }
             },
             error: function () {
+              vm.$root.active.refreshRevision += 1
               vector.progress = 'error'
             },
             dataType: 'json',
@@ -635,14 +662,38 @@
         // to update the source
         if (options.refresh && !vector.autoRefresh) {
           vector.autoRefresh = setInterval(function () {
-            vectorSource.loadSource()
+            vectorSource.loadSource("auto")
           }, options.refresh * 1000)
         }
         // populate the source with data
-        vectorSource.loadSource()
+        vectorSource.loadSource("initial")
 
         vector.set('name', options.name)
         vector.set('id', options.id)
+
+        vector.stopAutoRefresh = function() {
+            if (this.autoRefresh) {
+                clearInterval(this.autoRefresh)
+                //console.log("Stop auto refresh for layer (" + options.id + ")")
+                delete this.autoRefresh
+            }
+        }
+
+        vector.startAutoRefresh = function() {
+            if (!options.refresh) {
+                //not refreshable
+                return
+            } 
+            if(this.autoRefresh) {
+                //already started
+                return
+            }
+            this.autoRefresh = setInterval(function () {
+                vectorSource.loadSource("auto")
+            }, options.refresh * 1000)
+            //console.log("Start auto refresh for layer (" + options.id + ") with interval " + options.refresh)
+        }
+
         return vector
       },
       createAnnotations: function (layer) {
@@ -650,6 +701,7 @@
       },
       // loader to create a WMTS layer from a kmi datasource
       createTileLayer: function (layer) {
+        var vm = this
         if (layer.base) {
           layer.format = 'image/jpeg'
         }
@@ -695,6 +747,15 @@
           tileGrid: tileGrid
         })
 
+        tileSource.setUrlTimestamp = function() {
+            var originFunc = tileSource.getTileUrlFunction()
+            return function(time) {
+                tileSource.setTileUrlFunction(function(tileCoord,pixelRatio,projection){
+                    return originFunc(tileCoord,pixelRatio,projection) + "&time=" + time
+                },tileSource.getUrls()[0] + "?time=" + time)
+            }
+        }()
+
         var tileLayer = new ol.layer.Tile({
           opacity: layer.opacity || 1,
           source: tileSource
@@ -711,19 +772,50 @@
           }
         }   
 
+
         // if the "refresh" option is set, set a timer
         // to force a reload of the tile content
         if (layer.refresh) {
           tileLayer.set('updated', moment().toLocaleString())
-          tileLayer.autoRefresh = setInterval(function () {
+          vm.$root.active.refreshRevision += 1
+          tileSource.load = function() {
             tileLayer.set('updated', moment().toLocaleString())
-            tileSource.setUrl(layer.wmts_url + '?time=' + moment.utc().unix())
+            tileSource.setUrlTimestamp(moment.utc().unix())
+            vm.$root.active.refreshRevision += 1
+          }
+          tileLayer.autoRefresh = setInterval(function () {
+            tileSource.load()
           }, layer.refresh * 1000)
         }
 
         // set properties for use in layer selector
         tileLayer.set('name', layer.name)
         tileLayer.set('id', layer.id)
+
+        tileLayer.stopAutoRefresh = function() {
+            if (this.autoRefresh) {
+                clearInterval(this.autoRefresh)
+                //console.log("Stop auto refresh for layer (" + layer.id + ")")
+                delete this.autoRefresh
+            }
+        }
+
+        tileLayer.startAutoRefresh = function() {
+            if (!layer.refresh) {
+                //not refreshable
+                return
+            } 
+            if(this.autoRefresh) {
+                //already started
+                return
+            }
+            this.autoRefresh = setInterval(function () {
+                tileSource.load()
+            }, layer.refresh * 1000)
+            //console.log("Start auto refresh for layer (" + layer.id + ") with interval " + layer.refresh)
+        }
+
+
         return tileLayer
       },
       searchKeyFix: function (ev) {
@@ -779,14 +871,9 @@
         })
       },
       // initialise map
-      init: function (catalogue, layers, options) {
+      init: function (options) {
         var vm = this
         options = options || {}
-        this.$root.catalogue.catalogue.extend(catalogue)
-        var initialLayers = layers.reverse().map(function (value) {
-          var layer = $.extend(vm.$root.catalogue.getLayer(value[0]), value[1])
-          return vm['create' + layer.type](layer)
-        })
 
         // add some extra projections
         proj4.defs("EPSG:28349","+proj=utm +zone=49 +south +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
@@ -808,7 +895,6 @@
           logo: false,
           renderer: 'canvas',
           target: 'map',
-          layers: initialLayers,
           view: new ol.View({
             projection: 'EPSG:4326',
             center: vm.view.center,
@@ -868,6 +954,29 @@
           vm.$els.scale.selectedIndex = 0
         })
 
+      },
+      initLayers: function (catalogue, layers) {
+        var vm = this
+        //add the hardcoded layers to category
+        $.each(catalogue,function(index,layer) {
+            var catLayer = vm.$root.catalogue.getLayer(layer.id)
+            if (catLayer) {
+                //hardcoded layer already exist, update the properties 
+                $.extend(catLayer,layer)
+            } else {
+                //hardcoded layer not exist, add it
+                vm.$root.catalogue.catalogue.push(layer)
+            }
+        })
+        //create active open layers 
+        var initialLayers = layers.reverse().map(function (value) {
+          var layer = $.extend(vm.$root.catalogue.getLayer(value[0]), value[1])
+          return vm['create' + layer.type](layer)
+        })
+        //add active layers into map
+        $.each(initialLayers,function(index,layer){
+            vm.olmap.addLayer(layer)
+        })
         // tell other components map is ready
         this.$root.$broadcast('gk-init')
       }
