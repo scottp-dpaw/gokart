@@ -42,10 +42,10 @@
     <div class="row collapse">
       <div id="layer-config" class="columns">
         <h4 v-if="mapLayer()">{{ layer.name }}</h4>
-        <div class="tool-slice row" v-if="layer.refresh">
+        <div class="tool-slice row" v-if="layerRefreshConfigable()">
           <div class="columns small-2"><label class="tool-label">Refresh:<br/>{{ formattedLayerRefreshInterval }}</label></div>
           <div class="columns small-9">
-            <input class="layer-opacity" v-if="layerRefreshConfigable()" type="range" :min="layer.min_interval" :max="layer.max_interval" :step="layer.interval_step || 1" v-model="layerRefreshInterval">
+            <input class="layer-opacity" v-if="layerRefreshIntervalConfigable()" type="range" :min="layer.min_interval" :max="layer.max_interval" :step="layer.interval_step || 1" v-model="layerRefreshInterval">
           </div>
           <div class="columns small-1">
             <a title="Stop auto refresh" v-if="!layerRefreshStopped" class="button tiny secondary float-right" @click="stopLayerRefresh()" ><i class="fa fa-stop"></i></a>
@@ -174,7 +174,11 @@
       },
       layerRefreshConfigable:function(id) {
         var layer = id?this.getLayer(id):this.layer
-        return layer.type === "WFSLayer" && layer.refresh && layer.min_interval && layer.max_interval && true
+        return (layer.type === "WFSLayer" || layer.type === "TileLayer") && layer.refresh && true
+      },
+      layerRefreshIntervalConfigable:function(id) {
+        var layer = id?this.getLayer(id):this.layer
+        return (layer.type === "WFSLayer" || layer.type === "TileLayer") && layer.refresh && layer.min_interval && layer.max_interval && true
       },
       layerRefreshProgress: function(l) {
         var tmp = this.refreshRevision

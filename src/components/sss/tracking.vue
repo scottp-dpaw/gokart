@@ -109,7 +109,7 @@
               <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f) }"
                 @click="toggleSelect(f)" track-by="get('id')">
                 <div class="columns">
-                  <a @click.stop.prevent="edit" href="{{sssService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
+                  <a @click.stop.prevent="map.editResource($event)" href="{{sssService}}/sss_admin/tracking/device/{{ f.get('id') }}/change/" target="_blank" class="button tiny secondary float-right"><i class="fa fa-pencil"></i></a>
                   <div class="feature-title"><img class="feature-icon" id="device-icon-{{f.get('id')}}" v-bind:src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small>({{ ago(f.get('seen')) }})</small></i></div>
                 </div>
               </div>
@@ -210,14 +210,6 @@
                 element.value = m.format(pattern)
             }
         }
-      },
-      edit: function(event) {
-            var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
-            if (env.appType == "cordova") {
-                window.open(target.href,"_system");
-            } else {
-                window.open(target.href,target.target);
-            }
       },
       ago: function (time) {
         var now = moment()
@@ -484,6 +476,7 @@
           vm.updateTracking()
         }, 100)
         map.olmap.getView().on('propertychange', viewChanged)
+        viewChanged()
 
         var layersAdded = global.debounce(function () {
           var mapLayer = vm.trackingMapLayer

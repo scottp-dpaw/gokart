@@ -7,33 +7,33 @@
                     <gk-layers v-ref:layers></gk-layers>
                     <gk-annotations v-ref:annotations></gk-annotations>
                     <gk-tracking v-ref:tracking></gk-tracking>
-                    <gk-bfrs v-ref:bfrs></gk-bfrs>
+                    <!--gk-bfrs v-ref:bfrs></gk-bfrs-->
                 </div>
             </div>
             <div class="off-canvas-content" data-off-canvas-content>
                 <ul class="tabs vertical map-widget" id="menu-tabs" data-tabs>
                     <li class="tabs-title side-button is-active">
-                        <a href="#menu-tab-layers" title="Map Layers" @click="$root.annotations.setTool('Pan')">
+                        <a href="#menu-tab-layers" title="Map Layers" @click="switchMenu('mapLayers',init)">
                             <svg class="icon">
                                 <use xlink:href="dist/static/images/iD-sprite.svg#icon-layers"></use>
                             </svg>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-annotations" title="Annotations" @click="$root.annotations.init()">
+                        <a href="#menu-tab-annotations" title="Annotations" @click="switchMenu('annotations',$root.annotations.init)">
                             <i class="fa fa-pencil" aria-hidden="true"></i>
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="$root.tracking.init()">
+                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="switchMenu('vehicleTracking',$root.tracking.init)">
                             <i class="fa fa-truck" aria-hidden="true"></i>
                         </a>
                     </li>
-                    <li class="tabs-title side-button">
-                        <a href="#menu-tab-bfrs" title="Bushfire Report System" @click="$root.bfrs.init()">
+                    <!--li class="tabs-title side-button">
+                        <a href="#menu-tab-bfrs" title="Bushfire Report System" @click="switchMenu('bushfireReportSystem',$root.bfrs.init)">
                             <i class="fa fa-fire" aria-hidden="true"></i>
                         </a>
-                    </li>
+                    </li-->
                 </ul>
                 <gk-map v-ref:map></gk-map>
             </div>
@@ -46,13 +46,32 @@
     import gkLayers from '../components/layers.vue'
     import gkAnnotations from '../components/annotations.vue'
     import gkTracking from '../components/sss/tracking.vue'
-    import gkBfrs from '../components/sss/bfrs.vue'
+    //import gkBfrs from '../components/sss/bfrs.vue'
     import { ol } from 'src/vendor.js'
 
 
     export default { 
-      components: { gkMap, gkLayers, gkAnnotations, gkTracking,gkBfrs },
+      data: function() {
+        return {
+            activeMenu : null
+        }
+      },
+      components: { gkMap, gkLayers, gkAnnotations, gkTracking},//,gkBfrs },
       methods: {
+        init: function() {
+            this.$root.annotations.setTool('Pan')
+        },
+        switchMenu: function(menu,initFunc) {
+            if (this.activeMenu && this.activeMenu == menu) {
+                //click on the active menu, do nothing
+                return
+            } else {
+                this.activeMenu = menu
+                if (initFunc) {
+                    initFunc()
+                }
+            }
+        }
       }
     }
 </script>

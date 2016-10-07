@@ -58,6 +58,7 @@ var defaultStore = {
   oimService:env.oimService,
   sssService:env.sssService,
   bfrsService:env.bfrsService,
+  appType:env.appType,
   // default matrix from KMI
   resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
   // fixed scales for the scale selector (1:1K increments)
@@ -152,8 +153,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         $(this).attr('aria-selected', true)
         self.map.olmap.updateSize()
       }).on('click', '.tabs-title a[aria-selected=true]', function (ev) {
-        offCanvasLeft.removeClass('reveal-responsive')
-        $(this).attr('aria-selected', false)
+        offCanvasLeft.toggleClass('reveal-responsive')
         self.map.olmap.updateSize()
       })
       $('#side-pane-close').on('click', function (ev) {
@@ -372,9 +372,11 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.annotations.tools.push(tool)
       })
 
-      // load map with default layers
-      self.map.init(self.fixedLayers, self.store.activeLayers)
+      // load map without layers
+      self.map.init()
       self.catalogue.loadRemoteCatalogue(self.store.remoteCatalogue, function () {
+        //add default layers
+        self.map.initLayers(self.fixedLayers, self.store.activeLayers)
         // after catalogue load trigger a tour
         if (self.store.tourVersion !== tour.version) {
           self.store.tourVersion = tour.version

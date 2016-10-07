@@ -695,7 +695,7 @@
       this.ui.defaultSelect = {
         name: 'Select',
         icon: 'fa-mouse-pointer',
-        scope:["annotation","bushfirereport"],
+        scope:["annotation"],
         interactions: [
           this.ui.keyboardInter,
           this.ui.dragSelectInter,

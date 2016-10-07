@@ -88,10 +88,10 @@
                 <div class="columns">
                   <span class="feature-title"><img class="feature-icon" id="report-icon-{{f.get(reportKey)}}" v-bind:Src="featureIconSrc(f)" /> {{ f.get('label') }} <i><small></small></i></span>
                   <span class="float-right">
-                      <a @click.stop.prevent="edit" v-if="isModified(f)" class="button tiny secondary" href="{{editUrl(f)}}" target="_blank">
+                      <a @click.stop.prevent="map.editResource($event)" v-if="isModified(f)" class="button tiny secondary" href="{{editUrl(f)}}" target="_blank">
                         <i class="fa fa-save"></i>
                       </a>
-                      <a @click.stop.prevent="edit" href="{{editUrl(f)}}" target="_blank" class="button tiny secondary"><i class="fa {{editIcon(f)}}"></i></a>
+                      <a @click.stop.prevent="map.editResource($event)" href="{{editUrl(f)}}" target="_blank" class="button tiny secondary"><i class="fa {{editIcon(f)}}"></i></a>
                   </span>
                 </div>
               </div>
@@ -103,10 +103,10 @@
     </div>
   </div>
   <div id="bushfireReportEditOverlay" >
-    <a v-if="isModified()" class="button tiny secondary" href="{{editUrl()}}" target="_blank">
+    <a v-if="isModified()" @click.stop.prevent="map.editResource($event)" class="button tiny secondary" href="{{editUrl()}}" target="_blank">
         <i class="fa fa-save"></i>
     </a>
-    <a class="button tiny secondary" href="{{editUrl()}}" target="_blank">
+    <a @click.stop.prevent="map.editResource($event)" class="button tiny secondary" href="{{editUrl()}}" target="_blank">
         <i class="fa {{editIcon()}}"></i>
     </a>
   </div>
@@ -207,14 +207,6 @@
                 element.value = m.format(pattern)
             }
         }
-      },
-      edit: function(event) {
-            var target = (event.target.nodeName == "A")?event.target:event.target.parentNode;
-            if (env.appType == "cordova") {
-                window.open(target.href,"_system");
-            } else {
-                window.open(target.href,target.target);
-            }
       },
       isEditable: function(f) {
         return ["draft","modified"].indexOf(f.get('baseTint')) >= 0
@@ -364,7 +356,7 @@
         vm.allFeatures.sort(vm.resourceOrder)
       },
       init: function() {
-        // enable resource tracking layer, if disabled
+        // enable bushfire report layer, if disabled
         var catalogue = this.$root.catalogue
         if (!this.reportMapLayer) {
           catalogue.onLayerChange(this.reportLayer, true)
@@ -372,7 +364,7 @@
 
         this.selectable = [this.reportMapLayer]
         this.annotations.selectable = this.selectable
-        this.annotations.setTool('Select')
+        this.annotations.setTool('Pan')
       }
     },
     ready: function () {
@@ -526,6 +518,7 @@
           vm.updateReport()
         }, 100)
         map.olmap.getView().on('propertychange', viewChanged)
+        viewChanged()
 
         var layersAdded = global.debounce(function () {
           var mapLayer = vm.reportMapLayer

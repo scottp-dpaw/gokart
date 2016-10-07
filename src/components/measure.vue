@@ -231,10 +231,10 @@
       var measureLength = {
         name: 'MeasureLength',
         interactions:[
-            map.dragPanInter,
-            map.doubleClickZoomInter,
-            map.keyboardPanInter,
-            map.keyboardZoomInter,
+            //map.dragPanInter,
+            //map.doubleClickZoomInter,
+            //map.keyboardPanInter,
+            //map.keyboardZoomInter,
             measureLengthInter,
         ]
       }
@@ -251,10 +251,10 @@
       var measureArea = {
         name: 'MeasureArea',
         interactions:[
-            map.dragPanInter,
-            map.doubleClickZoomInter,
-            map.keyboardPanInter,
-            map.keyboardZoomInter,
+            //map.dragPanInter,
+            //map.doubleClickZoomInter,
+            //map.keyboardPanInter,
+            //map.keyboardZoomInter,
             measureAreaInter
         ]
       }
