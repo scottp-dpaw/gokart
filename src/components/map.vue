@@ -412,7 +412,7 @@
         }
         return results
       },
-      queryFD: function(fdStr, callback) {
+      queryFD: function(fdStr, victory, failure) {
         $.ajax({
           url: this.defaultWFSSrc + '?' + $.param({
             version: '1.1.0',
@@ -429,14 +429,14 @@
           },
           success: function(data, status, xhr) {
             if (data.features.length) {
-              callback(data.features[0].geometry.coordinates, "FD "+fdStr)
+              victory(data.features[0].geometry.coordinates, "FD "+fdStr)
             } else {
-              console.log('No Forest Department Grid reference found for '+pilStr)
+              failure('No Forest Department Grid reference found for '+fdStr)
             }
           }
         })
       },
-      queryPIL: function(pilStr, callback) {
+      queryPIL: function(pilStr, victory, failure) {
         $.ajax({
           url: this.defaultWFSSrc + '?' + $.param({
             version: '1.1.0',
@@ -453,9 +453,9 @@
           },
           success: function(data, status, xhr) {
             if (data.features.length) {
-              callback(data.features[0].geometry.coordinates, "PIL "+pilStr)
+              victory(data.features[0].geometry.coordinates, "PIL "+pilStr)
             } else {
-              console.log('No Pilbara Grid reference found for '+pilStr)
+              failure('No Pilbara Grid reference found for '+pilStr)
             }
           }
         })
@@ -463,7 +463,7 @@
       getCenter: function() {
         return this.olmap.getView().getCenter();
       },
-      queryGeocode: function(geoStr, callback) {
+      queryGeocode: function(geoStr, victory, failure) {
         var center = this.getCenter()
         $.ajax({
           url: gokartService
@@ -478,9 +478,9 @@
           success: function(data, status, xhr) {
             if (data.features.length) {
               var feature = data.features[0]
-              callback(feature.center, feature.text)
+              victory(feature.center, feature.text)
             } else {
-              console.log('No results found for '+geoStr)
+              failure('No location match found for '+geoStr)
             }
           }
         })
@@ -830,10 +830,18 @@
         }
 
         var victory = function (coords, name) {
+          $('#map-search, #map-search-button').addClass('success')
           vm.animatePan(coords)
           vm.animateZoom(vm.resolutions[10])
           console.log([name, coords[0], coords[1]])
         }
+
+        var failure = function (reason) {
+          $('#map-search, #map-search-button').addClass('alert')
+          console.log(reason)
+        }
+
+        $('#map-search, #map-search-button').removeClass('alert success')
 
         // check for EPSG:4326 coordinates
         var dms = this.parseDMSString(query)
@@ -853,15 +861,15 @@
         var gd = this.parseGridString(query)
         if (gd) {
           if (gd.gridType === 'FD') {
-            this.queryFD(gd.gridNorth+' '+gd.gridEast, victory)
+            this.queryFD(gd.gridNorth+' '+gd.gridEast, victory, failure)
             return
           } else {
-            this.queryPIL(gd.gridNorth+gd.gridEast, victory)
+            this.queryPIL(gd.gridNorth+gd.gridEast, victory, failure)
           }
         }
 
         // failing all that, ask mapbox
-        this.queryGeocode(query, victory)
+        this.queryGeocode(query, victory, failure)
         
       },
       getMapLayer: function (id) {
