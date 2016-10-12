@@ -39,7 +39,7 @@
         <div id="layers-catalogue-list">
           <div v-for="l in catalogue.getArray() | filterBy search in searchAttrs | orderBy 'name'" class="row layer-row" @mouseover="preview(l)" track-by="id" @mouseleave="preview(false)">
             <div class="small-10">
-              <a v-if="l.systemid" @click.stop.prevent="map.editResource($event)" href="{{oimService}}/django-admin/catalogue/record/{{l.systemid}}/change/" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
+              <a v-if="l.systemid" @click.stop.prevent="map.editResource($event)" title="Edit catalogue entry" href="{{oimService}}/django-admin/catalogue/record/{{l.systemid}}/change/" target="_blank" class="button tiny secondary float-right short"><i class="fa fa-pencil"></i></a>
               <div class="layer-title">{{ l.name || l.id }}</div>
             </div>
             <div class="small-2">
