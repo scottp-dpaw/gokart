@@ -11,6 +11,25 @@
       <div class="columns">
         <div class="tabs-content vertical" data-tabs-content="tracking-tabs">
           <div id="tracking-list-tab" class="tabs-panel is-active" v-cloak>
+            <div class="tool-slice row collapse">
+              <div class="small-12">
+                <div class="expanded button-group">
+                  <a v-for="t in tools | filterIf 'showName' undefined" class="button button-tool" v-bind:class="{'selected': t.name == annotations.tool.name}"
+                    @click="annotations.setTool(t)" v-bind:title="t.name">{{{ annotations.icon(t) }}}</a>
+                </div>
+                <div class="row resetmargin">
+                  <div class="small-6 rightmargin">
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == annotations.tool.name}" @click="annotations.setTool(t)"
+                      v-bind:title="t.name">{{{ annotations.icon(t) }}} {{ t.name }}</a>
+                  </div>
+                  <div class="small-6">
+                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == annotations.tool.name}" @click="annotations.setTool(t)"
+                      v-bind:title="t.name">{{{ annotations.icon(t) }}} {{ t.name }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr class="row"></hr>
             <div class="row">
               <div class="switch tiny">
                 <input class="switch-input" id="resourcesInViewport" type="checkbox" v-model="viewportOnly" />
@@ -143,6 +162,7 @@
         selectedOnly: false,
         search: '',
         cql: '',
+        tools: [],
         history: '',
         fields: ['id', 'name', 'callsign', 'deviceid', 'symbol', 'district'],
         allFeatures: [],
@@ -165,6 +185,7 @@
     },
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      annotations: function () { return this.$root.$refs.app.$refs.annotations },
       features: function () {
         if (this.viewportOnly) {
           return this.extentFeatures
@@ -506,6 +527,9 @@
           if (event.element.get('deviceid')) {
             vm.selectedDevices.$remove(event.element.get('deviceid'))
           }
+        })
+        vm.tools = vm.annotations.tools.filter(function (t) {
+          return t.scope && t.scope.indexOf("resourcetracking") >= 0
         })
       })
     }

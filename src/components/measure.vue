@@ -289,7 +289,8 @@
       this.wgs84Sphere = new ol.Sphere(6378137);
       this.$on("gk-init",function(){
         vm.$root.map.olmap.addControl(new ol.control.Control({
-          element: $('#map-measure').get(0)
+          element: $('#map-measure').get(0),
+	  target: $('#external-controls').get(0)
         }))
       })
     }

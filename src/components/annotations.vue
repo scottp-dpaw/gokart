@@ -671,7 +671,7 @@
       this.tool = this.ui.defaultPan = {
         name: 'Pan',
         icon: 'fa-hand-paper-o',
-        scope:["annotation","bushfirereport"],
+        scope:["annotation","bushfirereport","resourcetracking"],
         interactions: [
           map.dragPanInter,
           map.doubleClickZoomInter,
@@ -695,7 +695,7 @@
       this.ui.defaultSelect = {
         name: 'Select',
         icon: 'fa-mouse-pointer',
-        scope:["annotation"],
+        scope:["annotation","resourcetracking"],
         interactions: [
           this.ui.keyboardInter,
           this.ui.dragSelectInter,
