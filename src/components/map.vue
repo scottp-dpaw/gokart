@@ -824,6 +824,7 @@
       },
       runSearch: function () {
         var vm = this
+        $('#map-search, #map-search-button').removeClass('alert success')
         var query = $("#map-search").get(0).value
         if (!query) { 
           return 
@@ -841,7 +842,6 @@
           console.log(reason)
         }
 
-        $('#map-search, #map-search-button').removeClass('alert success')
 
         // check for EPSG:4326 coordinates
         var dms = this.parseDMSString(query)
