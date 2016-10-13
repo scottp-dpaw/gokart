@@ -89,7 +89,7 @@ def setUp():
     print "Succeed to remove outdated gokart static resource from cordova project."
 
     print "Begin to copy gokart static resource into cordova project."
-    returncode = subprocess.call(["rsync","-vpogtIrk","--progress","{}/".format(source_dist_dir), "{}/".format(cordova_dist_dir),"--exclude","node_modules".format(source_dist_dir),"--exclude","*.js.map"])
+    returncode = subprocess.call(["rsync","-vpogtIrk","--progress","{}/".format(source_dist_dir), "{}/".format(cordova_dist_dir),"--exclude","node_modules".format(source_dist_dir)])
     if returncode != 0:
         raise "Fail to copy gokart static resource into cordova project."
 

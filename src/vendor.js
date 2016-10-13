@@ -61,6 +61,14 @@ var saveAs = function (blob,name,no_auto_bom) {
     }
 }
 
+ol.control.FullScreen.getChangeType_ = (function() {
+    var originFunc = ol.control.FullScreen.getChangeType_
+    return function() {
+        return originFunc() || ""
+    }
+})()
+
+
 export {
   $,
   ol,

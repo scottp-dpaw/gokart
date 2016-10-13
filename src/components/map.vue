@@ -903,7 +903,7 @@
             minZoom: 5
           }),
           controls: [
-            new ol.control.Zoom(),
+            new ol.control.Zoom({target: $('#external-controls').get(0)}),
             new ol.control.ScaleLine(),
             new ol.control.MousePosition({
                 coordinateFormat: function(coordinate) {
@@ -912,18 +912,22 @@
             }),
             new ol.control.FullScreen({
               source: $('body').get(0),
+	      target: $('#external-controls').get(0),
               label: $('<i/>', {
                 class: 'fa fa-expand'
               })[0]
             }),
             new ol.control.Control({
-              element: $('#menu-scale').get(0)
+              element: $('#menu-scale').get(0),
+	      target: $('#external-controls').get(0)
             }),
             new ol.control.Control({
-              element: $('#map-search').get(0)
+              element: $('#map-search').get(0),
+              target: $('#external-controls').get(0)
             }),
             new ol.control.Control({
-              element: $('#map-search-button').get(0)
+              element: $('#map-search-button').get(0),
+              target: $('#external-controls').get(0)
             }),
             new ol.control.Attribution()
           ],
