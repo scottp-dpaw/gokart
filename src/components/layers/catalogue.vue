@@ -55,6 +55,9 @@
             </div>
           </div>
         </div>
+        <div class="row" id="cat-loading" v-if="loadingMessage">
+          {{ loadingMessage }}
+        </div>
         <div v-el:layerdetails class="hide">
           <div class="layerdetails row">
             <div class="columns small-12">
@@ -105,6 +108,13 @@ div.ol-overviewmap.ol-uncollapsible {
 .cat-legend {
     max-height: 50vh;
 }
+
+#cat-loading {
+    padding: 0.5em;
+    font-style: italic;
+    text-align: center;
+}
+
 </style>
 
 <script>
@@ -118,6 +128,7 @@ div.ol-overviewmap.ol-uncollapsible {
       return {
         layer: {},
         catalogue: new ol.Collection(),
+        loadingMessage: '',
         swapBaseLayers: true,
         search: '',
         searchAttrs: ['name', 'id', 'tags'],
@@ -202,9 +213,11 @@ div.ol-overviewmap.ol-uncollapsible {
       // helper to populate the catalogue from a remote service
       loadRemoteCatalogue: function (url, callback) {
         var vm = this
+        vm.loadingMessage = 'Loading layer catalogue...';
         var req = new window.XMLHttpRequest()
         req.withCredentials = true
         req.onload = function () {
+          vm.loadingMessage = '';
           JSON.parse(this.responseText).forEach(function (l) {
             // overwrite layers in the catalogue with the same identifier
             if (vm.getLayer(l.identifier)) {
@@ -227,6 +240,9 @@ div.ol-overviewmap.ol-uncollapsible {
             vm.catalogue.push(l)
           })
           callback()
+        }
+        req.onerror = function (ev) {
+          vm.loadingMessage = 'Couldn\'t load layer catalogue ('+req.statusText+')'
         }
         req.open('GET', url)
         req.send()
