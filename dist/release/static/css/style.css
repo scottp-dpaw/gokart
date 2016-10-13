@@ -532,38 +532,17 @@ input[type="range"] {
 .ol-control button,
 .ol-control button:focus,
 .ol-scale-line,
-#menu-scale,
-#map-search,
-#map-search-button,
-.ol-mouse-position {
+.ol-mouse-position,
+.map-control {
     background-color: rgba(37, 45, 51, 0.7);
 }
 
 .ol-control button:hover,
 .ol-scale-line:hover,
-#menu-scale:hover,
-#map-search:hover,
-#map-search-button:hover,
-.ol-mouse-position:hover {
+.ol-mouse-position:hover,
+.map-control:hover {
     background-color: rgba(37, 45, 51, 0.9);
 }
-
-#map-search.alert, #map-search-button.alert {
-    background-color: rgba(125, 47, 34, 0.7);
-}
-
-#map-search:hover.alert, #map-search-button:hover.alert {
-    background-color: rgba(125, 47, 34, 0.9);
-}
-
-#map-search.success, #map-search-button.success {
-    background-color: rgba(53, 94, 26, 0.7);
-}
-
-#map-search:hover.success, #map-search-button:hover.success {
-    background-color: rgba(53, 94, 26, 0.9);
-}
-
 
 .reveal-overlay {
     left:auto;
