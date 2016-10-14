@@ -178,7 +178,6 @@
       var map = this.$root.map
 
       this.style = function (feature, resolution) {
-        console.log('Hit style function for '+feature.get('name'))
         return new ol.style.Style({
           image: new ol.style.Circle({
             radius: 5,
