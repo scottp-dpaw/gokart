@@ -68,6 +68,12 @@ ol.control.FullScreen.getChangeType_ = (function() {
     }
 })()
 
+ol.control.FullScreen.isFullScreenSupported = (function() {
+    var originFunc =  ol.control.FullScreen.isFullScreenSupported
+    return function() {
+        return (env.appType == "cordova")?false:originFunc()
+    }    
+})()
 
 export {
   $,

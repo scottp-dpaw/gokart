@@ -46,6 +46,7 @@
     },
     // parts of the template to be computed live
     computed: {
+      loading: function () { return this.$root.loading },
       // scale string for the current map zoom level
       scaleString: function () {
         return this.getScaleString(this.scale)
@@ -989,11 +990,10 @@
         $.each(initialLayers,function(index,layer){
             vm.olmap.addLayer(layer)
         })
-        // tell other components map is ready
-        this.$root.$broadcast('gk-init')
       }
     },
     ready: function () {
+      this.loading.begin("Map Component","Initialize")
       this.svgBlobs = {}
       this.svgTemplates = {}
       this.cachedStyles = {}
@@ -1009,6 +1009,7 @@
           matrixSet.matrixIds = matrixIds
         })
       })
+      this.loading.end("Map Component")
     }
   }
 </script>

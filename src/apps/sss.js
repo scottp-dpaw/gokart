@@ -112,6 +112,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       }
     },
     computed: {
+      loading: function () { return this.$refs.app.$refs.loading },
       map: function () { return this.$refs.app.$refs.map },
       info: function () { return this.$refs.app.$refs.map.$refs.info },
       active: function () { return this.$refs.app.$refs.layers.$refs.active },
@@ -125,6 +126,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
     },
     ready: function () {
       var self = this
+      self.loading.begin("SSS","Initialize")
       // setup foundation, svg url support
       $(document).foundation()
       svg4everybody()
@@ -373,11 +375,20 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       })
 
       // load map without layers
+      self.loading.progress("SSS",10,"Initialize olmap")
       self.map.init()
+      self.loading.wait("SSS",30,"Remote Catalogue")
       self.catalogue.loadRemoteCatalogue(self.store.remoteCatalogue, function () {
         //add default layers
+        self.loading.progress("SSS",70,"Initialize Active Layers")
         self.map.initLayers(self.fixedLayers, self.store.activeLayers)
+        // tell other components map is ready
+        self.loading.progress("SSS",80,"Emit 'gk-init' event")
+        self.$broadcast('gk-init')
         // after catalogue load trigger a tour
+        $("#menu-tab-layers-label").trigger("click")
+        self.loading.end("SSS")
+        self.loading.completed()
         if (self.store.tourVersion !== tour.version) {
           self.store.tourVersion = tour.version
           self.export.saveState()

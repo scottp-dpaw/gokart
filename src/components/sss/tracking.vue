@@ -186,6 +186,7 @@
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
       annotations: function () { return this.$root.$refs.app.$refs.annotations },
+      loading: function () { return this.$root.loading },
       features: function () {
         if (this.viewportOnly) {
           return this.extentFeatures
@@ -420,6 +421,7 @@
     },
     ready: function () {
       var vm = this
+      this.loading.begin("Resource Tracking Component","Initialize")
       var map = this.$root.map
 
       var resourceTrackingStyle = function (res) {
@@ -500,6 +502,7 @@
         cql_filter: false
       })
 
+      this.loading.wait("Resource Tracking Component",80,"'gk-init' event")
       // post init event hookup
       this.$on('gk-init', function () {
         var viewChanged = global.debounce(function () {
@@ -531,6 +534,7 @@
         vm.tools = vm.annotations.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("resourcetracking") >= 0
         })
+        this.loading.end("Resource Tracking Component")
       })
     }
   }

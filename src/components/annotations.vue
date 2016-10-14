@@ -193,6 +193,7 @@
     },
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      loading: function () { return this.$root.loading },
       featureEditing: function() {
         if (this.tool == this.ui.editStyle && this.selectedFeatures.getLength() > 0) {
             return this.selectedFeatures.item(0)
@@ -491,6 +492,7 @@
     },
     ready: function () {
       var vm = this
+      this.loading.begin("Annotation Component", "Initialize")
       var map = this.map
       // collection to store all annotation features
       this.features.on('add', function (ev) {
@@ -848,11 +850,15 @@
         name: 'My Annotations'
       })
 
+      this.loading.wait("Annotation Component",80,"'gk-init' event")
       this.$on("gk-init",function() {
         vm.annotationTools = this.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("annotation") >= 0
         })
+        vm.loading.end("Annotation Component")
       })
+
     }
+
   }
 </script>

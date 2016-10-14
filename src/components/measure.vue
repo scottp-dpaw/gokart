@@ -22,6 +22,7 @@
     },
     // parts of the template to be computed live
     computed: {
+      loading: function () { return this.$root.loading },
       annotations: function () { 
         return this.$root.$refs.app.$refs.annotations 
       },
@@ -187,6 +188,7 @@
     },
     ready: function () {
       var vm = this
+      vm.loading.begin("Measurement Component","Initialize")
       var map = this.$root.map
       //initialize the overlay and interactions
       this.features = new ol.Collection()
@@ -287,11 +289,13 @@
       })
 
       this.wgs84Sphere = new ol.Sphere(6378137);
+      vm.loading.wait("Measurement Component",80,"'gk-init' event")
       this.$on("gk-init",function(){
         vm.$root.map.olmap.addControl(new ol.control.Control({
           element: $('#map-measure').get(0),
 	  target: $('#external-controls').get(0)
         }))
+        vm.loading.end("Measurement Component")
       })
     }
   }
