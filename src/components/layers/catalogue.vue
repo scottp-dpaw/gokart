@@ -105,6 +105,13 @@ div.ol-overviewmap.ol-uncollapsible {
 .cat-legend {
     max-height: 50vh;
 }
+
+#cat-loading {
+    padding: 0.5em;
+    font-style: italic;
+    text-align: center;
+}
+
 </style>
 
 <script>
@@ -230,6 +237,9 @@ div.ol-overviewmap.ol-uncollapsible {
           })
           vm.loading.end("Remote Catalogue")
           callback()
+        }
+        req.onerror = function (ev) {
+          vm.loading.failed("Remote Catalogue",'Couldn\'t load layer catalogue (' + (req.statusText || 'unknown') + ')')
         }
         req.open('GET', url)
         req.send()

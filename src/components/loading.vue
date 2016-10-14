@@ -13,8 +13,8 @@
         <div class="small-3">
             <a v-if="status.progress >= 0 && status.progress < 100 && !status.waiting" class="float-right"><i class="fa fa-spinner" aria-hidden="true"></i></a>
             <a v-if="status.progress >= 0 && status.progress < 100 && status.waiting" class="float-right"><i class="fa fa-pause" aria-hidden="true"></i></a>
-            <a v-if="status.progress < 0" class="float-right"><i class="fa fa-close" aria-hidden="true"></i></a>
-            <a class="action">{{status.action}}</a>
+            <a class="action" v-if="status.progress >= 0">{{status.action}}</a>
+            <a class="error" v-if="status.progress < 0">{{status.reason}}</a>
         </div>
         <div class="small-1">
         </div>
@@ -41,6 +41,10 @@
     background-color: rgba(0,0,0,0);
     opacity: 1;
     z-index:2147483647;
+}
+#loading-status .error {
+    color: #ec5840;
+    font-weight: bold;
 }
 </style>
 

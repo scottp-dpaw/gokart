@@ -114,6 +114,9 @@ localforage.getItem('sssOfflineStore').then(function (store) {
     computed: {
       loading: function () { return this.$refs.app.$refs.loading },
       map: function () { return this.$refs.app.$refs.map },
+      scales: function () { return this.$refs.app.$refs.map.$refs.scales },
+      search: function () { return this.$refs.app.$refs.map.$refs.search },
+      measure: function () { return this.$refs.app.$refs.map.$refs.measure },
       info: function () { return this.$refs.app.$refs.map.$refs.info },
       active: function () { return this.$refs.app.$refs.layers.$refs.active },
       catalogue: function () { return this.$refs.app.$refs.layers.$refs.catalogue },
@@ -130,6 +133,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       // setup foundation, svg url support
       $(document).foundation()
       svg4everybody()
+      // set title
+      $('title').text('Spatial Support System v3')
       // calculate screen res
       $('body').append('<div id="dpi" style="width:1in;display:none"></div>')
       self.dpi = parseFloat($('#dpi').width())

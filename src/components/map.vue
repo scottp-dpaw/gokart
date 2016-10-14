@@ -1,23 +1,20 @@
 <template>
-  <div class="map" id="map" tabindex="0">
-    <gk-info v-ref:info></gk-info>
-    <select v-el:scale @change="setScale($event.target.value)" id="menu-scale" v-cloak>
-      <option value="{{ scale }}" selected>{{ scaleString }}</option>
-      <option v-for="s in fixedScales" value="{{ s }}">{{ getScaleString(s) }}</option>
-    </select>
-    <input id="map-search" placeholder="Search (places, °, MGA, FD)" @keyup="searchKeyFix($event)"/>
-    <button id="map-search-button" @click="runSearch"><i class="fa fa-search"></i></button>
-    <gk-measure v-ref:measure></gk-measure>
-  </div>
+  <div class="map" id="map" tabindex="0"></div>
+  <gk-info v-ref:info></gk-info>
+  <gk-scales v-ref:scales></gk-scales>
+  <gk-search v-ref:search></gk-search>
+  <gk-measure v-ref:measure></gk-measure>
 </template>
 
 <script>
   import { $, ol, proj4, moment } from 'src/vendor.js'
   import gkInfo from './info.vue'
+  import gkScales from './scales.vue'
+  import gkSearch from './search.vue'
   import gkMeasure from './measure.vue'
   export default {
     store: ['defaultWMTSSrc', 'defaultWFSSrc', 'gokartService', 'fixedScales', 'resolutions', 'matrixSets', 'dpmm', 'view'],
-    components: { gkInfo,gkMeasure },
+    components: { gkInfo, gkScales, gkSearch, gkMeasure },
     data: function () {
       return {
         scale: 0,
@@ -47,10 +44,6 @@
     // parts of the template to be computed live
     computed: {
       loading: function () { return this.$root.loading },
-      // scale string for the current map zoom level
-      scaleString: function () {
-        return this.getScaleString(this.scale)
-      },
       // because the viewport size changes when the tab pane opens, don't cache the map width and height
       width: {
         cache: false,
@@ -231,7 +224,6 @@
           this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / this.getScale())
         }
         this.scale = scale
-        this.$els.scale.selectedIndex = 0
       },
       // return the scale (1:1K increments)
       getScale: function () {
@@ -413,79 +405,11 @@
         }
         return results
       },
-      queryFD: function(fdStr, victory, failure) {
-        $.ajax({
-          url: this.defaultWFSSrc + '?' + $.param({
-            version: '1.1.0',
-            service: 'WFS',
-            request: 'GetFeature',
-            outputFormat: 'application/json',
-            srsname: 'EPSG:4326',
-            typename: 'cddp:fd_grid_points_mapping',
-            cql_filter: '(fdgrid = \''+fdStr+'\')'
-          }),
-          dataType: 'json',
-          xhrFields: {
-            withCredentials: true
-          },
-          success: function(data, status, xhr) {
-            if (data.features.length) {
-              victory(data.features[0].geometry.coordinates, "FD "+fdStr)
-            } else {
-              failure('No Forest Department Grid reference found for '+fdStr)
-            }
-          }
-        })
-      },
-      queryPIL: function(pilStr, victory, failure) {
-        $.ajax({
-          url: this.defaultWFSSrc + '?' + $.param({
-            version: '1.1.0',
-            service: 'WFS',
-            request: 'GetFeature',
-            outputFormat: 'application/json',
-            srsname: 'EPSG:4326',
-            typename: 'cddp:pilbara_grid_10km_mapping',
-            cql_filter: '(grid = \''+pilStr+'\')'
-          }),
-          dataType: 'json',
-          xhrFields: {
-            withCredentials: true
-          },
-          success: function(data, status, xhr) {
-            if (data.features.length) {
-              victory(data.features[0].geometry.coordinates, "PIL "+pilStr)
-            } else {
-              failure('No Pilbara Grid reference found for '+pilStr)
-            }
-          }
-        })
-      },
+
       getCenter: function() {
         return this.olmap.getView().getCenter();
       },
-      queryGeocode: function(geoStr, victory, failure) {
-        var center = this.getCenter()
-        $.ajax({
-          url: gokartService
-            +'/mapbox/geocoding/v5/mapbox.places/'+geoStr+'.json?' + $.param({
-            country: 'au',
-            proximity: ''+center[0]+','+center[1]
-          }),
-          dataType: 'json',
-          xhrFields: {
-            withCredentials: true
-          },
-          success: function(data, status, xhr) {
-            if (data.features.length) {
-              var feature = data.features[0]
-              victory(feature.center, feature.text)
-            } else {
-              failure('No location match found for '+geoStr)
-            }
-          }
-        })
-      },
+
       // reusable tile loader hook to update a loading indicator
       tileLoaderHook: function (tileSource, tileLayer) {
         // number of tiles currently in flight
@@ -819,60 +743,7 @@
 
         return tileLayer
       },
-      searchKeyFix: function (ev) {
-        // run a search after pressing enter
-        if (ev.keyCode == 13) { this.runSearch() } 
-      },
-      runSearch: function () {
-        var vm = this
-        $('#map-search, #map-search-button').removeClass('alert success')
-        var query = $("#map-search").get(0).value
-        if (!query) { 
-          return 
-        }
 
-        var victory = function (coords, name) {
-          $('#map-search, #map-search-button').addClass('success')
-          vm.animatePan(coords)
-          vm.animateZoom(vm.resolutions[10])
-          console.log([name, coords[0], coords[1]])
-        }
-
-        var failure = function (reason) {
-          $('#map-search, #map-search-button').addClass('alert')
-          console.log(reason)
-        }
-
-
-        // check for EPSG:4326 coordinates
-        var dms = this.parseDMSString(query)
-        if (dms) {
-          victory(dms, this.getDMS(dms))
-          return
-        }
-    
-        // check for MGA coordinates
-        var mga = this.parseMGAString(query)
-        if (mga) {
-          victory(mga.coords, this.getMGA(mga.coords))
-          return
-        }
-
-        // check for Grid Reference
-        var gd = this.parseGridString(query)
-        if (gd) {
-          if (gd.gridType === 'FD') {
-            this.queryFD(gd.gridNorth+' '+gd.gridEast, victory, failure)
-            return
-          } else {
-            this.queryPIL(gd.gridNorth+gd.gridEast, victory, failure)
-          }
-        }
-
-        // failing all that, ask mapbox
-        this.queryGeocode(query, victory, failure)
-        
-      },
       getMapLayer: function (id) {
         if (id && id.id) { id = id.id } // if passed a catalogue layer, get actual id
         return this.olmap.getLayers().getArray().find(function (layer) {
@@ -912,7 +783,9 @@
             minZoom: 5
           }),
           controls: [
-            new ol.control.Zoom({target: $('#external-controls').get(0)}),
+            new ol.control.Zoom({
+              target: $('#external-controls').get(0)   
+            }),
             new ol.control.ScaleLine(),
             new ol.control.MousePosition({
                 coordinateFormat: function(coordinate) {
@@ -921,14 +794,14 @@
             }),
             new ol.control.FullScreen({
               source: $('body').get(0),
-	      target: $('#external-controls').get(0),
+              target: $('#external-controls').get(0),
               label: $('<i/>', {
                 class: 'fa fa-expand'
               })[0]
             }),
             new ol.control.Control({
               element: $('#menu-scale').get(0),
-	      target: $('#external-controls').get(0)
+              target: $('#external-controls').get(0)
             }),
             new ol.control.Control({
               element: $('#map-search').get(0),
@@ -964,7 +837,6 @@
         // setup scale events
         this.olmap.on('postrender', function () {
           vm.scale = vm.getScale()
-          vm.$els.scale.selectedIndex = 0
         })
 
       },
