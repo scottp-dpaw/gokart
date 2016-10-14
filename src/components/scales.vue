@@ -26,6 +26,14 @@
       reset: function () {
         this.$els.scaleSelect.selectedIndex = 0
       }
+    },
+    ready: function () {
+      var vm = this;
+      this.$on('gk-init', function () {
+        this.$root.map.olmap.on('postrender', function () {
+          vm.reset()
+        })
+      })
     }
   }
 </script>

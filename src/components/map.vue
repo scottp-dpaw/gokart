@@ -223,7 +223,6 @@
           this.olmap.getView().setResolution(this.olmap.getView().getResolution() * scale / this.getScale())
         }
         this.scale = scale
-        this.$root.scales.reset()
       },
       // return the scale (1:1K increments)
       getScale: function () {
@@ -837,7 +836,6 @@
         // setup scale events
         this.olmap.on('postrender', function () {
           vm.scale = vm.getScale()
-          vm.$root.scales.reset()
         })
 
       },
