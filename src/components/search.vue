@@ -35,12 +35,23 @@
         // run a search after pressing enter
         if (ev.keyCode == 13) { this.runSearch() } 
       },
+      clearSearchPoint: function () {
+        this.features.clear()
+      },
+      setSearchPoint: function (coords, name) {
+        this.features.clear()
+        this.features.push(new ol.Feature({
+          geometry: new ol.geom.Point(coords),
+          name: name
+        }))
+      },
       runSearch: function () {
         var vm = this
         var map = this.$root.map
         $('#map-search, #map-search-button').removeClass('alert success')
         var query = $("#map-search").get(0).value
         if (!query) { 
+          this.clearSearchPoint()
           return 
         }
 
@@ -48,12 +59,13 @@
           $('#map-search, #map-search-button').addClass('success')
           map.animatePan(coords)
           map.animateZoom(vm.resolutions[10])
-          console.log([name, coords[0], coords[1]])
+          vm.setSearchPoint(coords, name)
+          //console.log([name, coords[0], coords[1]])
         }
 
         var failure = function (reason) {
           $('#map-search, #map-search-button').addClass('alert')
-          console.log(reason)
+          //console.log(reason)
         }
 
 
@@ -160,6 +172,49 @@
           }
         })
       }
+    },
+    ready: function () {
+      var vm = this
+      var map = this.$root.map
+
+      this.style = function (feature, resolution) {
+        console.log('Hit style function for '+feature.get('name'))
+        return new ol.style.Style({
+          image: new ol.style.Circle({
+            radius: 5,
+            fill: new ol.style.Fill({
+              color: 'rgb(255, 255, 255)'
+            }),
+            stroke: new ol.style.Stroke({
+              width: 2,
+              color: 'rgb(114, 193, 0)'
+            }),
+          }),
+          text: new ol.style.Text({
+            offsetX: 12,
+            text: feature.get('name'),
+            textAlign: 'left',
+            font: '12px Helvetica,Roboto,Arial,sans-serif',
+            stroke: new ol.style.Stroke({
+              color: '#fff',
+              width: 4
+            })
+          })
+        })
+      }
+
+      this.features = new ol.Collection()
+      this.source = new ol.source.Vector({
+        features: this.features
+      })
+      this.overlay = new ol.layer.Vector({
+        source: this.source,
+        style: this.style
+      })
+
+      this.$on('gk-init', function () {
+        this.overlay.setMap(map.olmap)
+      })
     }
   }
 
