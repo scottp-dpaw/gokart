@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob: filesystem: mediastream:;">
     <!-- Unicode is great -->
     <meta charset="utf-8" />
-    <title>{{ app }}</title>
+    <title>gokart - Loading</title>
     <!-- Disable awful IE compatibility mode -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <!-- Force fit-to-viewport sizing on mobile -->
@@ -20,7 +20,7 @@
     <!-- main global styles down here to load after all packaged styles -->
     <link rel="stylesheet" property="stylesheet" type="text/css" href="dist/static/css/style.css" />
     <app v-ref:app></app>
-    <script src="dist/static/js/{{envType}}.env.js"></script>
+    <script src="dist/static/js/{{ envType }}.env.js"></script>
     <script src="dist/vendor.js"></script>
     <script src="dist/{{ app }}.js"></script>
   </body>

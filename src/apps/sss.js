@@ -131,6 +131,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       // setup foundation, svg url support
       $(document).foundation()
       svg4everybody()
+      // set title
+      $('title').text('Spatial Support System v3')
       // calculate screen res
       $('body').append('<div id="dpi" style="width:1in;display:none"></div>')
       self.dpi = parseFloat($('#dpi').width())
