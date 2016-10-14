@@ -30,7 +30,6 @@
                 </div>
               </div>
             </div>
-            <hr class="row"></hr>
             <div class="row">
               <div class="switch tiny">
                 <input class="switch-input" id="bushfireReportsInViewport" type="checkbox" v-model="viewportOnly" />

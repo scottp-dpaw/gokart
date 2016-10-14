@@ -18,18 +18,13 @@
                     @click="annotations.setTool(t)" v-bind:title="t.name">{{{ annotations.icon(t) }}}</a>
                 </div>
                 <div class="row resetmargin">
-                  <div class="small-6 rightmargin">
-                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 0" class="expanded secondary button" v-bind:class="{'selected': t.name == annotations.tool.name}" @click="annotations.setTool(t)"
-                      v-bind:title="t.name">{{{ annotations.icon(t) }}} {{ t.name }}</a>
-                  </div>
-                  <div class="small-6">
-                    <a v-for="t in tools | filterIf 'showName' true" v-if="$index % 2 === 1" class="expanded secondary button" v-bind:class="{'selected': t.name == annotations.tool.name}" @click="annotations.setTool(t)"
+                  <div v-for="t in tools | filterIf 'showName' true" class="small-6" v-bind:class="{'rightmargin': $index % 2 === 0}" >
+                    <a class="expanded secondary button" v-bind:class="{'selected': t.name == annotations.tool.name}" @click="annotations.setTool(t)"
                       v-bind:title="t.name">{{{ annotations.icon(t) }}} {{ t.name }}</a>
                   </div>
                 </div>
               </div>
             </div>
-            <hr class="row"></hr>
             <div class="row">
               <div class="switch tiny">
                 <input class="switch-input" id="resourcesInViewport" type="checkbox" v-model="viewportOnly" />
