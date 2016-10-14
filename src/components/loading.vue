@@ -2,6 +2,11 @@
     <div id="loading-status-overlay" v-if="loading">
     </div>
     <div id="loading-status" v-if="loading">
+      <div class="row" >
+        <div class="small-12">
+            <a @click="close" class="close"><i class="fa fa-close" aria-hidden="true"></i></a>
+        </div>
+      </div>
       <div v-for="status in allStatus" class="row" track-by="key" >
         <div class="small-2">
         </div>
@@ -46,6 +51,10 @@
     color: #ec5840;
     font-weight: bold;
 }
+#loading-status .close {
+    color: black;
+    display:none;
+}
 </style>
 
 <script>
@@ -61,6 +70,10 @@
     computed: {
     },
     methods: {
+      close:function() {
+          $("#loading-status-overlay").remove()
+          $("#loading-status").remove()
+      },
       indexOfStatus:function(key) {
         for(var i = 0; i < this.allStatus.length;i++) {
             if (key === this.allStatus[i].key) {
@@ -117,6 +130,7 @@
       },
       completed:function(){
         this.loading = false
+        $("#loading-status .close").show()
       }
     },
     ready: function () {
