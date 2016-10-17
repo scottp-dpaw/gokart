@@ -142,6 +142,7 @@
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
       annotations: function () { return this.$root.$refs.app.$refs.annotations },
+      loading: function () { return this.$root.loading },
       features: function () {
         if (this.viewportOnly) {
           return this.extentFeatures
@@ -368,6 +369,7 @@
     },
     ready: function () {
       var vm = this
+      vm.loading.begin("Bushfire Report Component","Initialize")
       var map = this.$root.map
       this.reportKey = "prk_id"
 
@@ -511,6 +513,7 @@
       vm.annotations.tools.push(vm.editTool)
       vm.annotations.tools.push(vm.droppinTool)
 
+      vm.loading.wait("Bushfire Report Component",80,"Listen 'gk-init' event")
       // post init event hookup
       vm.$on('gk-init', function () {
         var viewChanged = global.debounce(function () {
@@ -549,6 +552,7 @@
         vm.tools = vm.annotations.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("bushfirereport") >= 0
         })
+        vm.loading.end("Bushfire Report Component","Initialized")
       })
     }
   }

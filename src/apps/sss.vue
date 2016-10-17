@@ -1,7 +1,8 @@
 <template>
+    <gk-loading v-ref:loading></gk-loading>
     <div class="off-canvas-wrapper">
         <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
-            <div class="off-canvas position-left reveal-responsive" id="offCanvasLeft" data-off-canvas>
+            <div class="off-canvas position-left" id="offCanvasLeft" data-off-canvas>
                 <a id="side-pane-close" class="button alert hide-for-medium">&#x2715;</a>
                 <div class="tabs-content vertical" data-tabs-content="menu-tabs">
                     <gk-layers v-ref:layers></gk-layers>
@@ -47,6 +48,7 @@
     import gkLayers from '../components/layers.vue'
     import gkAnnotations from '../components/annotations.vue'
     import gkTracking from '../components/sss/tracking.vue'
+    import gkLoading from '../components/loading.vue'
     //import gkBfrs from '../components/sss/bfrs.vue'
     import { ol } from 'src/vendor.js'
 
@@ -57,7 +59,7 @@
             activeMenu : null
         }
       },
-      components: { gkMap, gkLayers, gkAnnotations, gkTracking},//,gkBfrs },
+      components: { gkMap, gkLayers, gkAnnotations, gkTracking,gkLoading},//,gkBfrs },
       methods: {
         init: function() {
             this.$root.annotations.setTool('Pan')
@@ -73,6 +75,8 @@
                 }
             }
         }
+      },
+      ready: function () {
       }
     }
 </script>

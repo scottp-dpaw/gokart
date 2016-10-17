@@ -41,6 +41,7 @@
     // parts of the template to be computed live
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      loading: function () { return this.$root.loading },
       featuresLength: function () {
         return Object.keys(this.features).length
       },
@@ -99,9 +100,13 @@
       }
     },
     ready: function () {
+      var vm = this
+      vm.loading.begin("Info Component","Initialize")
+      vm.loading.wait("Info Component",1,"Listen 'gk-init' event")
       this.$on('gk-init', function () {
         // display hover popups
         this.$root.map.olmap.on('pointermove', this.onPointerMove)
+        vm.loading.end("Info Component","Initialized")
       })
     }
   }
