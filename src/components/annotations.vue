@@ -846,12 +846,12 @@
         name: 'My Annotations'
       })
 
-      this.loading.wait("Annotation Component",80,"'gk-init' event")
+      this.loading.wait("Annotation Component",80,"Listen 'gk-init' event")
       this.$on("gk-init",function() {
         vm.annotationTools = this.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("annotation") >= 0
         })
-        vm.loading.end("Annotation Component")
+        vm.loading.end("Annotation Component","Initialized")
       })
 
     }

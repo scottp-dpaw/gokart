@@ -210,7 +210,6 @@ div.ol-overviewmap.ol-uncollapsible {
       // helper to populate the catalogue from a remote service
       loadRemoteCatalogue: function (url, callback) {
         var vm = this
-        vm.loading.begin("Remote Catalogue","Load")
         var req = new window.XMLHttpRequest()
         req.withCredentials = true
         req.onload = function () {
@@ -235,7 +234,6 @@ div.ol-overviewmap.ol-uncollapsible {
             // 
             vm.catalogue.push(l)
           })
-          vm.loading.end("Remote Catalogue")
           callback()
         }
         req.onerror = function (ev) {
@@ -267,13 +265,13 @@ div.ol-overviewmap.ol-uncollapsible {
           l.legend = l.legend || (vm.defaultLegendSrc + l.id)
         }
       })
-      vm.loading.wait("Catalogue Component",30,"'gk-init' event")
+      vm.loading.wait("Catalogue Component",30,"Listen 'gk-init' event")
       this.$on('gk-init', function() {
         var vm = this
         $(this.$root.map.olmap.getTargetElement()).on('mouseleave', '.ol-overviewmap', function() {
             vm.preview(false)
         })
-        vm.loading.end("Catalogue Component")
+        vm.loading.end("Catalogue Component","Initialized")
       })
     }
   }

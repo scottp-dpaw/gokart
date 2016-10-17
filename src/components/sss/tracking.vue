@@ -497,7 +497,7 @@
         cql_filter: false
       })
 
-      this.loading.wait("Resource Tracking Component",80,"'gk-init' event")
+      this.loading.wait("Resource Tracking Component",80,"Listen 'gk-init' event")
       // post init event hookup
       this.$on('gk-init', function () {
         var viewChanged = global.debounce(function () {
@@ -529,7 +529,7 @@
         vm.tools = vm.annotations.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("resourcetracking") >= 0
         })
-        this.loading.end("Resource Tracking Component")
+        this.loading.end("Resource Tracking Component","Initialized")
       })
     }
   }

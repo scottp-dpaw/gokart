@@ -176,7 +176,7 @@
             //console.log('drawSVG: Canvas drawn for '+key)
             canvas.get(0).toBlob(function (blob) {
               vm.svgBlobs[key] = window.URL.createObjectURL(blob)
-              console.log("drawSVG:" + key + "\t url = " + vm.svgBlobs[key])
+              //console.log("drawSVG:" + key + "\t url = " + vm.svgBlobs[key])
               resolve()
             }, 'image/png')
           }
@@ -881,7 +881,7 @@
           matrixSet.matrixIds = matrixIds
         })
       })
-      this.loading.end("Map Component")
+      this.loading.end("Map Component","Initialized")
     }
   }
 </script>

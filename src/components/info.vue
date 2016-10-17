@@ -102,11 +102,11 @@
     ready: function () {
       var vm = this
       vm.loading.begin("Info Component","Initialize")
-      vm.loading.wait("Info Component",1,"'gk-init' event")
+      vm.loading.wait("Info Component",1,"Listen 'gk-init' event")
       this.$on('gk-init', function () {
         // display hover popups
         this.$root.map.olmap.on('pointermove', this.onPointerMove)
-        vm.loading.end("Info Component")
+        vm.loading.end("Info Component","Initialized")
       })
     }
   }

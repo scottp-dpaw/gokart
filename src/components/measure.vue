@@ -289,13 +289,13 @@
       })
 
       this.wgs84Sphere = new ol.Sphere(6378137);
-      vm.loading.wait("Measurement Component",80,"'gk-init' event")
+      vm.loading.wait("Measurement Component",80,"Listen 'gk-init' event")
       this.$on("gk-init",function(){
         vm.$root.map.olmap.addControl(new ol.control.Control({
           element: $('#map-measure').get(0),
 	  target: $('#external-controls').get(0)
         }))
-        vm.loading.end("Measurement Component")
+        vm.loading.end("Measurement Component","Initialized")
       })
     }
   }

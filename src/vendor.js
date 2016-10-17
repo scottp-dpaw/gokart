@@ -74,7 +74,18 @@ ol.control.FullScreen.isFullScreenSupported = (function() {
         return (env.appType == "cordova")?false:originFunc()
     }    
 })()
-
+//customize thie method to avoid cyclic object value
+JSON.stringify = (function(){
+    var originFunc = JSON.stringify
+    return function(obj,replacer,space) {
+        try {
+            return originFunc(obj,replacer,space)
+        } catch(err) {
+            //failed
+            return "(" + err + ")"
+        }
+    }
+})()
 export {
   $,
   ol,

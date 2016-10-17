@@ -513,7 +513,7 @@
       vm.annotations.tools.push(vm.editTool)
       vm.annotations.tools.push(vm.droppinTool)
 
-      vm.loading.wait("Bushfire Report Component",80,"'gk-init' event")
+      vm.loading.wait("Bushfire Report Component",80,"Listen 'gk-init' event")
       // post init event hookup
       vm.$on('gk-init', function () {
         var viewChanged = global.debounce(function () {
@@ -552,7 +552,7 @@
         vm.tools = vm.annotations.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("bushfirereport") >= 0
         })
-        vm.loading.end("Bushfire Report Component")
+        vm.loading.end("Bushfire Report Component","Initialized")
       })
     }
   }

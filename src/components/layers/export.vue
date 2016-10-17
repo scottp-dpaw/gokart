@@ -535,7 +535,7 @@
     ready: function () {
       var vm = this
       vm.loading.begin("Export Component","Initialize")
-      vm.loading.wait("Export Component",1,"'gk-init' event")
+      vm.loading.wait("Export Component",1,"Listen 'gk-init' event")
       this.$on('gk-init', function () {
         var vm = this
         // save state every render
@@ -545,7 +545,7 @@
             vm.states = Object.keys(value)
           }
         })
-        vm.loading.end("Export Component")
+        vm.loading.end("Export Component","Initialized")
       })
     }
   }
