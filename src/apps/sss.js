@@ -112,6 +112,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       }
     },
     computed: {
+      loading: function () { return this.$refs.app.$refs.loading },
       map: function () { return this.$refs.app.$refs.map },
       scales: function () { return this.$refs.app.$refs.map.$refs.scales },
       search: function () { return this.$refs.app.$refs.map.$refs.search },
@@ -128,6 +129,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
     },
     ready: function () {
       var self = this
+      self.loading.begin("SSS","Initialize")
       // setup foundation, svg url support
       $(document).foundation()
       svg4everybody()
@@ -378,18 +380,39 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       })
 
       // load map without layers
+      self.loading.progress("SSS",10,"Initialize olmap")
       self.map.init()
-      self.catalogue.loadRemoteCatalogue(self.store.remoteCatalogue, function () {
-        //add default layers
-        self.map.initLayers(self.fixedLayers, self.store.activeLayers)
-        // after catalogue load trigger a tour
-        if (self.store.tourVersion !== tour.version) {
-          self.store.tourVersion = tour.version
-          self.export.saveState()
-          self.touring = true
-          tour.start()
-        }
-      })
+      self.loading.progress("SSS",30,"Load Remote Catalogue")
+      try {
+          self.catalogue.loadRemoteCatalogue(self.store.remoteCatalogue, function () {
+            //add default layers
+            try {
+                self.loading.progress("SSS",70,"Initialize Active Layers")
+                self.map.initLayers(self.fixedLayers, self.store.activeLayers)
+                // tell other components map is ready
+                self.loading.progress("SSS",80,"Broadcast 'gk-init' event")
+                self.$broadcast('gk-init')
+                // after catalogue load trigger a tour
+                $("#menu-tab-layers-label").trigger("click")
+                self.loading.end("SSS","OK")
+                self.loading.completed()
+            } catch(err) {
+                //some exception happens
+                self.loading.failed()
+                throw err
+            }
+            if (self.store.tourVersion !== tour.version) {
+              self.store.tourVersion = tour.version
+              self.export.saveState()
+              self.touring = true
+              tour.start()
+            }
+          })
+      } catch(err) {
+          //some exception happens
+          self.loading.failed()
+          throw err
+      }
     }
   })
 })

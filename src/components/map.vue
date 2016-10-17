@@ -43,6 +43,7 @@
     },
     // parts of the template to be computed live
     computed: {
+      loading: function () { return this.$root.loading },
       // because the viewport size changes when the tab pane opens, don't cache the map width and height
       width: {
         cache: false,
@@ -175,7 +176,7 @@
             //console.log('drawSVG: Canvas drawn for '+key)
             canvas.get(0).toBlob(function (blob) {
               vm.svgBlobs[key] = window.URL.createObjectURL(blob)
-              console.log("drawSVG:" + key + "\t url = " + vm.svgBlobs[key])
+              //console.log("drawSVG:" + key + "\t url = " + vm.svgBlobs[key])
               resolve()
             }, 'image/png')
           }
@@ -861,11 +862,10 @@
         $.each(initialLayers,function(index,layer){
             vm.olmap.addLayer(layer)
         })
-        // tell other components map is ready
-        this.$root.$broadcast('gk-init')
       }
     },
     ready: function () {
+      this.loading.begin("Map Component","Initialize")
       this.svgBlobs = {}
       this.svgTemplates = {}
       this.cachedStyles = {}
@@ -881,6 +881,7 @@
           matrixSet.matrixIds = matrixIds
         })
       })
+      this.loading.end("Map Component","Initialized")
     }
   }
 </script>

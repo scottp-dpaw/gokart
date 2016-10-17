@@ -55,9 +55,6 @@
             </div>
           </div>
         </div>
-        <div class="row" id="cat-loading" v-if="loadingMessage">
-          {{ loadingMessage }}
-        </div>
         <div v-el:layerdetails class="hide">
           <div class="layerdetails row">
             <div class="columns small-12">
@@ -128,7 +125,6 @@ div.ol-overviewmap.ol-uncollapsible {
       return {
         layer: {},
         catalogue: new ol.Collection(),
-        loadingMessage: '',
         swapBaseLayers: true,
         search: '',
         searchAttrs: ['name', 'id', 'tags'],
@@ -138,6 +134,7 @@ div.ol-overviewmap.ol-uncollapsible {
     },
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      loading: function () { return this.$root.loading },
     },
     methods: {
       preview: function (l) {
@@ -213,11 +210,9 @@ div.ol-overviewmap.ol-uncollapsible {
       // helper to populate the catalogue from a remote service
       loadRemoteCatalogue: function (url, callback) {
         var vm = this
-        vm.loadingMessage = 'Loading layer catalogue...';
         var req = new window.XMLHttpRequest()
         req.withCredentials = true
         req.onload = function () {
-          vm.loadingMessage = '';
           JSON.parse(this.responseText).forEach(function (l) {
             // overwrite layers in the catalogue with the same identifier
             if (vm.getLayer(l.identifier)) {
@@ -242,7 +237,7 @@ div.ol-overviewmap.ol-uncollapsible {
           callback()
         }
         req.onerror = function (ev) {
-          vm.loadingMessage = 'Couldn\'t load layer catalogue ('+req.statusText+')'
+          vm.loading.failed("Remote Catalogue",'Couldn\'t load layer catalogue (' + (req.statusText || 'unknown') + ')')
         }
         req.open('GET', url)
         req.send()
@@ -260,6 +255,7 @@ div.ol-overviewmap.ol-uncollapsible {
     },
     ready: function () {
       var vm = this
+      vm.loading.begin("Catalogue Component","Initialize")
       this.catalogue.on('add', function (event) {
         var l = event.element
         l.id = l.id || l.identifier
@@ -269,11 +265,13 @@ div.ol-overviewmap.ol-uncollapsible {
           l.legend = l.legend || (vm.defaultLegendSrc + l.id)
         }
       })
+      vm.loading.wait("Catalogue Component",30,"Listen 'gk-init' event")
       this.$on('gk-init', function() {
         var vm = this
         $(this.$root.map.olmap.getTargetElement()).on('mouseleave', '.ol-overviewmap', function() {
             vm.preview(false)
         })
+        vm.loading.end("Catalogue Component","Initialized")
       })
     }
   }
