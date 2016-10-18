@@ -488,7 +488,7 @@
     },
     ready: function () {
       var vm = this
-      this.loading.begin("Annotation Component", "Initialize")
+      var annotationStatus = this.loading.register("annotation","Annotation Component", "Initialize")
       var map = this.map
       // collection to store all annotation features
       this.features.on('add', function (ev) {
@@ -846,12 +846,13 @@
         name: 'My Annotations'
       })
 
-      this.loading.wait("Annotation Component",80,"Listen 'gk-init' event")
+      annotationStatus.wait(30,"Listen 'gk-init' event")
       this.$on("gk-init",function() {
+        annotationStatus.progress(80,"Process 'gk-init' event")
         vm.annotationTools = this.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("annotation") >= 0
         })
-        vm.loading.end("Annotation Component","Initialized")
+        annotationStatus.end()
       })
 
     }

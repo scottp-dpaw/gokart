@@ -865,7 +865,7 @@
       }
     },
     ready: function () {
-      this.loading.begin("Map Component","Initialize")
+      var mapStatus = this.loading.register("olmap","Open layer map Component","Initialize")
       this.svgBlobs = {}
       this.svgTemplates = {}
       this.cachedStyles = {}
@@ -881,7 +881,7 @@
           matrixSet.matrixIds = matrixIds
         })
       })
-      this.loading.end("Map Component","Initialized")
+      mapStatus.end()
     }
   }
 </script>

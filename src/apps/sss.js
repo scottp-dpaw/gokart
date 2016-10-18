@@ -129,7 +129,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
     },
     ready: function () {
       var self = this
-      self.loading.begin("SSS","Initialize")
+      self.loading.app.progress(5,"Initialize UI")
       // setup foundation, svg url support
       $(document).foundation()
       svg4everybody()
@@ -169,6 +169,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         self.map.olmap.updateSize()
       })
 
+      self.loading.app.progress(10,"Initialize Fixed Layers")
       // pack-in catalogue
       self.fixedLayers = self.fixedLayers.concat([{
         type: 'TileLayer',
@@ -241,6 +242,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         style: hotSpotStyle
       })*/
 
+      self.loading.app.progress(20,"Initialize SSS tools")
       var originPointDraw = self.annotations.iconDrawFactory({
         icon: 'dist/static/symbols/fire/origin.svg',
         features:  self.annotations.features,
@@ -380,25 +382,24 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       })
 
       // load map without layers
-      self.loading.progress("SSS",10,"Initialize olmap")
+      self.loading.app.progress(30,"Initialize ol map")
       self.map.init()
-      self.loading.progress("SSS",30,"Load Remote Catalogue")
+      self.loading.app.progress(40,"Load Remote Catalogue")
       try {
           self.catalogue.loadRemoteCatalogue(self.store.remoteCatalogue, function () {
             //add default layers
             try {
-                self.loading.progress("SSS",70,"Initialize Active Layers")
+                self.loading.app.progress(70,"Initialize Active Layers")
                 self.map.initLayers(self.fixedLayers, self.store.activeLayers)
                 // tell other components map is ready
-                self.loading.progress("SSS",80,"Broadcast 'gk-init' event")
+                self.loading.app.progress(80,"Broadcast 'gk-init' event")
                 self.$broadcast('gk-init')
                 // after catalogue load trigger a tour
                 $("#menu-tab-layers-label").trigger("click")
-                self.loading.end("SSS","OK")
-                self.loading.completed()
+                self.loading.app.end()
             } catch(err) {
                 //some exception happens
-                self.loading.failed()
+                self.loading.app.failed()
                 throw err
             }
             if (self.store.tourVersion !== tour.version) {
@@ -407,10 +408,12 @@ localforage.getItem('sssOfflineStore').then(function (store) {
               self.touring = true
               tour.start()
             }
+          },function(reason){
+            self.loading.app.failed(reason)
           })
       } catch(err) {
           //some exception happens
-          self.loading.failed()
+          self.loading.app.failed()
           throw err
       }
     }

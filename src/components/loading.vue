@@ -6,18 +6,29 @@
             <h4>Status</h4>
         </div>
         <div class="small-1">
-            <a @click="close" class="close"><i class="fa fa-close" aria-hidden="true"></i></a>
+            <a @click="close" class="close" v-show="closable"><i class="fa fa-close" aria-hidden="true"></i></a>
         </div>
       </div>
-      <div v-for="status in allStatus" class="row" track-by="key" >
-        <div class="small-6">
-            <a class="component">{{status.key}} </a>
+      <div class="row application" >
+          <div class="small-7">
+              <a class="name">{{application}} </a>
+          </div>
+          <div class="small-5">
+              <a v-if="appStatus.completedPercentage >= 0 && appStatus.completedPercentage < 100 && !appStatus.waiting" class="float-right"><i class="fa fa-spinner" aria-hidden="true"></i></a>
+              <a v-if="appStatus.completedPercentage >= 0 && appStatus.completedPercentage < 100 && appStatus.waiting" class="float-right"><i class="fa fa-pause" aria-hidden="true"></i></a>
+              <a class="action">{{appStatus.action}}</a>
+              <a class="error" v-if="appStatus.completedPercentage < 0">({{appStatus.reason}})</a>
+          </div>
+      </div>
+      <div v-for="status in components" class="row component" >
+        <div class="small-7">
+            <a class="name">{{status.name}} </a>
         </div>
-        <div class="small-6">
-            <a v-if="status.progress >= 0 && status.progress < 100 && !status.waiting" class="float-right"><i class="fa fa-spinner" aria-hidden="true"></i></a>
-            <a v-if="status.progress >= 0 && status.progress < 100 && status.waiting" class="float-right"><i class="fa fa-pause" aria-hidden="true"></i></a>
-            <a class="action" v-if="status.progress >= 0">{{status.action}}</a>
-            <a class="error" v-if="status.progress < 0">{{status.reason}}</a>
+        <div class="small-5">
+            <a v-if="componentStatus(status).completedPercentage >= 0 && componentStatus(status).completedPercentage < 100 && !componentStatus(status).waiting" class="float-right"><i class="fa fa-spinner" aria-hidden="true"></i></a>
+            <a v-if="componentStatus(status).completedPercentage >= 0 && componentStatus(status).completedPercentage < 100 && componentStatus(status).waiting" class="float-right"><i class="fa fa-pause" aria-hidden="true"></i></a>
+            <a class="action">{{componentStatus(status).action}}</a>
+            <a class="error" v-if="componentStatus(status).completedPercentage < 0">({{componentStatus(status).reason}})</a>
         </div>
       </div>
       <div v-if="hasError">
@@ -47,12 +58,22 @@
     position: absolute;
     top: 50%;
     left:50%;
-    width:500px;
+    width:600px;
     border-style:solid;
     padding:10px 10px 10px 10px;
     transform: translate(-50%,-50%);
     background-color: rgba(0,0,0,0.3);
     opacity: 1;
+}
+#loading-status .application{
+    font-size: 1.1em
+}
+#loading-status .component{
+    font-size: 1em;
+    font-style: italic;
+}
+#loading-status .component .name{
+    padding-left:20px
 }
 #loading-status .error {
     color: #ec5840;
@@ -60,7 +81,6 @@
 }
 #loading-status .close {
     color: black;
-    display:none;
 }
 </style>
 
@@ -70,9 +90,11 @@
     store: ['catalogueFilters', 'defaultLegendSrc','oimService'],
     data: function () {
       return {
-        allStatus:[],
+        app:null,
+        components:[],
+        appRevision:1,
+        componentRevision:1,
         errors:[],
-        loading:true,
       }
     },
     computed: {
@@ -80,79 +102,107 @@
         return this.errors.length > 0
       },
       show: function() {
-        return this.loading || this.errors.length > 0
-      }
+        return this.appRevision && ( !this.app || this.app.completedPercentage < 100 || this.errors.length > 0)
+      },
+      closable: function() {
+        return this.appRevision && this.app && ( this.app.completedPercentage >= 100 || this.app.completedPercentage < 0 )
+      },
+      appStatus:function() {
+        return  this.appRevision && (this.app || {})
+      },
     },
+    props:["application"],
     methods: {
       close:function() {
           $("#loading-status-overlay").remove()
           $("#loading-status").remove()
       },
-      indexOfStatus:function(key) {
-        for(var i = 0; i < this.allStatus.length;i++) {
-            if (key === this.allStatus[i].key) {
-                return i
+      componentStatus:function(status) {
+        return this.componentRevision && status
+      },
+      register: function(componentId,componentName,action) {
+        componentName = componentName || componentId
+        var vm = this
+        if (!vm.Status) {
+            vm.Status = function(componentId,componentName,action) {
+                if (componentId === "app") {
+                    vm.app = this
+                    vm.appRevision += 1
+                } else {
+                    var index = -1
+                    for(var i = 0; i < vm.components.length;i++) {
+                        if (componentId === vm.components[i].id) {
+                            index = i
+                            break
+                        }
+                    }
+                    if (index > 0) {
+                        //already registered, replace
+                        vm.componets[index] = this
+                    } else {
+                        //not registered, add it
+                        vm.components.push(this)
+                    }
+                    vm.componentRevision += 1
+                    
+                }
+                this.id = componentId
+                this.name = componentName
+                this.completedPercentage = 0
+                this.action = action || "Initialize"
+                this.waiting = false
+                return this
+            }
+            vm.Status.prototype._change = function(action) {
+                if (vm.app === this) {
+                    //app status
+                    vm.appRevision += 1
+                } else {
+                    //component status
+                    vm.componentRevision += 1
+                    for(var i = 0; i < vm.components.length;i++) {
+                        if (this.id === vm.components[i].id) {
+                            Vue.set(vm.components,i,vm.components[i])
+                            break
+                        }
+                    }
+                }
+            }
+            vm.Status.prototype.progress = function(completedPercentage,action) {
+                this.completedPercentage = completedPercentage
+                this.action = action || "Initialize"
+                this.waiting = false
+                this._change()
+            }
+            vm.Status.prototype.wait = function(completedPercentage,action) {
+                this.completedPercentage = completedPercentage
+                this.action = action || "Initialize"
+                this.waiting = true
+                this._change()
+            }
+            vm.Status.prototype.end = function(action) {
+                action = action || ((this === vm.app)?"OK":"Initialized")
+                this.completedPercentage = 100
+                this.action = action
+                this.waiting = false
+                this._change()
+            }
+            vm.Status.prototype.failed = function(reason) {
+                this.completedPercentage = -1
+                this.reason = reason || "Failed"
+                this.waiting = false
+                this._change()
             }
         }
-        return -1
-      },
-      begin:function(key,action) {
-        var i = this.indexOfStatus(key)
-        if (i == -1) {
-            this.allStatus.push({"key":key,"progress":0,"action":action || "Initialize"})
-        } else {
-            this.allStatus[i].progress = 0
-            this.allStatus[i].action = action || "Initialize"
-            Vue.set(this.allStatus,i,this.allStatus[i])
-        }
-      },
-      progress:function(key,progress,action) {
-        var i = this.indexOfStatus(key)
-        if (i != -1) {
-            this.allStatus[i].progress = progress
-            this.allStatus[i].action = action || "Initialize"
-            this.allStatus[i].waiting = false
-            Vue.set(this.allStatus,i,this.allStatus[i])
-        }
-      },
-      wait:function(key,progress,action) {
-        var i = this.indexOfStatus(key)
-        if (i != -1) {
-            this.allStatus[i].progress = progress
-            this.allStatus[i].action = action || "Waiting"
-            this.allStatus[i].waiting = true
-            Vue.set(this.allStatus,i,this.allStatus[i])
-        }
-      },
-      end:function(key,action) {
-        var i = this.indexOfStatus(key)
-        if (i != -1) {
-            this.allStatus[i].progress = 100
-            this.allStatus[i].waiting = false
-            this.allStatus[i].action = action || "OK"
-            Vue.set(this.allStatus,i,this.allStatus[i])
-        }
-      },
-      failed:function(key,reason) {
-        var i = this.indexOfStatus(key)
-        if (i != -1) {
-            this.allStatus[i].progress = -1
-            this.allStatus[i].reason = reason || ""
-            this.allStatus[i].waiting = false
-            Vue.set(this.allStatus,i,this.allStatus[i])
-        }
-      },
-      completed:function(){
-        this.loading = false
-        $("#loading-status .close").show()
-      },
-      failed:function(){
-        $("#loading-status .close").show()
+        return new vm.Status(componentId,componentName,action)
       }
     },
     ready: function () {
         var vm = this
+        vm.register("app",this.application,"Initialize")
+        var loadingStatus = vm.register("LoadingStatus","Loading Status Component")
         //override console.error
+        loadingStatus.progress(10,"Override console.error")
         console.error = (function(){
             var originFunc = console.error
             return function(args) {
@@ -168,6 +218,7 @@
                 originFunc.apply(this,arguments)
             }
         })()
+        loadingStatus.progress(40,"Override console.assert")
         //override console.error
         console.assert = (function(){
             var originFunc = console.assert
@@ -186,6 +237,7 @@
                 originFunc.apply(this,arguments)
             }
         })()
+        loadingStatus.progress(70,"Override vue error handler")
         //customize vue error handler
         Vue.config.errorHandler = (function(){
             var originFunc = Vue.config.errorHandler
@@ -194,6 +246,7 @@
                 return originFunc(err,vm)
             }
         })()
+        loadingStatus.end()
     }
   }
 </script>

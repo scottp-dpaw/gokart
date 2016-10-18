@@ -188,7 +188,7 @@
     },
     ready: function () {
       var vm = this
-      vm.loading.begin("Measurement Component","Initialize")
+      var measureStatus = vm.loading.register("measure","Measurement Component","Initialize")
       var map = this.$root.map
       //initialize the overlay and interactions
       this.features = new ol.Collection()
@@ -289,13 +289,14 @@
       })
 
       this.wgs84Sphere = new ol.Sphere(6378137);
-      vm.loading.wait("Measurement Component",80,"Listen 'gk-init' event")
+      measureStatus.wait(40,"Listen 'gk-init' event")
       this.$on("gk-init",function(){
+        measureStatus.progress(80,"Process 'gk-init' event")
         vm.$root.map.olmap.addControl(new ol.control.Control({
           element: $('#map-measure').get(0),
 	  target: $('#external-controls').get(0)
         }))
-        vm.loading.end("Measurement Component","Initialized")
+        measureStatus.end()
       })
     }
   }
