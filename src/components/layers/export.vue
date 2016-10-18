@@ -512,7 +512,7 @@
         store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
 
         // save in the offline store
-        localforage.setItem('sssOfflineStore', store).then(function (value) {
+        localforage.setItem('sssOfflineStore', vm.$root.persistentData).then(function (value) {
           vm.$root.saved = moment().toLocaleString()
         })
 
@@ -523,7 +523,7 @@
             if (value) {
               states = value
             }
-            states[key] = store
+            states[key] = vm.$root.persistentData
             localforage.setItem('sssStateStore', states).then(function (value) {
               vm.states = Object.keys(states)
             })

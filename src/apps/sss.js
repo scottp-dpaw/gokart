@@ -33,9 +33,22 @@ global.debounce = function (func, wait, immediate) {
     if (callNow) func.apply(context, args)
   }
 }
-
-var defaultStore = {
-  tourVersion: null,
+var volatileData = {
+  // overridable defaults for WMTS and WFS loading
+  remoteCatalogue: env.cswService + "?format=json&application__name=sss",
+  defaultWMTSSrc: env.wmtsService,
+  defaultWFSSrc: env.wfsService,
+  defaultLegendSrc: env.legendSrc,
+  gokartService: env.gokartService,
+  oimService:env.oimService,
+  sssService:env.sssService,
+  bfrsService:env.bfrsService,
+  appType:env.appType,
+  // fixed scales for the scale selector (1:1K increments)
+  fixedScales: [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000],
+  // default matrix from KMI
+  resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
+  mmPerInch: 25.4,
   whoami: { email: null },
   // filters for finding layers
   catalogueFilters: [
@@ -49,28 +62,6 @@ var defaultStore = {
     ['relief', 'Relief'],
     ['sensitive', 'Sensitive Sites']
   ],
-  // overridable defaults for WMTS and WFS loading
-  remoteCatalogue: env.cswService + "?format=json&application__name=sss",
-  defaultWMTSSrc: env.wmtsService,
-  defaultWFSSrc: env.wfsService,
-  defaultLegendSrc: env.legendSrc,
-  gokartService: env.gokartService,
-  oimService:env.oimService,
-  sssService:env.sssService,
-  bfrsService:env.bfrsService,
-  appType:env.appType,
-  // default matrix from KMI
-  resolutions: [0.17578125, 0.087890625, 0.0439453125, 0.02197265625, 0.010986328125, 0.0054931640625, 0.00274658203125, 0.001373291015625, 0.0006866455078125, 0.0003433227539062, 0.0001716613769531, 858306884766e-16, 429153442383e-16, 214576721191e-16, 107288360596e-16, 53644180298e-16, 26822090149e-16, 13411045074e-16],
-  // fixed scales for the scale selector (1:1K increments)
-  fixedScales: [0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 80, 100, 125, 250, 500, 1000, 2000, 3000, 5000, 10000, 25000],
-  view: {
-    center: [123.75, -24.966]
-  },
-  // id followed by properties to merge into catalogue
-  activeLayers: [
-    ['dpaw:resource_tracking_live', {}],
-    ['cddp:smb_250K', {}]
-  ],
   matrixSets: {
     'EPSG:4326': {
       '1024': {
@@ -79,15 +70,27 @@ var defaultStore = {
         'maxLevel': 17
       }
     }
+  }
+}
+
+var persistentData = {
+  tourVersion: null,
+  view: {
+    center: [123.75, -24.966]
   },
-  mmPerInch: 25.4,
+  // id followed by properties to merge into catalogue
+  activeLayers: [
+    ['dpaw:resource_tracking_live', {}],
+    ['cddp:smb_250K', {}]
+  ],
   // blank annotations
   annotations: {
     type: 'FeatureCollection',
     features: []
   }
 }
-global.gokartService = defaultStore.gokartService;
+
+global.gokartService = volatileData.gokartService;
 
 global.localforage = localforage
 global.$ = $
@@ -101,7 +104,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
     },
     data: {
       // store contains state we want to reload/persist
-      store: $.extend(defaultStore, store || {}),
+      store: $.extend({},persistentData, store || {},volatileData),
       pngs: {},
       fixedLayers:[],
       saved: null,
@@ -125,7 +128,14 @@ localforage.getItem('sssOfflineStore').then(function (store) {
       tracking: function () { return this.$refs.app.$refs.tracking },
       bfrs: function () { return this.$refs.app.$refs.bfrs },
       geojson: function () { return new ol.format.GeoJSON() },
-      wgs84Sphere: function () { return new ol.Sphere(6378137) }
+      wgs84Sphere: function () { return new ol.Sphere(6378137) },
+      persistentData:function() {
+          var vm = this
+          $.each(persistentData,function(key,val){
+              persistentData[key] = vm.store[key]
+          })
+          return persistentData
+      }
     },
     ready: function () {
       var self = this
@@ -145,7 +155,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
         var req = new window.XMLHttpRequest()
         req.withCredentials = true
         req.onload = function () {
-          self.whoami = JSON.parse(this.responseText)
+          self.store.whoami = JSON.parse(this.responseText)
         }
         req.open('GET', self.store.oimService + '/api/whoami')
         req.send()

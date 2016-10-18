@@ -20,7 +20,7 @@
               <a class="error" v-if="appStatus.completedPercentage < 0">({{appStatus.reason}})</a>
           </div>
       </div>
-      <div v-for="status in components" class="row component" >
+      <div v-for="status in components" class="row component" track-by="id">
         <div class="small-7">
             <a class="name">{{status.name}} </a>
         </div>
@@ -87,7 +87,6 @@
 <script>
   import { $,Vue } from 'src/vendor.js'
   export default {
-    store: ['catalogueFilters', 'defaultLegendSrc','oimService'],
     data: function () {
       return {
         app:null,
