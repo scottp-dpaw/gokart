@@ -433,7 +433,6 @@ input[type="range"] {
     color: white;
     background-color: rgba(37, 45, 51, 0.5);
     padding: 4px;
-    cursor: pointer;
 }
 
 .layer-legend-row{
@@ -445,23 +444,23 @@ input[type="range"] {
     background-color: rgba(37, 45, 51, 0.3);
 }
 
-.layer-row .layer-title {
+.feature-row .layer-title {
     font-size: 120%;
 }
 
-.layer-row .layer-id {
+.feature-row .layer-id {
     font-style: italic;
     font-size: 75%;
 }
 /* Add dotted line box to dragged layers*/
 
-.layer-row.gu-transit {
+.feature-row.gu-transit {
     border: 2px dashed #ffffff;
     border-radius: 4px;
 }
 /* Add status indicator to left hand side of layer rows */
 
-.layer-row {
+.status-row {
     border-left: 3px solid transparent;
 }
 
@@ -477,17 +476,17 @@ input[type="range"] {
     }
 }
 
-.layer-row.idle {
+.status-row.idle {
     border-left-color: #71c837;
 }
 
-.layer-row.loading {
+.status-row.loading {
     animation-name: layer-pulse;
     animation-duration: 1s;
     animation-iteration-count: infinite;
 }
 
-.layer-row.error {
+.status-row.error {
     border-left-color: #ec5840;
 }
 /* custom F6 tab style overrides for the side buttons  */
@@ -564,11 +563,14 @@ input[type="range"] {
 
 .feature-row {
     cursor: pointer;
-    border-right: 1px transparent;
 }
     
 .feature-row:hover {
-    border-right: 1px solid #fff;
+    background-color: rgba(37, 45, 51, 0.9);
+}
+
+.feature-row:nth-child(even):hover {
+    background-color: rgba(37, 45, 51, 0.7);
 }
     
 .feature-row.feature-selected {

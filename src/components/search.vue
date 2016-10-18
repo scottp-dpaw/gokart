@@ -38,12 +38,15 @@
       clearSearchPoint: function () {
         this.features.clear()
       },
-      setSearchPoint: function (coords, name) {
+      setSearchPoint: function (coords, name, update_name) {
         this.features.clear()
         this.features.push(new ol.Feature({
           geometry: new ol.geom.Point(coords),
           name: name
         }))
+        if (update_name) {
+          $('#map-search').val(update_name)
+        }
       },
       runSearch: function () {
         var vm = this
@@ -55,11 +58,11 @@
           return 
         }
 
-        var victory = function (coords, name) {
+        var victory = function (coords, name, update_name) {
           $('#map-search, #map-search-button').addClass('success')
           map.animatePan(coords)
           map.animateZoom(vm.resolutions[10])
-          vm.setSearchPoint(coords, name)
+          vm.setSearchPoint(coords, name, update_name)
           //console.log([name, coords[0], coords[1]])
         }
 
@@ -72,7 +75,7 @@
         // check for EPSG:4326 coordinates
         var dms = map.parseDMSString(query)
         if (dms) {
-          victory(dms, map.getDMS(dms))
+          victory(dms, name)
           return
         }
     
@@ -88,10 +91,10 @@
         if (gd) {
           if (gd.gridType === 'FD') {
             this.queryFD(gd.gridNorth+' '+gd.gridEast, victory, failure)
-            return
           } else {
             this.queryPIL(gd.gridNorth+gd.gridEast, victory, failure)
           }
+          return
         }
 
         // failing all that, ask mapbox
@@ -153,9 +156,9 @@
         var center = this.$root.map.getCenter()
         $.ajax({
           url: vm.gokartService
-            +'/mapbox/geocoding/v5/mapbox.places/'+geoStr+'.json?' + $.param({
+            +'/mapbox/geocoding/v5/mapbox.places/'+encodeURIComponent(geoStr)+'.json?' + $.param({
             country: 'au',
-            types: 'country,region,postcode,place,locality,address',
+            //types: 'country,region,postcode,place,locality,address',
             proximity: ''+center[0]+','+center[1]
           }),
           dataType: 'json',
@@ -165,7 +168,7 @@
           success: function(data, status, xhr) {
             if (data.features.length) {
               var feature = data.features[0]
-              victory(feature.center, feature.text)
+              victory(feature.center, feature.text, feature.place_name)
             } else {
               failure('No location match found for '+geoStr)
             }
