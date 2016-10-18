@@ -369,7 +369,7 @@
     },
     ready: function () {
       var vm = this
-      vm.loading.begin("Bushfire Report Component","Initialize")
+      var bfrsStatus = vm.loading.register("bfrs","Bushfire Report Component","Initialize")
       var map = this.$root.map
       this.reportKey = "prk_id"
 
@@ -513,9 +513,10 @@
       vm.annotations.tools.push(vm.editTool)
       vm.annotations.tools.push(vm.droppinTool)
 
-      vm.loading.wait("Bushfire Report Component",80,"Listen 'gk-init' event")
+      bfrsStatus.wait(40,"Listen 'gk-init' event")
       // post init event hookup
       vm.$on('gk-init', function () {
+        bfrsStatus.progress(80,"Process 'gk-init' event")
         var viewChanged = global.debounce(function () {
           vm.updateReport()
         }, 100)
@@ -552,7 +553,7 @@
         vm.tools = vm.annotations.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("bushfirereport") >= 0
         })
-        vm.loading.end("Bushfire Report Component","Initialized")
+        bfrsStatis.end()
       })
     }
   }

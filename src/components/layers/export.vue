@@ -512,7 +512,7 @@
         store.annotations = JSON.parse(vm.$root.geojson.writeFeatures(vm.$root.annotations.features.getArray()))
 
         // save in the offline store
-        localforage.setItem('sssOfflineStore', store).then(function (value) {
+        localforage.setItem('sssOfflineStore', vm.$root.persistentData).then(function (value) {
           vm.$root.saved = moment().toLocaleString()
         })
 
@@ -523,7 +523,7 @@
             if (value) {
               states = value
             }
-            states[key] = store
+            states[key] = vm.$root.persistentData
             localforage.setItem('sssStateStore', states).then(function (value) {
               vm.states = Object.keys(states)
             })
@@ -534,18 +534,18 @@
     },
     ready: function () {
       var vm = this
-      vm.loading.begin("Export Component","Initialize")
-      vm.loading.wait("Export Component",1,"Listen 'gk-init' event")
+      var exportStatus = vm.loading.register("export","Export Component","Initialize")
+      exportStatus.wait(10,"Listen 'gk-init' event")
       this.$on('gk-init', function () {
-        var vm = this
+        exportStatus.progress(80,"Process 'gk-init' event")
         // save state every render
-        this.olmap.on('postrender', global.debounce(function (ev) {vm.saveState()}, 1000, true))
+        vm.olmap.on('postrender', global.debounce(function (ev) {vm.saveState()}, 1000, true))
         var stateStore = localforage.getItem('sssStateStore', function (err, value) {
           if (value) {
             vm.states = Object.keys(value)
           }
         })
-        vm.loading.end("Export Component","Initialized")
+        exportStatus.end()
       })
     }
   }

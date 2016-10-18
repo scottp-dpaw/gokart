@@ -208,7 +208,7 @@ div.ol-overviewmap.ol-uncollapsible {
         }
       },
       // helper to populate the catalogue from a remote service
-      loadRemoteCatalogue: function (url, callback) {
+      loadRemoteCatalogue: function (url, callback,failedCallback) {
         var vm = this
         var req = new window.XMLHttpRequest()
         req.withCredentials = true
@@ -237,7 +237,12 @@ div.ol-overviewmap.ol-uncollapsible {
           callback()
         }
         req.onerror = function (ev) {
-          vm.loading.failed("Remote Catalogue",'Couldn\'t load layer catalogue (' + (req.statusText || 'unknown') + ')')
+          var msg ='Couldn\'t load layer catalogue!' +  (req.statusText? ("(" + req.statusText + ")") : '')
+          if (failedCallback) {
+            failedCallback(msg)
+          } else {
+            console.error(msg)
+          }
         }
         req.open('GET', url)
         req.send()
@@ -255,7 +260,7 @@ div.ol-overviewmap.ol-uncollapsible {
     },
     ready: function () {
       var vm = this
-      vm.loading.begin("Catalogue Component","Initialize")
+      var catalogueStatus = vm.loading.register("catalogue","Catalogue Component","Initialize")
       this.catalogue.on('add', function (event) {
         var l = event.element
         l.id = l.id || l.identifier
@@ -265,13 +270,14 @@ div.ol-overviewmap.ol-uncollapsible {
           l.legend = l.legend || (vm.defaultLegendSrc + l.id)
         }
       })
-      vm.loading.wait("Catalogue Component",30,"Listen 'gk-init' event")
+      catalogueStatus.wait(30,"Listen 'gk-init' event")
       this.$on('gk-init', function() {
-        var vm = this
+        catalogueStatus.progress(80,"Process 'gk-init' event")
+        vm.loading.componentRevision += 1
         $(this.$root.map.olmap.getTargetElement()).on('mouseleave', '.ol-overviewmap', function() {
             vm.preview(false)
         })
-        vm.loading.end("Catalogue Component","Initialized")
+        catalogueStatus.end()
       })
     }
   }

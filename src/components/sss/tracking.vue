@@ -416,7 +416,7 @@
     },
     ready: function () {
       var vm = this
-      this.loading.begin("Resource Tracking Component","Initialize")
+      var trackingStatus = this.loading.register("tracking","Resource Tracking Component","Initialize")
       var map = this.$root.map
 
       var resourceTrackingStyle = function (res) {
@@ -497,9 +497,10 @@
         cql_filter: false
       })
 
-      this.loading.wait("Resource Tracking Component",80,"Listen 'gk-init' event")
+      trackingStatus.wait(40,"Listen 'gk-init' event")
       // post init event hookup
       this.$on('gk-init', function () {
+        trackingStatus.progress(80,"Process 'gk-init' event")
         var viewChanged = global.debounce(function () {
           vm.updateTracking()
         }, 100)
@@ -529,7 +530,7 @@
         vm.tools = vm.annotations.tools.filter(function (t) {
           return t.scope && t.scope.indexOf("resourcetracking") >= 0
         })
-        this.loading.end("Resource Tracking Component","Initialized")
+        trackingStatus.end()
       })
     }
   }

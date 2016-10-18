@@ -1,5 +1,5 @@
 <template>
-    <gk-loading v-ref:loading></gk-loading>
+    <gk-loading v-ref:loading application="SSS"></gk-loading>
     <div class="off-canvas-wrapper">
         <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
             <div class="off-canvas position-left" id="offCanvasLeft" data-off-canvas>
