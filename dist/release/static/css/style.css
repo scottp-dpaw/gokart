@@ -281,7 +281,9 @@ body {
 /* remove some of the annoying tab box styles */
 
 #offCanvasLeft {
-    background-color: transparent;
+    opacity:1;
+    background-color: #424f5a;
+    z-index:100;
 }
 
 #offCanvasLeft .tabs-content {

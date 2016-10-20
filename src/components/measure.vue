@@ -294,7 +294,7 @@
         measureStatus.progress(80,"Process 'gk-init' event")
         vm.$root.map.olmap.addControl(new ol.control.Control({
           element: $('#map-measure').get(0),
-	  target: $('#external-controls').get(0)
+    	  target: $('#external-controls').get(0)
         }))
         measureStatus.end()
       })
