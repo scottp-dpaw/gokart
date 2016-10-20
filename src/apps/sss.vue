@@ -59,12 +59,12 @@
             activeMenu : null
         }
       },
-      components: { gkMap, gkLayers, gkAnnotations, gkTracking,gkLoading},//,gkBfrs },
+      components: { gkMap, gkLayers, gkAnnotations, gkTracking, gkLoading },//, gkBfrs },
       methods: {
         init: function() {
             this.$root.annotations.setTool('Pan')
         },
-        switchMenu: function(menu,initFunc) {
+        switchMenu: function(menu, initFunc) {
             if (this.activeMenu && this.activeMenu == menu) {
                 //click on the active menu, do nothing
                 return

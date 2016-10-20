@@ -237,7 +237,7 @@ div.ol-overviewmap.ol-uncollapsible {
           callback()
         }
         req.onerror = function (ev) {
-          var msg ='Couldn\'t load layer catalogue!' +  (req.statusText? ("(" + req.statusText + ")") : '')
+          var msg ='Couldn\'t load layer catalogue!' +  (req.statusText? (" (" + req.statusText + ")") : '')
           if (failedCallback) {
             failedCallback(msg)
           } else {
