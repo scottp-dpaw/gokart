@@ -104,7 +104,7 @@ localforage.getItem('sssOfflineStore').then(function (store) {
     },
     data: {
       // store contains state we want to reload/persist
-      store: $.extend({},persistentData, store || {},volatileData),
+      store: $.extend({}, persistentData, store || {}, volatileData),
       pngs: {},
       fixedLayers:[],
       saved: null,

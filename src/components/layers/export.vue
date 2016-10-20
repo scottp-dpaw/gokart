@@ -127,10 +127,10 @@
   </div>
 </template>
 <script>
-  import { kjua, saveAs, moment, $, localforage,jsPDF } from 'src/vendor.js'
+  import { kjua, saveAs, moment, $, localforage, jsPDF } from 'src/vendor.js'
   import gkLegend from './legend.vue'
   export default {
-    store: ['whoami', 'dpmm', 'view', 'mmPerInch','gokartService'],
+    store: ['whoami', 'dpmm', 'view', 'mmPerInch', 'gokartService'],
     components: { gkLegend },
     data: function () {
       return {
@@ -470,16 +470,22 @@
         // upload JSON into a state slot 
         var vm = this
         var reader = new window.FileReader()
-        var key = this.$els.statefile.files[0].name.split('.', 1)[0]
-        reader.onload = function (e) {
-          localforage.getItem('sssStateStore').then(function(store) {
-            store[key] = JSON.parse(e.target.result)
-            localforage.setItem('sssStateStore', store).then(function (v) {
-              vm.states = Object.keys(store)
+        if (this.$els.statefile.files.length > 0) {
+          var key = this.$els.statefile.files[0].name.split('.', 1)[0]
+          reader.onload = function (e) {
+            localforage.getItem('sssStateStore', function (err, value) {
+              var store = {}
+              if (value) {
+                store = value
+              }
+              store[key] = JSON.parse(e.target.result)
+              localforage.setItem('sssStateStore', store).then(function (v) {
+                vm.states = Object.keys(store)
+              })
             })
-          })
+          }
+          reader.readAsText(this.$els.statefile.files[0])
         }
-        reader.readAsText(this.$els.statefile.files[0])
       },
       reset: function () {
         if (window.confirm('This will clear all of your selected layers and annotations. Are you sure?')) {
