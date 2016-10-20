@@ -37,10 +37,10 @@
                     </li-->
                 </ul>
                 <gk-map v-ref:map></gk-map>
-		<div id="external-controls"></div>
             </div>
         </div>
     </div>
+    <div id="external-controls"></div>
 </template>
 
 <script>
