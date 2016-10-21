@@ -410,7 +410,7 @@
         }
 
         this.$root.annotations.selectable = [this.trackingMapLayer]
-        this.$root.annotations.setTool('Select')
+        this.$root.annotations.setTool('Pan')
         this.$root.tracking.updateCQLFilter()
       }
     },
