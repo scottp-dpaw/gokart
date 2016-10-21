@@ -484,7 +484,7 @@
       }
 
       var getFeatureInfo = function (f) {
-        return '<div class="feature-title"><img class="feature-icon" src="' + map.getBlob(f, ['icon', 'tint']) + '" /> ' + f.get("label") + ' <i><small>seen ' +  moment(f.get("seen")).fromNow() + '</small></i></div>'
+        return {name:f.get("label"), img:map.getBlob(f, ['icon', 'tint']), comments:"seen '" +  moment(f.get("seen")).fromNow()}
       }
 
       this.$root.fixedLayers.push({
