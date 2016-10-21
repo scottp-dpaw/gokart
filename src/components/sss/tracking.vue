@@ -36,7 +36,7 @@
             </div>
             <div class="row">
               <div class="switch tiny">
-                <input class="switch-input" id="toggleResourceInfo" type="checkbox" v-bind:checked="$root.active.hoverInfo" @change="$root.active.toggleHoverInfo" />
+                <input class="switch-input" id="toggleResourceInfo" type="checkbox" v-bind:disabled="!$root.active.hoverInfoSwitchable" v-bind:checked="$root.active.hoverInfo" @change="$root.active.toggleHoverInfo" />
                 <label class="switch-paddle" for="toggleResourceInfo">
                   <span class="show-for-sr">Display hovering resource info</span>
                 </label>

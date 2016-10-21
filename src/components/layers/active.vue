@@ -97,7 +97,9 @@
           this.$root.info.enabled = val
         }
       },
-
+      hoverInfoSwitchable: function () {
+        return this.$root.annotations.tool && this.$root.annotations.tool.name === "Pan"
+      },
       sliderTimeline: {
         get: function () {
           this.timeIndex = this.mapLayer().get('timeIndex')
