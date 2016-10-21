@@ -1,6 +1,7 @@
 <template>
-  <div class="map" id="map" tabindex="0"></div>
-  <gk-info v-ref:info></gk-info>
+  <div class="map" id="map" tabindex="0">
+    <gk-info v-ref:info></gk-info>
+  </div>
   <gk-scales v-ref:scales></gk-scales>
   <gk-search v-ref:search></gk-search>
   <gk-measure v-ref:measure></gk-measure>
