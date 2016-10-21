@@ -483,11 +483,16 @@
         f.setStyle(resourceTrackingStyle)
       }
 
+      var getFeatureInfo = function (f) {
+        return {name:f.get("label"), img:map.getBlob(f, ['icon', 'tint']), comments:"seen '" +  moment(f.get("seen")).fromNow()}
+      }
+
       this.$root.fixedLayers.push({
         type: 'WFSLayer',
         name: 'Resource Tracking',
         id: 'dpaw:resource_tracking_live',
         onadd: addResource,
+        getFeatureInfo:getFeatureInfo,
         refresh: 60
       }, {
         type: 'WFSLayer',

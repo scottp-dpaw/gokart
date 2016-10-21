@@ -839,11 +839,25 @@
         style: vectorStyle
       }
 
+      var getFeatureInfo = function(feature) {
+        var tool = vm.getTool(feature.get('toolName'))
+        if (tool.icon.startsWith('fa-')) {
+          return {name:tool.name, icon:"fa " + tool.icon}
+        } else if (tool.icon.search('#') === -1) {
+          // plain svg/image
+          return {name:tool.name, img:tool.icon}
+        } else {
+          // svg reference
+          return {name:tool.name, svg:tool.icon}
+        }
+      }
+
       // add annotations layer to catalogue list
       this.$root.catalogue.catalogue.push({
         type: 'Annotations',
         id: 'annotations',
-        name: 'My Annotations'
+        name: 'My Annotations',
+        getFeatureInfo:getFeatureInfo
       })
 
       annotationStatus.wait(30,"Listen 'gk-init' event")

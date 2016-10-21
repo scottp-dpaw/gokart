@@ -1,6 +1,7 @@
 <template>
-  <div class="map" id="map" tabindex="0"></div>
-  <gk-info v-ref:info></gk-info>
+  <div class="map" id="map" tabindex="0">
+    <gk-info v-ref:info></gk-info>
+  </div>
   <gk-scales v-ref:scales></gk-scales>
   <gk-search v-ref:search></gk-search>
   <gk-measure v-ref:measure></gk-measure>
@@ -48,19 +49,13 @@
       width: {
         cache: false,
         get: function get () {
-          if (this.$el) {
-            return this.$el.clientWidth
-          }
-          return 0
+          return $("#map").width()
         }
       },
       height: {
         cache: false,
         get: function get () {
-          if (this.$el) {
-            return this.$el.clientHeight
-          }
-          return 0
+          return $("#map").height()
         }
       }
     },
