@@ -9,7 +9,12 @@
     <div class="row">
       <div class="columns content">
         <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f[0]) }" v-bind:key="f[0].get('id')">
-          <div class="columns" v-html="featureInfo(f[0],f[1])"></div>
+          <div class="feature-title">
+            <img v-if="featureInfo(f[0],f[1]).img" class="feature-icon" v-bind:src="featureInfo(f[0],f[1]).img"/>
+            <svg v-if="featureInfo(f[0],f[1]).svg" class="feature-icon"><use v-bind="{'xlink:href':featureInfo(f[0],f[1]).svg}"></use></svg>
+            <i v-if="featureInfo(f[0],f[1]).icon" class="feature-icon" v-bind:class="featureInfo(f[0],f[1]).icon" aria-hidden="true"></i>
+            {{featureInfo(f[0],f[1]).name}} <i v-if="featureInfo(f[0],f[1]).comments"><small>{{featureInfo(f[0],f[1]).comments}}</small></i>
+          </div>
         </div>
       </div>
     </div>
@@ -95,12 +100,18 @@
         return this.$root.annotations.selectedFeatures.getArray().indexOf(f) > -1
       },
       featureInfo: function(feature,mapLayer) {
+        if (this._feature === feature) {
+            return this._featureInfo
+        }
         var layer = mapLayer?this.catalogue.getLayer(mapLayer.get('id')):null 
         if (layer && layer.getFeatureInfo) {
-            return layer.getFeatureInfo(feature)
+            this._featureInfo = layer.getFeatureInfo(feature)   
         } else {
-            return feature.getId()
+            this._featureInfo = {"name":feature.getId(),img:false,svg:false,icon:false,comments:false}
         }
+
+        this._feature = feature
+        return this._featureInfo
       }
     },
     ready: function () {
