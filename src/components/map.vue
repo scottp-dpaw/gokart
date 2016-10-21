@@ -48,19 +48,13 @@
       width: {
         cache: false,
         get: function get () {
-          if (this.$el) {
-            return this.$el.clientWidth
-          }
-          return 0
+          return $("#map").width()
         }
       },
       height: {
         cache: false,
         get: function get () {
-          if (this.$el) {
-            return this.$el.clientHeight
-          }
-          return 0
+          return $("#map").height()
         }
       }
     },
