@@ -8,11 +8,8 @@
     </div>
     <div class="row">
       <div class="columns content">
-        <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f) }" track-by="get('id')">
-          <div v-if="f.get('partialId') !== 'resourceInfo'" class="columns">{{ f.getId() }}</div>
-          <div v-if="f.get('partialId') === 'resourceInfo'" class="columns">
-            <div class="feature-title"><img class="feature-icon" v-bind:src="map.getBlob(f, ['icon', 'tint'])" /> {{ f.get('label') }} <i><small>seen {{ ago(f.get('seen')) }}</small></i></div>
-          </div>
+        <div v-for="f in features" class="row feature-row" v-bind:class="{'feature-selected': selected(f[0]) }" v-bind:key="f[0].get('id')">
+          <div class="columns" v-html="featureInfo(f[0],f[1])"></div>
         </div>
       </div>
     </div>
@@ -27,7 +24,7 @@
 </style>
 
 <script>
-  import { ol, moment } from 'src/vendor.js'
+  import { ol } from 'src/vendor.js'
   export default {
     data: function () {
       return {
@@ -41,6 +38,7 @@
     // parts of the template to be computed live
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      catalogue: function () { return this.$root.catalogue },
       loading: function () { return this.$root.loading },
       featuresLength: function () {
         return Object.keys(this.features).length
@@ -73,9 +71,6 @@
     },
     // methods callable from inside the template
     methods: {
-      ago: function (time) {
-        return moment(time).fromNow()
-      },
       // update the panel content
       onPointerMove: function (event) {
         if (event.dragging || !this.enabled) {
@@ -83,8 +78,8 @@
         }
         var pixel = this.$root.map.olmap.getEventPixel(event.originalEvent)
         var features = []
-        this.$root.map.olmap.forEachFeatureAtPixel(pixel, function (f) {
-          features.push(f)
+        this.$root.map.olmap.forEachFeatureAtPixel(pixel, function (f,layer) {
+          features.push([f,layer])
         })
         if (features.length > 0) {
           this.features = features
@@ -93,10 +88,19 @@
         } else {
           // hide when no features
           this.pixel.$set(0, 0)
+          this.features = false
         }
       },
       selected: function (f) {
         return this.$root.annotations.selectedFeatures.getArray().indexOf(f) > -1
+      },
+      featureInfo: function(feature,mapLayer) {
+        var layer = mapLayer?this.catalogue.getLayer(mapLayer.get('id')):null 
+        if (layer && layer.getFeatureInfo) {
+            return layer.getFeatureInfo(feature)
+        } else {
+            return feature.getId()
+        }
       }
     },
     ready: function () {

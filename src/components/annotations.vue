@@ -839,11 +839,17 @@
         style: vectorStyle
       }
 
+      var getFeatureInfo = function(feature) {
+        var tool = vm.getTool(feature.get('toolName'))
+        return '<div class="feature-title">' + vm.icon(tool) + " " + tool.name + '</div>'
+      }
+
       // add annotations layer to catalogue list
       this.$root.catalogue.catalogue.push({
         type: 'Annotations',
         id: 'annotations',
-        name: 'My Annotations'
+        name: 'My Annotations',
+        getFeatureInfo:getFeatureInfo
       })
 
       annotationStatus.wait(30,"Listen 'gk-init' event")
