@@ -583,3 +583,6 @@ input[type="range"] {
     background-color: #185a18;
 }
 
+input:disabled ~ .switch-paddle {
+     background-color: rgb(119, 119, 119);
+}
