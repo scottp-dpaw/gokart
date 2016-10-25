@@ -168,7 +168,8 @@
         }
         return output
       },
-      formatArea : function(polygon) {
+      formatArea : function(polygon,unit) {     
+        unit = unit || "hectare"
         var area
         var sourceProj = this.$root.map.olmap.getView().getProjection()
         var geom = /** @type {ol.geom.Polygon} */(polygon.clone().transform(
@@ -176,12 +177,24 @@
         var coordinates = geom.getLinearRing(0).getCoordinates()
         area = Math.abs(this.wgs84Sphere.geodesicArea(coordinates))
         var output
-        if (area > 10000) {
-          output = (Math.round(area / 1000000 * 100) / 100) +
-              ' ' + 'km<sup>2</sup>'
+        if (unit === "hectare") {
+            if (area > 10000) {
+              // large than 1 hectare
+              output = Math.round(area / 10000) + 
+                  ' ' + 'ha'
+            } else {
+              //less than 1 hectare
+              output = (Math.round(area / 10000 * 100) / 100) +
+                  ' ' + 'ha'
+            }
         } else {
-          output = (Math.round(area * 100) / 100) +
-              ' ' + 'm<sup>2</sup>'
+            if (area > 10000) {
+              output = (Math.round(area / 1000000 * 100) / 100) +
+                  ' ' + 'km<sup>2</sup>'
+            } else {
+              output = (Math.round(area * 100) / 100) +
+                  ' ' + 'm<sup>2</sup>'
+            }
         }
         return output
       },
