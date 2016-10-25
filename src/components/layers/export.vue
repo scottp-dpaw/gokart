@@ -84,7 +84,7 @@
         </div>
         <div class="small-9">
           <select v-model="paperSize">
-                    <option v-for="size in paperSizes" v-bind:value="$key">ISO {{ $key }} ({{ size[0] }}mm &times; {{ size[1] }}mm)</option>
+                    <option v-for="size in paperSizes" v-bind:value="$key">{{ $key }} ({{ size[0] }}mm &times; {{ size[1] }}mm)</option>
                   </select>
         </div>
       </div>
@@ -321,7 +321,7 @@
         }
         if (this.$root.map) {
           result.km = (Math.round(this.$root.map.getScale() * 40) / 1000).toLocaleString()
-          result.scale = 'ISO ' + this.paperSize + ' ' + this.$root.map.scaleString
+          result.scale = this.paperSize + ' ' + this.$root.map.scaleString
         }
         return result
       },
