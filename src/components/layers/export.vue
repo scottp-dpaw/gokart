@@ -75,7 +75,7 @@
           <label class="tool-label">Name:</label>
         </div>
         <div class="small-9">
-          <input id="export-name" type="text" v-model="title" />
+          <input id="export-name" type="text" v-model="title" placeholder="Quick Print"/>
         </div>
       </div>
       <div class="tool-slice row collapse">
@@ -144,7 +144,7 @@
         },
         paperSize: 'A3',
         layout: {},
-        title: 'Quick Print',
+        title: '',
         statefile: '',
         vectorFormat: 'json',
         states: [],
@@ -175,6 +175,10 @@
           return $.param({ lon: lonlat[0], lat: lonlat[1], scale: Math.round(this.$root.map.getScale() * 1000) })
         }
       },
+      finalTitle:function() {
+        this.title = this.title.trim()
+        return (this.title.length == 0)?"Quick Print":this.title
+      }
     },
     // methods callable from inside the template
     methods: {
@@ -308,14 +312,14 @@
             doc.addImage(getBase64Image(imgElement),"PNG",style.left,top,imageSize[0],imageSize[1])
             top += imageSize[1]
         })
-        var filename = vm.title.replace(' ', '_') + ".legend.pdf"
+        var filename = vm.finalTitle.replace(' ', '_') + ".legend.pdf"
         saveAs(doc.output("blob"),filename)
 
       },
       // info for the legend block on the print raster
       legendInfo: function () {
         var result = {
-          title: this.title,
+          title: this.finalTitle,
           author: this.whoami.email,
           date: 'Printed ' + moment().toLocaleString()
         }
@@ -371,7 +375,7 @@
         formData.append('extent', this.layout.extent.join(' '))
         formData.append('jpg', blob, name + '.jpg')
         formData.append('dpi', Math.round(this.layout.canvasPxPerMM * 25.4))
-        formData.append('title', this.title)
+        formData.append('title', this.finalTitle)
         formData.append('author', this.legendInfo().author)
         var req = new window.XMLHttpRequest()
         req.open('POST', this.gokartService + '/gdal/' + format)
@@ -412,7 +416,7 @@
               canvas.getContext('2d').drawImage(qrcanvas, 8, height)
               window.URL.revokeObjectURL(url)
               // generate a jpg copy of the canvas contents
-              var filename = vm.title.replace(' ', '_')
+              var filename = vm.finalTitle.replace(' ', '_')
               canvas.toBlob(function (blob) {
                 if (format === 'jpg') {
                   saveAs(blob, filename + '.jpg')
