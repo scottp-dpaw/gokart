@@ -17,11 +17,11 @@
       </div-->
       <div class="tool-slice row collapse">
         <div class="small-3">
-          <label class="tool-label">Save state:</label>
+          <label class="tool-label">Save view:</label>
         </div>
         <div class="small-9 columns">
           <div class="input-group">
-            <input v-el:savestatename class="input-group-field" type="text" placeholder="Name for saved state"/>
+            <input v-el:savestatename class="input-group-field" type="text" placeholder="Name for saved view"/>
             <div class="input-group-button">
               <a class="button" @click="saveStateButton()">Save</a>
             </div>
@@ -30,32 +30,32 @@
       </div>
       <div class="tool-slice row collapse">
         <div class="small-3">
-          <label class="tool-label">Export state:</label>
+          <label class="tool-label">Export view:</label>
         </div>
         <div class="small-9 columns">
           <div class="expanded button-group">
-            <a class="button expanded" @click="download()"><i class="fa fa-download"></i> Download current state</a>
+            <a class="button expanded" @click="download()"><i class="fa fa-download"></i> Download current view</a>
           </div>
         </div>
       </div>
       <div class="tool-slice row collapse">
         <div class="small-3">
-          <label class="tool-label">Load state:</label>
+          <label class="tool-label">Load view:</label>
         </div>
         <div class="small-9 columns">
           <div v-for="state in states" class="feature-row" style="overflow: hidden">
             <div class="float-right button-group small">
-              <a class="button" title="Open state" @click="open(state)"><i class="fa fa-folder-open"></i></a>
-              <a class="button" title="Download state" @click="download(state)"><i class="fa fa-download"></i></a>
-              <a class="button alert" title="Delete state" @click="remove(state)">✕</a>
+              <a class="button" title="Open view" @click="open(state)"><i class="fa fa-folder-open"></i></a>
+              <a class="button" title="Download view" @click="download(state)"><i class="fa fa-download"></i></a>
+              <a class="button alert" title="Delete view" @click="remove(state)">✕</a>
             </div>
             {{ state }}
           </div>
           <div v-if="states.length == 0" class="feature-row">
-            No saved states yet
+            No saved views yet
           </div>
           <div class="expanded button-group">
-            <label class="button expanded" for="uploadFile"><i class="fa fa-upload"></i> Upload state file</label><input type="file" id="uploadFile" class="show-for-sr" name="statefile" accept="application/json" v-model="statefile" v-el:statefile @change="load()"/>
+            <label class="button expanded" for="uploadFile"><i class="fa fa-upload"></i> Upload view file</label><input type="file" id="uploadFile" class="show-for-sr" name="statefile" accept="application/json" v-model="statefile" v-el:statefile @change="load()"/>
           </div>
         </div>
       </div>
@@ -441,7 +441,7 @@
           // download JSON blob of the current state
           localforage.getItem('sssOfflineStore').then(function (store) {
             var blob = new window.Blob([JSON.stringify(store, null, 2)], {type: 'application/json;charset=utf-8'})
-            saveAs(blob, 'sss_state_' +moment().format('YYYY-MM-DD-HHmm')+'.sss.json')
+            saveAs(blob, 'sss_view_' +moment().format('YYYY-MM-DD-HHmm')+'.sss.json')
           })
         }
       },
