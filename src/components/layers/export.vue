@@ -330,6 +330,7 @@
         return result
       },
       exportVector: function(features, name) {
+        var vm = this
         var name = name || ''
         var result = this.$root.geojson.writeFeatures(features)
         var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
@@ -342,7 +343,26 @@
           req.open('POST', this.gokartService + '/ogr/' + this.vectorFormat)
           req.responseType = 'blob'
           req.onload = function (event) {
-            saveAs(req.response, name + '.' + format)
+            if (req.status >= 400) {
+                var reader = new FileReader()
+                reader.readAsText(req.response)
+                reader.addEventListener("loadend",function(e){
+                    alert(e.target.result)
+                    
+                })
+            } else {
+                var filename = null
+                if (req.getResponseHeader("Content-Disposition")) {
+                    if (!vm._filename_re) {
+                        vm._filename_re = new RegExp("filename=[\'\"](.+)[\'\"]")
+                    }
+                    var matches = vm._filename_re.exec(req.getResponseHeader("Content-Disposition"))
+                    filename = (matches && matches[1])? matches[1]: (name + "." + this.vectorFormat)
+                } else {
+                    filename = name + "." + this.vectotFormat
+                }
+                saveAs(req.response, filename)
+            }
           }
           req.send(formData)
         }
