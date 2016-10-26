@@ -5,7 +5,7 @@ var env = {
     wmtsService:"https://kmi-uat.dpaw.wa.gov.au/geoserver/gwc/service/wmts",
     wfsService:"https://kmi-uat.dpaw.wa.gov.au/geoserver/wfs",
     legendSrc:"https://kmi-uat.dpaw.wa.gov.au/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&LAYER=",
-    gokartService:"https://gokart-uat.dpaw.wa.gov.au",
+    gokartService:"https://spatialsupport-uat.dpaw.wa.gov.au",
     oimService:"https://oim-uat.dpaw.wa.gov.au",
     sssService:"https://sss-uat.dpaw.wa.gov.au",
     bfrsService: "https://bfrs.dpaw.wa.gov.au",
