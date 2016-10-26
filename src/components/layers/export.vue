@@ -375,6 +375,8 @@
         this.olmap.setSize([this.dpmm * this.layout.width, this.dpmm * this.layout.height])
         this.olmap.getView().fit(this.layout.extent, this.olmap.getSize())
         this.$root.map.setScale(this.$root.map.getFixedScale())
+        //extent is changed because the scale is adjusted to the closest fixed scale, recalculated the extent again
+        this.layout.extent = this.olmap.getView().calculateExtent(this.olmap.getSize())
       },
       // restore map to viewport dimensions
       resetSize: function () {
