@@ -26,7 +26,7 @@
                         </a>
                     </li>
                     <li class="tabs-title side-button">
-                        <a href="#menu-tab-tracking" title="Vehicle Tracking" @click="switchMenu('vehicleTracking',$root.tracking.init)">
+                        <a href="#menu-tab-tracking" title="Resources Tracking" @click="switchMenu('vehicleTracking',$root.tracking.init)">
                             <i class="fa fa-truck" aria-hidden="true"></i>
                         </a>
                     </li>
