@@ -42,7 +42,20 @@
                 </div>
                 <div class="expanded button-group">
                   <a class="button"><i class="fa fa-upload" aria-hidden="true"></i> Upload Boundary</a>
-                  <a class="button" @click="downloadAnnotations()"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations</a>
+                  <a class="button" @click="downloadAnnotations()"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations <br>({{export.vectorFormat}}
+                      <i class="fa fa-toggle-down" aria-hidden="true" v-on:click.stop.prevent="shouldShowDataFormatPicker=!shouldShowDataFormatPicker"></i>)
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div v-show="shouldShowDataFormatPicker" class="tool-slice row collapse">
+              <div class="small-2"><label class="tool-label">Format:<br/>({{ export.vectorFormat }})</label></div>
+              <div class="small-10">
+                <div class="expanded button-group">
+                  <a @click="setDataFormat('json')" v-bind:class="{'selected': export.vectorFormat === 'json'}" class="button" title="GeoJSON (weg GIS)">GeoJSON</a>
+                  <a @click="setDataFormat('sqlite')" v-bind:class="{'selected': export.vectorFormat === 'sqlite'}" class="button" title="SQLite">SQLite</a>
+                  <a @click="setDataFormat('csv')" v-bind:class="{'selected': export.vectorFormat === 'csv'}" class="button" title="CSV (Spreadsheet/Excel)">CSV</a>
                 </div>
               </div>
             </div>
@@ -57,6 +70,7 @@
                 </div>
               </div>
             </div>
+
             <div v-show="shouldShowColourPicker" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
@@ -171,6 +185,7 @@
           colour: '#000000'
         },
         notes: {},
+        shouldShowDataFormatPicker:false,
         size: 2,
         colour: '#000000',
         colours: [
@@ -189,6 +204,7 @@
     },
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      export: function () { return this.$root.export },
       loading: function () { return this.$root.loading },
       featureEditing: function() {
         if (this.tool == this.ui.editStyle && this.selectedFeatures.getLength() > 0) {
@@ -241,6 +257,10 @@
       }
     },
     methods: {
+      setDataFormat:function(fmt) {
+        this.export.vectorFormat = fmt
+        this.shouldShowDataFormatPicker = false
+      },
       getStyleFunction: function(featureStyleFunction,thisArg) {
         var func = function(feat,res) {
             return featureStyleFunction.call(thisArg || feat,res)
