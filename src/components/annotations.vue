@@ -2,8 +2,8 @@
   <div class="tabs-panel" id="menu-tab-annotations" v-cloak>
     <div class="row collapse">
       <div class="columns">
-        <ul class="tabs" data-tabs id="annotations-tabs">
-          <li class="tabs-title is-active"><a href="#annotations-edit" aria-selected="true">Annotations</a></li>
+        <ul class="tabs" id="annotations-tabs">
+          <li class="tabs-title is-active"><a class="label" aria-selected="true">Annotations</a></li>
         </ul>
       </div>
     </div>

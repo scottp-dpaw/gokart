@@ -2,8 +2,8 @@
   <div class="tabs-panel" id="menu-tab-tracking">
     <div class="row collapse">
       <div class="columns">
-        <ul class="tabs" data-tabs id="tracking-tabs">
-          <li class="tabs-title is-active"><a href="#tracking-list-tab" aria-selected="true">Resource Tracking</a></li>
+        <ul class="tabs" id="tracking-tabs">
+          <li class="tabs-title is-active"><a class="label" aria-selected="true">Resource Tracking</a></li>
         </ul>
       </div>
     </div>

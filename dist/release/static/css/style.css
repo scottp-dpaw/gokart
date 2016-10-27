@@ -386,6 +386,11 @@ input[type="range"] {
 .off-canvas .tabs a {
     height: 100%;
 }
+
+.off-canvas .tabs a .label{
+    cursor:initial;
+}
+
 /* styling for switch widgets used in the side pane */
 
 .off-canvas .switch-paddle {
