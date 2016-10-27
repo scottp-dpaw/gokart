@@ -36,6 +36,15 @@
             </div>
             <div class="row">
               <div class="switch tiny">
+                <input class="switch-input" id="toggleResourceLabels" type="checkbox" v-bind:checked="resourceLabels" @change="toggleResourceLabels" />
+                <label class="switch-paddle" for="toggleResourceLabels">
+                  <span class="show-for-sr">Display resource labels</span>
+                </label>
+              </div>
+              <label for="toggleResourceLabels" class="side-label">Display resource labels</label>
+            </div>
+            <div class="row">
+              <div class="switch tiny">
                 <input class="switch-input" id="toggleResourceInfo" type="checkbox" v-bind:disabled="!$root.active.hoverInfoSwitchable" v-bind:checked="$root.active.hoverInfo" @change="$root.active.toggleHoverInfo" />
                 <label class="switch-paddle" for="toggleResourceInfo">
                   <span class="show-for-sr">Display hovering resource info</span>
@@ -154,6 +163,7 @@
       return {
         viewportOnly: true,
         toggleHistory: false,
+        resourceLabels: true,
         selectedOnly: false,
         search: '',
         cql: '',
@@ -261,6 +271,9 @@
         } else {
           this.$root.annotations.selectedFeatures.push(f)
         }
+      },
+      toggleResourceLabels: function () {
+        this.resourceLabels = !this.resourceLabels
       },
       featureIconSrc:function(f) {
         var vm = this
@@ -447,7 +460,7 @@
           })
         }, feat, ['icon', 'tint'])
         if (style.getText) {
-          if (res < 0.002) {
+          if ((res < 0.003) & (vm.resourceLabels)) {
             style.getText().setText(feat.get('label'))
           } else {
             style.getText().setText('')
