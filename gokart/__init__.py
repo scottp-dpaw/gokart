@@ -97,23 +97,41 @@ def ogr(fmt):
     # needs gdal 1.10+
     json = bottle.request.files.get("json")
     workdir = tempfile.mkdtemp()
-    path = os.path.join(workdir, json.filename)
+    layername = os.path.splitext(json.filename)[0]
     json.save(workdir)
+    jsonfile = os.path.join(workdir, json.filename)
     extra = []
-    if fmt == "shp":
-        of = "ESRI Shapefile"
+    if fmt == "shp" and False:
+        #Disable now
+        f = "ESRI Shapefile"
         ct = "application/zip"
+    elif fmt == 'sqlite':
+        f = "SQLite"
+        ct = "application/x-sqlite3"
+        dst_datasource = os.path.splitext(jsonfile)[0] + ".sqlite"
+    elif fmt == 'gpkg':
+        f = "GPKG"
+        ct = "application/x-sqlite3"
+        dst_datasource = os.path.splitext(jsonfile)[0] + ".gpkg"
+    elif fmt == 'csv':
+        f = "CSV"
+        ct = "text/csv"
+        dst_datasource = os.path.splitext(jsonfile)[0] + ".csv"
+    else:
+        bottle.response.status = 400
+        return "Not supported format({})".format(fmt)
+
     subprocess.check_call([
-        "gdal_translate", "-f", of,
-        path + "." + fmt, path
-    ])
+        "ogr2ogr","-overwrite" , "-progress","-a_srs","EPSG:4326","-nln",layername, "-f", f,dst_datasource, jsonfile]) 
+
     if fmt == "shp":
         shutil.make_archive(path.replace('geojson', 'zip'), 'zip', workdir, workdir)
-        fmt = "zip"
-    output = open(path + "." + fmt)
+        dst_datasource = path + ".zip"
+
+    output = open(dst_datasource)
     shutil.rmtree(workdir)
     bottle.response.set_header("Content-Type", ct)
-    bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(jpg.filename.replace("geojson", fmt)))
+    bottle.response.set_header("Content-Disposition", "attachment;filename='{}'".format(os.path.basename(dst_datasource)))
     return output
 
 

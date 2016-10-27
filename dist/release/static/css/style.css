@@ -386,6 +386,11 @@ input[type="range"] {
 .off-canvas .tabs a {
     height: 100%;
 }
+
+.off-canvas .tabs a .label{
+    cursor:initial;
+}
+
 /* styling for switch widgets used in the side pane */
 
 .off-canvas .switch-paddle {
@@ -585,4 +590,8 @@ input[type="range"] {
 
 input:disabled ~ .switch-paddle {
      background-color: rgb(119, 119, 119);
+}
+
+.default-name {
+    color:#e2e3e5
 }

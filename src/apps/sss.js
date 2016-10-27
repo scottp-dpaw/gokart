@@ -74,7 +74,6 @@ var volatileData = {
 }
 
 var persistentData = {
-  tourVersion: null,
   view: {
     center: [123.75, -24.966]
   },
@@ -87,6 +86,10 @@ var persistentData = {
   annotations: {
     type: 'FeatureCollection',
     features: []
+  },
+  //data in settings will survive across reset
+  settings:{
+    tourVersion: null
   }
 }
 
@@ -135,6 +138,14 @@ localforage.getItem('sssOfflineStore').then(function (store) {
               persistentData[key] = vm.store[key]
           })
           return persistentData
+      }
+    },
+    methods: {
+      takeTour: function() {
+          this.store.settings.tourVersion = tour.version
+          this.export.saveState()
+          this.touring = true
+          tour.start()
       }
     },
     ready: function () {
@@ -412,11 +423,8 @@ localforage.getItem('sssOfflineStore').then(function (store) {
                 self.loading.app.failed()
                 throw err
             }
-            if (self.store.tourVersion !== tour.version) {
-              self.store.tourVersion = tour.version
-              self.export.saveState()
-              self.touring = true
-              tour.start()
+            if (self.store.settings.tourVersion !== tour.version) {
+              self.takeTour()
             }
           },function(reason){
             self.loading.app.failed(reason)

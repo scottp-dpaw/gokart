@@ -2,8 +2,8 @@
   <div class="tabs-panel" id="menu-tab-annotations" v-cloak>
     <div class="row collapse">
       <div class="columns">
-        <ul class="tabs" data-tabs id="annotations-tabs">
-          <li class="tabs-title is-active"><a href="#annotations-edit" aria-selected="true">Annotations</a></li>
+        <ul class="tabs" id="annotations-tabs">
+          <li class="tabs-title is-active"><a class="label" aria-selected="true">Annotations</a></li>
         </ul>
       </div>
     </div>
@@ -42,8 +42,21 @@
                 </div>
                 <div class="expanded button-group">
                   <a class="button"><i class="fa fa-upload" aria-hidden="true"></i> Upload Boundary</a>
-                  <a class="button" @click="downloadAnnotations()"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations</a>
+                  <a class="button" @click="downloadAnnotations()"><i class="fa fa-download" aria-hidden="true"></i> Export Annotations <br>({{export.vectorFormat}}
+                      <i class="fa fa-toggle-down" aria-hidden="true" v-on:click.stop.prevent="shouldShowDataFormatPicker=!shouldShowDataFormatPicker"></i>)
+                  </a>
                 </div>
+              </div>
+            </div>
+
+            <div v-show="shouldShowDataFormatPicker" class="tool-slice row collapse">
+              <div class="small-2"><label class="tool-label">Format:<br/>({{ export.vectorFormat }})</label></div>
+              <div class="small-10">
+                  <div class="row resetmargin" >
+                    <div class="small-6" v-for="f in export.vectorFormats" v-bind:class="{'rightmargin': $index % 2 === 0}"`>
+                      <a @click="setDataFormat(f.format)" v-bind:class="{'selected': export.vectorFormat === f.format}" class="expanded button" title="{{f.title}}">{{f.name}}</a>
+                    </div>
+                  </div>
               </div>
             </div>
 
@@ -57,6 +70,7 @@
                 </div>
               </div>
             </div>
+
             <div v-show="shouldShowColourPicker" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Colour:</label></div>
               <div class="small-10">
@@ -171,6 +185,7 @@
           colour: '#000000'
         },
         notes: {},
+        shouldShowDataFormatPicker:false,
         size: 2,
         colour: '#000000',
         colours: [
@@ -189,6 +204,7 @@
     },
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
+      export: function () { return this.$root.export },
       loading: function () { return this.$root.loading },
       featureEditing: function() {
         if (this.tool == this.ui.editStyle && this.selectedFeatures.getLength() > 0) {
@@ -241,6 +257,10 @@
       }
     },
     methods: {
+      setDataFormat:function(fmt) {
+        this.export.vectorFormat = fmt
+        this.shouldShowDataFormatPicker = false
+      },
       getStyleFunction: function(featureStyleFunction,thisArg) {
         var func = function(feat,res) {
             return featureStyleFunction.call(thisArg || feat,res)
@@ -716,8 +736,8 @@
           this.ui.modifyInter
         ],
         onSet: function() {
-            vm.ui.dragSelectInter.setMulti(true)
-            vm.ui.selectInter.setMulti(true)
+            vm.ui.dragSelectInter.setMulti(false)
+            vm.ui.selectInter.setMulti(false)
         }
       }
       this.tools = [

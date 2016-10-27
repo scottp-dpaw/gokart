@@ -17,11 +17,11 @@
       </div-->
       <div class="tool-slice row collapse">
         <div class="small-3">
-          <label class="tool-label">Save state:</label>
+          <label class="tool-label">Save view:</label>
         </div>
         <div class="small-9 columns">
           <div class="input-group">
-            <input v-el:savestatename class="input-group-field" type="text" placeholder="Name for saved state"/>
+            <input v-el:savestatename class="input-group-field" type="text" placeholder="Name for saved view"/>
             <div class="input-group-button">
               <a class="button" @click="saveStateButton()">Save</a>
             </div>
@@ -30,42 +30,32 @@
       </div>
       <div class="tool-slice row collapse">
         <div class="small-3">
-          <label class="tool-label">Export state:</label>
+          <label class="tool-label">Export view:</label>
         </div>
         <div class="small-9 columns">
           <div class="expanded button-group">
-            <a class="button expanded" @click="download()"><i class="fa fa-download"></i> Download current state</a>
+            <a class="button expanded" @click="download()"><i class="fa fa-download"></i> Download current view</a>
           </div>
         </div>
       </div>
       <div class="tool-slice row collapse">
         <div class="small-3">
-          <label class="tool-label">Load state:</label>
+          <label class="tool-label">Load view:</label>
         </div>
         <div class="small-9 columns">
           <div v-for="state in states" class="feature-row" style="overflow: hidden">
             <div class="float-right button-group small">
-              <a class="button" title="Open state" @click="open(state)"><i class="fa fa-folder-open"></i></a>
-              <a class="button" title="Download state" @click="download(state)"><i class="fa fa-download"></i></a>
-              <a class="button alert" title="Delete state" @click="remove(state)">✕</a>
+              <a class="button" title="Open view" @click="open(state)"><i class="fa fa-folder-open"></i></a>
+              <a class="button" title="Download view" @click="download(state)"><i class="fa fa-download"></i></a>
+              <a class="button alert" title="Delete view" @click="remove(state)">✕</a>
             </div>
             {{ state }}
           </div>
           <div v-if="states.length == 0" class="feature-row">
-            No saved states yet
+            No saved views yet
           </div>
           <div class="expanded button-group">
-            <label class="button expanded" for="uploadFile"><i class="fa fa-upload"></i> Upload state file</label><input type="file" id="uploadFile" class="show-for-sr" name="statefile" accept="application/json" v-model="statefile" v-el:statefile @change="load()"/>
-          </div>
-        </div>
-      </div>
-      <div class="tool-slice row collapse">
-        <div class="small-3">
-          <label class="tool-label">Reset:</label>
-        </div>
-        <div class="small-9">
-          <div class="expanded button-group">
-            <a id="reset-sss" class="button alert" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i> Reset SSS</a>
+            <label class="button expanded" for="uploadFile"><i class="fa fa-upload"></i> Upload view file</label><input type="file" id="uploadFile" class="show-for-sr" name="statefile" accept="application/json" v-model="statefile" v-el:statefile @change="load()"/>
           </div>
         </div>
       </div>
@@ -75,7 +65,7 @@
           <label class="tool-label">Name:</label>
         </div>
         <div class="small-9">
-          <input id="export-name" type="text" v-model="title" />
+          <input id="export-name" type="text" v-model="title" placeholder="Quick Print"/>
         </div>
       </div>
       <div class="tool-slice row collapse">
@@ -98,6 +88,18 @@
             <a class="button" title="Geospatial PDF for use in PDF Maps and Adobe Reader" @click="print('pdf')"><i class="fa fa-print"></i><br>PDF</a>
             <a class="button" title="GeoTIFF for use in QGIS on the desktop" @click="print('tif')"><i class="fa fa-picture-o"></i><br>GeoTIFF</a>
             <a class="button" title="Legends of active layers" @click="toggleLegends()"><i class="fa fa-file-pdf-o"></i><br>Legend</a>
+          </div>
+        </div>
+      </div>
+      <hr class="row"/>
+      <div class="tool-slice row collapse">
+        <div class="small-3">
+          <label class="tool-label">Reset:</label>
+        </div>
+        <div class="small-9">
+          <div class="expanded button-group">
+            <a id="reset-sss" class="button alert" title="Clear current config and annotations" @click="reset()"><i class="fa fa-refresh"></i> Reset SSS</a>
+            <a id="take-tour" class="button" title="Take tour" @click="$root.takeTour()"><i class="fa fa-book"></i> Take Tour</a>
           </div>
         </div>
       </div>
@@ -144,11 +146,17 @@
         },
         paperSize: 'A3',
         layout: {},
-        title: 'Quick Print',
+        title: '',
         statefile: '',
         vectorFormat: 'json',
         states: [],
         legendLayers:[],
+        vectorFormats:[
+            {format:"json",title:"GeoJSON (web GIS)",name:"GeoJSON"},
+            {format:"sqlite",title:"SQLite",name:"SQLite"},
+            {format:"gpkg",title:"GeoPackage",name:"GeoPackage"},
+            {format:"csv",title:"CSV (Spreadsheet/Excel)",name:"CSV"}
+        ]
       }
     },
     // parts of the template to be computed live
@@ -175,6 +183,10 @@
           return $.param({ lon: lonlat[0], lat: lonlat[1], scale: Math.round(this.$root.map.getScale() * 1000) })
         }
       },
+      finalTitle:function() {
+        this.title = this.title.trim()
+        return (this.title.length == 0)?"Quick Print":this.title
+      }
     },
     // methods callable from inside the template
     methods: {
@@ -308,14 +320,14 @@
             doc.addImage(getBase64Image(imgElement),"PNG",style.left,top,imageSize[0],imageSize[1])
             top += imageSize[1]
         })
-        var filename = vm.title.replace(' ', '_') + ".legend.pdf"
+        var filename = vm.finalTitle.replace(' ', '_') + ".legend.pdf"
         saveAs(doc.output("blob"),filename)
 
       },
       // info for the legend block on the print raster
       legendInfo: function () {
         var result = {
-          title: this.title,
+          title: this.finalTitle,
           author: this.whoami.email,
           date: 'Printed ' + moment().toLocaleString()
         }
@@ -326,6 +338,7 @@
         return result
       },
       exportVector: function(features, name) {
+        var vm = this
         var name = name || ''
         var result = this.$root.geojson.writeFeatures(features)
         var blob = new window.Blob([result], {type: 'application/json;charset=utf-8'})
@@ -338,7 +351,26 @@
           req.open('POST', this.gokartService + '/ogr/' + this.vectorFormat)
           req.responseType = 'blob'
           req.onload = function (event) {
-            saveAs(req.response, name + '.' + format)
+            if (req.status >= 400) {
+                var reader = new FileReader()
+                reader.readAsText(req.response)
+                reader.addEventListener("loadend",function(e){
+                    alert(e.target.result)
+                    
+                })
+            } else {
+                var filename = null
+                if (req.getResponseHeader("Content-Disposition")) {
+                    if (!vm._filename_re) {
+                        vm._filename_re = new RegExp("filename=[\'\"](.+)[\'\"]")
+                    }
+                    var matches = vm._filename_re.exec(req.getResponseHeader("Content-Disposition"))
+                    filename = (matches && matches[1])? matches[1]: (name + "." + this.vectorFormat)
+                } else {
+                    filename = name + "." + this.vectotFormat
+                }
+                saveAs(req.response, filename)
+            }
           }
           req.send(formData)
         }
@@ -351,6 +383,8 @@
         this.olmap.setSize([this.dpmm * this.layout.width, this.dpmm * this.layout.height])
         this.olmap.getView().fit(this.layout.extent, this.olmap.getSize())
         this.$root.map.setScale(this.$root.map.getFixedScale())
+        //extent is changed because the scale is adjusted to the closest fixed scale, recalculated the extent again
+        this.layout.extent = this.olmap.getView().calculateExtent(this.olmap.getSize())
       },
       // restore map to viewport dimensions
       resetSize: function () {
@@ -371,7 +405,7 @@
         formData.append('extent', this.layout.extent.join(' '))
         formData.append('jpg', blob, name + '.jpg')
         formData.append('dpi', Math.round(this.layout.canvasPxPerMM * 25.4))
-        formData.append('title', this.title)
+        formData.append('title', this.finalTitle)
         formData.append('author', this.legendInfo().author)
         var req = new window.XMLHttpRequest()
         req.open('POST', this.gokartService + '/gdal/' + format)
@@ -412,7 +446,7 @@
               canvas.getContext('2d').drawImage(qrcanvas, 8, height)
               window.URL.revokeObjectURL(url)
               // generate a jpg copy of the canvas contents
-              var filename = vm.title.replace(' ', '_')
+              var filename = vm.finalTitle.replace(' ', '_')
               canvas.toBlob(function (blob) {
                 if (format === 'jpg') {
                   saveAs(blob, filename + '.jpg')
@@ -441,7 +475,7 @@
           // download JSON blob of the current state
           localforage.getItem('sssOfflineStore').then(function (store) {
             var blob = new window.Blob([JSON.stringify(store, null, 2)], {type: 'application/json;charset=utf-8'})
-            saveAs(blob, 'sss_state_' +moment().format('YYYY-MM-DD-HHmm')+'.sss.json')
+            saveAs(blob, 'sss_view_' +moment().format('YYYY-MM-DD-HHmm')+'.sss.json')
           })
         }
       },
@@ -489,7 +523,8 @@
       },
       reset: function () {
         if (window.confirm('This will clear all of your selected layers and annotations. Are you sure?')) {
-          localforage.removeItem('sssOfflineStore').then(function (v) {
+          //except settings, clear everything
+          localforage.setItem('sssOfflineStore', {settings:this.$root.persistentData.settings}).then(function (v) {
             document.location.reload()
           })
         }
