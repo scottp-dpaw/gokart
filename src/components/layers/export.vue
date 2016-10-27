@@ -151,6 +151,12 @@
         vectorFormat: 'json',
         states: [],
         legendLayers:[],
+        vectorFormats:[
+            {format:"json",title:"GeoJSON (web GIS)",name:"GeoJSON"},
+            {format:"sqlite",title:"SQLite",name:"SQLite"},
+            {format:"gpkg",title:"GeoPackage",name:"GeoPackage"},
+            {format:"csv",title:"CSV (Spreadsheet/Excel)",name:"CSV"}
+        ]
       }
     },
     // parts of the template to be computed live

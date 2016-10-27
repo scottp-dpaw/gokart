@@ -52,11 +52,11 @@
             <div v-show="shouldShowDataFormatPicker" class="tool-slice row collapse">
               <div class="small-2"><label class="tool-label">Format:<br/>({{ export.vectorFormat }})</label></div>
               <div class="small-10">
-                <div class="expanded button-group">
-                  <a @click="setDataFormat('json')" v-bind:class="{'selected': export.vectorFormat === 'json'}" class="button" title="GeoJSON (weg GIS)">GeoJSON</a>
-                  <a @click="setDataFormat('sqlite')" v-bind:class="{'selected': export.vectorFormat === 'sqlite'}" class="button" title="SQLite">SQLite</a>
-                  <a @click="setDataFormat('csv')" v-bind:class="{'selected': export.vectorFormat === 'csv'}" class="button" title="CSV (Spreadsheet/Excel)">CSV</a>
-                </div>
+                  <div class="row resetmargin" >
+                    <div class="small-6" v-for="f in export.vectorFormats" v-bind:class="{'rightmargin': $index % 2 === 0}"`>
+                      <a @click="setDataFormat(f.format)" v-bind:class="{'selected': export.vectorFormat === f.format}" class="expanded button" title="{{f.title}}">{{f.name}}</a>
+                    </div>
+                  </div>
               </div>
             </div>
 

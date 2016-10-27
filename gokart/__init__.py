@@ -109,6 +109,10 @@ def ogr(fmt):
         f = "SQLite"
         ct = "application/x-sqlite3"
         dst_datasource = os.path.splitext(jsonfile)[0] + ".sqlite"
+    elif fmt == 'gpkg':
+        f = "GPKG"
+        ct = "application/x-sqlite3"
+        dst_datasource = os.path.splitext(jsonfile)[0] + ".gpkg"
     elif fmt == 'csv':
         f = "CSV"
         ct = "text/csv"
