@@ -191,6 +191,7 @@
     computed: {
       map: function () { return this.$root.$refs.app.$refs.map },
       annotations: function () { return this.$root.$refs.app.$refs.annotations },
+      catalogue: function () { return this.$root.catalogue },
       loading: function () { return this.$root.loading },
       features: function () {
         if (this.viewportOnly) {
@@ -274,6 +275,7 @@
       },
       toggleResourceLabels: function () {
         this.resourceLabels = !this.resourceLabels
+        this.catalogue.getMapLayer("dpaw:resource_tracking_live").changed()
       },
       featureIconSrc:function(f) {
         var vm = this
