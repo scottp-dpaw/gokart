@@ -736,8 +736,8 @@
           this.ui.modifyInter
         ],
         onSet: function() {
-            vm.ui.dragSelectInter.setMulti(true)
-            vm.ui.selectInter.setMulti(true)
+            vm.ui.dragSelectInter.setMulti(false)
+            vm.ui.selectInter.setMulti(false)
         }
       }
       this.tools = [
