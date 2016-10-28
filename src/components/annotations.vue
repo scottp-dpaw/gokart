@@ -633,6 +633,48 @@
         this.multi_ = multi
       }
 
+      // allow lasso selection of features
+      this.ui.lassoStart = function (ev) {
+
+      }
+      this.ui.lassoEnd = function (ev) {
+        var geom = ev.feature.getGeometry()
+        var extent = geom.getExtent()
+        vm.selectedFeatures.clear()
+        //var multi = (this.multi_ == undefined) ? true : this.multi_
+        
+        vm.selectable.forEach(function(layer) {
+          //if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
+
+          layer.getSource().forEachFeatureIntersectingExtent(extent, function (feature) {
+            //if (!multi && vm.selectedFeatures.getLength() > 0) {return true}
+            var coords = feature.getGeometry().getCoordinates()
+            if (feature.getGeometry() instanceof ol.geom.Point) {
+              coords = [coords]
+            }
+            for (var i=0; i<coords.length; i++) {
+              if (geom.intersectsCoordinate(coords[i])) {
+                vm.selectedFeatures.push(feature)
+                return
+              }
+            }
+          })
+        })
+      }
+      this.ui.lassoStyle = new ol.style.Style({
+        stroke: new ol.style.Stroke({
+          color: 'rgba(0, 0, 255, 1.0)',
+          width: 2
+        })
+      })
+      this.ui.lassoSelectInter = new ol.interaction.Draw({
+        type: 'Polygon',
+        style: this.ui.lassoStyle
+      });
+      this.ui.lassoSelectInter.on('drawstart', this.ui.lassoStart)
+      this.ui.lassoSelectInter.on('drawend', this.ui.lassoEnd)
+
+
       // allow selecting multiple features by clicking
       this.ui.selectInter = new ol.interaction.Select({
         layers: function(layer) { 
@@ -725,6 +767,15 @@
             vm.ui.selectInter.setMulti(true)
         }
       }
+      this.ui.defaultLasso = {
+        name: 'Lasso',
+        icon: '/dist/static/images/lasso.svg',
+        scope: ["annotation", "resourcetracking"],
+        interactions: [
+          this.ui.keyboardInter,
+          this.ui.lassoSelectInter
+        ]
+      }
       this.ui.defaultEdit = {
         name: 'Edit',
         icon: 'fa-pencil',
@@ -743,6 +794,7 @@
       this.tools = [
         this.ui.defaultPan,
         this.ui.defaultSelect,
+        this.ui.defaultLasso,
         this.ui.defaultEdit,
         this.ui.editStyle
       ]
